@@ -1,0 +1,39 @@
+{
+  "itemGroup.voltaicdynamics": "Voltaic Dynamics",
+  
+  "item.voltaicdynamics.voltaic_ingot": "Voltaic Ingot",
+  "item.voltaicdynamics.conductive_alloy": "Conductive Alloy",
+  "item.voltaicdynamics.voltaic_dust": "Voltaic Dust",
+  "item.voltaicdynamics.conductive_dust": "Conductive Dust",
+  "item.voltaicdynamics.thermopile_core": "Thermopile Core",
+  "item.voltaicdynamics.pocket_capacitor": "Pocket Capacitor",
+
+  "block.voltaicdynamics.thermoelectric_generator": "Thermoelectric Generator",
+  "block.voltaicdynamics.combustion_generator": "Combustion Generator",
+  "block.voltaicdynamics.basic_energy_cell": "Basic Energy Cell",
+  "block.voltaicdynamics.advanced_energy_cell": "Advanced Energy Cell",
+  "block.voltaicdynamics.energy_cable": "Energy Cable",
+
+  "tooltip.voltaicdynamics.energy": "%s / %s FE",
+  "tooltip.voltaicdynamics.pocket_capacitor.desc": "Recharges electric tools and armor held in main hand.",
+  "tooltip.voltaicdynamics.thermoelectric.desc1": "Generates passive FE via Seebeck thermal gradient.",
+  "tooltip.voltaicdynamics.thermoelectric.desc2": "Place adjacent to Hot (Lava/Magma) and Cold (Ice/Water) blocks.",
+  "tooltip.voltaicdynamics.combustion.desc1": "Burns standard solid fuels to generate 40 FE/t.",
+  "tooltip.voltaicdynamics.combustion.desc2": "Right-click to open machine control panel.",
+  
+  "tooltip.voltaicdynamics.basic_energy_cell.desc1": "Stores up to 1,000,000 FE.",
+  "tooltip.voltaicdynamics.basic_energy_cell.desc2": "Transfer rate: 2,000 FE/t. Auto-pushes to adjacent cables.",
+  "tooltip.voltaicdynamics.advanced_energy_cell.desc1": "Stores up to 8,000,000 FE.",
+  "tooltip.voltaicdynamics.advanced_energy_cell.desc2": "Transfer rate: 10,000 FE/t. Heavy-duty power reservoir.",
+
+  "tooltip.voltaicdynamics.energy_cable.desc1": "Transfers up to 2,000 FE/t.",
+  "tooltip.voltaicdynamics.energy_cable.desc2": "Connects to any machine from Mekanism, Powah, AE2, and more.",
+
+  "chat.voltaicdynamics.thermoelectric.status": "Thermoelectric: +%d FE/t | Buffer: %s / %s FE",
+  "chat.voltaicdynamics.combustion.status": "Combustion: %s / %s FE | Status: %s",
+  "chat.voltaicdynamics.combustion.fueled": "Fuel added to Combustion Generator!",
+
+  "tooltip.voltaicdynamics.gui.energy": "⚡ %s / %s FE",
+  "tooltip.voltaicdynamics.gui.rate": "⚡ Generation: +%d FE/t",
+  "tooltip.voltaicdynamics.gui.io_rate": "⚡ Max Transfer: %s FE/t"
+}

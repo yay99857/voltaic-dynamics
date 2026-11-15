@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "voltaicdynamics:block/thermoelectric_generator"
+    }
+  }
+}

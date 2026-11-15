@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "voltaicdynamics:voltaic_dust",
+    "voltaicdynamics:conductive_dust"
+  ]
+}

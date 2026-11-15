@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "AGA",
+    "RBR",
+    "AGA"
+  ],
+  "key": {
+    "A": { "item": "voltaicdynamics:conductive_alloy" },
+    "G": { "item": "minecraft:gold_ingot" },
+    "R": { "item": "minecraft:redstone" },
+    "B": { "item": "voltaicdynamics:basic_energy_cell" }
+  },
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:advanced_energy_cell"
+  }
+}

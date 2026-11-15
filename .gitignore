@@ -1,0 +1,18 @@
+# Gradle / build
+.gradle/
+build/
+out/
+*.class
+
+# Dev runtime
+run/
+runs/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+bin/
