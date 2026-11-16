@@ -39,17 +39,18 @@ public class CombustionGeneratorMenu extends MachineMenu {
         this.maxBurnTime = syncInt(generator::getMaxBurnTime);
         this.rate = syncInt(generator::getCurrentRate);
 
-        // Machine Fuel Slot (x: 80, y: 35)
-        this.addSlot(new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 0, 80, 35));
+        addMachineSlot("fuel", new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 0, 0, 0));
 
-        // Player Inventory (3 rows x 9 columns)
         addPlayerInventory(inv);
-        // Player Hotbar (9 slots)
-        addPlayerHotbar(inv);
     }
 
     public boolean isBurning() {
         return rate.get() > 0;
+    }
+
+    public double getBurnFraction() {
+        int max = maxBurnTime.get();
+        return max <= 0 ? 0 : (double) burnTime.get() / max;
     }
 
     public int getBurnScaled(int pixels) {
@@ -76,20 +77,6 @@ public class CombustionGeneratorMenu extends MachineMenu {
         int maxEnergy = getMaxEnergy();
         if (maxEnergy == 0) return 0;
         return (int) (((long) energy * pixels) / maxEnergy);
-    }
-
-    private void addPlayerInventory(Inventory playerInventory) {
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
-            }
-        }
-    }
-
-    private void addPlayerHotbar(Inventory playerInventory) {
-        for (int col = 0; col < 9; col++) {
-            this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
-        }
     }
 
     @Override

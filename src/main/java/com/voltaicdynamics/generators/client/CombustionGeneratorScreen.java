@@ -6,59 +6,28 @@ import com.voltaicdynamics.generators.CombustionGeneratorMenu;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-import java.util.List;
-
+/** Layout: {@code assets/voltaicdynamics/screens/combustion_generator.json} ({@code burn} flame, {@code energy} gauge). */
 public class CombustionGeneratorScreen extends MachineScreen<CombustionGeneratorMenu> {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "textures/gui/combustion_generator_gui.png");
-
     public CombustionGeneratorScreen(CombustionGeneratorMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
-        this.inventoryLabelY = 72;
+        super(menu, playerInventory, title, VoltaicDynamics.id("combustion_generator"));
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
-
-        // Fundo principal da GUI
-        guiGraphics.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
-
-        // Ícone de Chama Dinâmica (se estiver queimando)
-        if (this.menu.isBurning()) {
-            int burnHeight = this.menu.getBurnScaled(14);
-            guiGraphics.blit(TEXTURE, x + 80, y + 54 + 14 - burnHeight, 176, 14 - burnHeight, 14, burnHeight);
-        }
-
-        // Barra de Energia Dinâmica (Gauge)
-        int energyHeight = this.menu.getEnergyScaled(52);
-        if (energyHeight > 0) {
-            guiGraphics.blit(TEXTURE, x + 152, y + 18 + 52 - energyHeight, 176, 18 + 52 - energyHeight, 16, energyHeight);
-        }
+    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
+        drawBackground(g);
+        if (menu.isBurning()) drawWidget(g, "burn", menu.getBurnFraction());
+        drawWidget(g, "energy", fraction(menu.getEnergy(), menu.getMaxEnergy()));
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
-        super.renderTooltip(guiGraphics, x, y);
-
-        // Tooltip interativa na Barra de Energia
-        if (isHovering(152, 18, 16, 52, x, y)) {
-            List<Component> tooltip = List.of(
-                    Component.translatable("tooltip.voltaicdynamics.gui.energy",
-                            String.format("%,d", this.menu.getEnergy()),
-                            String.format("%,d", this.menu.getMaxEnergy())).withStyle(ChatFormatting.AQUA),
-                    Component.translatable("tooltip.voltaicdynamics.gui.rate",
-                            this.menu.getGenerationRate()).withStyle(ChatFormatting.GOLD)
-            );
-            guiGraphics.renderComponentTooltip(this.font, tooltip, x, y);
+    protected void renderTooltip(GuiGraphics g, int x, int y) {
+        super.renderTooltip(g, x, y);
+        if (isHovering("energy", x, y)) {
+            energyTooltip(g, x, y, menu.getEnergy(), menu.getMaxEnergy(),
+                    Component.translatable("tooltip.voltaicdynamics.gui.rate", menu.getGenerationRate()).withStyle(ChatFormatting.GOLD));
         }
     }
 }

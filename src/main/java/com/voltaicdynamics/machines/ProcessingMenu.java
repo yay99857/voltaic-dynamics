@@ -21,11 +21,8 @@ public abstract class ProcessingMenu extends MachineMenu {
     private final SyncedInt maxProgress;
     private final SyncedInt usage;
 
-    /**
-     * @param inputPositions x,y pairs of the input slots
-     */
-    protected ProcessingMenu(MenuType<?> type, int containerId, Inventory inv, BlockEntity entity,
-                             int[][] inputPositions, int outputX, int outputY) {
+    /** Slots are named {@code input_0..n} and {@code output}; the screen layout places them. */
+    protected ProcessingMenu(MenuType<?> type, int containerId, Inventory inv, BlockEntity entity) {
         super(type, containerId, entity);
         ProcessingMachineBlockEntity machine = (ProcessingMachineBlockEntity) entity;
         this.blockEntity = machine;
@@ -35,10 +32,11 @@ public abstract class ProcessingMenu extends MachineMenu {
         this.maxProgress = syncInt(machine::getMaxProgress);
         this.usage = syncInt(() -> machine.isActive() ? machine.energyPerTick() : 0);
 
-        for (int i = 0; i < inputPositions.length; i++) {
-            addSlot(new SlotItemHandler(blockEntity.getMenuItemHandler(), i, inputPositions[i][0], inputPositions[i][1]));
+        int inputs = blockEntity.getInputSlots();
+        for (int i = 0; i < inputs; i++) {
+            addMachineSlot("input_" + i, new SlotItemHandler(blockEntity.getMenuItemHandler(), i, 0, 0));
         }
-        addSlot(new SlotItemHandler(blockEntity.getMenuItemHandler(), blockEntity.outputSlot(), outputX, outputY) {
+        addMachineSlot("output", new SlotItemHandler(blockEntity.getMenuItemHandler(), blockEntity.outputSlot(), 0, 0) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
@@ -51,9 +49,9 @@ public abstract class ProcessingMenu extends MachineMenu {
                 super.onTake(player, stack);
             }
         });
-        this.machineSlots = inputPositions.length + 1;
+        this.machineSlots = inputs + 1;
 
-        addPlayerInventory(inv, 84);
+        addPlayerInventory(inv);
     }
 
     public int getMachineSlots() {
@@ -75,6 +73,11 @@ public abstract class ProcessingMenu extends MachineMenu {
     public int getEnergyScaled(int pixels) {
         int capacity = getCapacity();
         return capacity <= 0 ? 0 : (int) ((long) getEnergy() * pixels / capacity);
+    }
+
+    public double getProgressFraction() {
+        int max = maxProgress.get();
+        return max <= 0 ? 0 : (double) progress.get() / max;
     }
 
     public int getProgressScaled(int pixels) {

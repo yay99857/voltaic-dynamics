@@ -27,14 +27,14 @@ public class FluidTankMenu extends MachineMenu {
         FluidTankBlockEntity tank = this.blockEntity;
         this.amount = syncInt(() -> tank.getTank().getFluidAmount());
         this.capacity = syncInt(() -> tank.getTank().getCapacity());
-        addSlot(new SlotItemHandler(blockEntity.getMenuItemHandler(), FluidTankBlockEntity.SLOT_IN, 44, 20));
-        addSlot(new SlotItemHandler(blockEntity.getMenuItemHandler(), FluidTankBlockEntity.SLOT_OUT, 44, 52) {
+        addMachineSlot("in", new SlotItemHandler(blockEntity.getMenuItemHandler(), FluidTankBlockEntity.SLOT_IN, 0, 0));
+        addMachineSlot("out", new SlotItemHandler(blockEntity.getMenuItemHandler(), FluidTankBlockEntity.SLOT_OUT, 0, 0) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
             }
         });
-        addPlayerInventory(inv, 84);
+        addPlayerInventory(inv);
     }
 
     public int getAmount() {

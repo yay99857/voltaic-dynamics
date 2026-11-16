@@ -3,6 +3,7 @@ package com.voltaicdynamics.compat.jei;
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.compat.VoltaicInfo;
 import com.voltaicdynamics.core.client.MachineScreen;
+import com.voltaicdynamics.core.client.layout.ScreenLayout;
 import com.voltaicdynamics.generators.VoltaicGenerators;
 import com.voltaicdynamics.generators.client.CombustionGeneratorScreen;
 import com.voltaicdynamics.machines.AlloySmelterMenu;
@@ -13,14 +14,17 @@ import com.voltaicdynamics.machines.client.ElectricFurnaceScreen;
 import com.voltaicdynamics.machines.recipe.ModRecipes;
 
 import mezz.jei.api.IModPlugin;
+import mezz.jei.api.gui.handlers.IGuiClickableArea;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.Rect2i;
+import java.util.Collection;
 import java.util.List;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
+import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
@@ -49,16 +53,29 @@ public class VoltaicJeiPlugin implements IModPlugin {
 
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-        // Same rectangles the screens draw: furnace arrow and combustion flame.
-        registration.addRecipeClickArea(ElectricFurnaceScreen.class, 79, 34, 24, 17, RecipeTypes.SMELTING);
-        registration.addRecipeClickArea(CombustionGeneratorScreen.class, 80, 54, 14, 14, RecipeTypes.FUELING);
-        registration.addRecipeClickArea(AlloySmelterScreen.class, AlloySmelterScreen.ARROW_X, AlloySmelterScreen.ARROW_Y, 24, 17,
-                AlloyingCategory.TYPE);
         // Keep JEI's ingredient list clear of the side configuration tab.
         registration.addGenericGuiContainerHandler(MachineScreen.class, new IGuiContainerHandler<MachineScreen<?>>() {
             @Override
             public List<Rect2i> getGuiExtraAreas(MachineScreen<?> screen) {
                 return screen.getExtraAreas();
+            }
+
+            /** Clicking the arrow or flame (as placed by the screen layout) opens the matching recipes. */
+            @Override
+            public Collection<IGuiClickableArea> getGuiClickableAreas(MachineScreen<?> screen, double mouseX, double mouseY) {
+                RecipeType<?> type = null;
+                String widget = "progress";
+                if (screen instanceof ElectricFurnaceScreen) {
+                    type = RecipeTypes.SMELTING;
+                } else if (screen instanceof AlloySmelterScreen) {
+                    type = AlloyingCategory.TYPE;
+                } else if (screen instanceof CombustionGeneratorScreen) {
+                    type = RecipeTypes.FUELING;
+                    widget = "burn";
+                }
+                ScreenLayout.Widget area = type == null ? null : screen.widget(widget);
+                if (area == null) return List.of();
+                return List.of(IGuiClickableArea.createBasic(area.x(), area.y(), area.w(), area.h(), type));
             }
         });
     }

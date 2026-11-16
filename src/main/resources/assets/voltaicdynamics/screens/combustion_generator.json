@@ -1,0 +1,45 @@
+{
+  "texture": "voltaicdynamics:textures/gui/combustion_generator_gui.png",
+  "size": [
+    176,
+    166
+  ],
+  "title": [
+    8,
+    6
+  ],
+  "inventory_label": [
+    8,
+    72
+  ],
+  "player_inventory": [
+    8,
+    84
+  ],
+  "slots": {
+    "fuel": [
+      80,
+      35
+    ]
+  },
+  "widgets": {
+    "burn": {
+      "x": 80,
+      "y": 54,
+      "w": 14,
+      "h": 14,
+      "u": 176,
+      "v": 0,
+      "fill": "up"
+    },
+    "energy": {
+      "x": 152,
+      "y": 18,
+      "w": 16,
+      "h": 52,
+      "u": 176,
+      "v": 18,
+      "fill": "up"
+    }
+  }
+}

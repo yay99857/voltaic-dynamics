@@ -13,6 +13,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.IntSupplier;
 
 /**
@@ -26,6 +28,8 @@ public abstract class MachineMenu extends AbstractContainerMenu {
     /** True on the server, where synced values read the machine; false on the client, where they are received. */
     private final boolean serverSide;
     private final SyncedInt[] sideBits = new SyncedInt[TransferType.values().length];
+    /** Name of each machine slot, by slot index, for the screen layout (see {@link #addMachineSlot}). */
+    private final Map<Integer, String> slotNames = new HashMap<>();
 
     protected MachineMenu(@Nullable MenuType<?> type, int containerId, BlockEntity machine) {
         super(type, containerId);
@@ -49,14 +53,31 @@ public abstract class MachineMenu extends AbstractContainerMenu {
         return synced;
     }
 
-    protected void addPlayerInventory(Inventory inv, int top) {
+    /**
+     * Adds a machine slot under a name. The screen layout ({@code assets/<mod>/screens/<machine>.json}) places it
+     * on the client, so the slot is created at (0, 0) here: positions live only in the layout.
+     */
+    protected Slot addMachineSlot(String name, Slot slot) {
+        Slot added = addSlot(slot);
+        slotNames.put(added.index, name);
+        return added;
+    }
+
+    /** The name given in {@link #addMachineSlot}, or null for player inventory slots. */
+    @Nullable
+    public String slotName(Slot slot) {
+        return slotNames.get(slot.index);
+    }
+
+    /** Player inventory and hotbar, placed by the layout's {@code player_inventory} origin on the client. */
+    protected void addPlayerInventory(Inventory inv) {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                addSlot(new Slot(inv, col + row * 9 + 9, 8 + col * 18, top + row * 18));
+                addSlot(new Slot(inv, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
             }
         }
         for (int col = 0; col < 9; col++) {
-            addSlot(new Slot(inv, col, 8 + col * 18, top + 58));
+            addSlot(new Slot(inv, col, 8 + col * 18, 142));
         }
     }
 

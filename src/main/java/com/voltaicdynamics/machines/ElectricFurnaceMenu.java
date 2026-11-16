@@ -10,6 +10,6 @@ public class ElectricFurnaceMenu extends ProcessingMenu {
     }
 
     public ElectricFurnaceMenu(int containerId, Inventory inv, BlockEntity entity) {
-        super(VoltaicMachines.ELECTRIC_FURNACE_MENU.get(), containerId, inv, entity, new int[][]{{56, 35}}, 116, 35);
+        super(VoltaicMachines.ELECTRIC_FURNACE_MENU.get(), containerId, inv, entity);
     }
 }

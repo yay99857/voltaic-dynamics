@@ -2,58 +2,46 @@ package com.voltaicdynamics.power.client;
 
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.client.MachineScreen;
+import com.voltaicdynamics.core.client.layout.ScreenLayout;
 import com.voltaicdynamics.power.AccumulatorMenu;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 import java.util.List;
 
+/**
+ * Layout: {@code assets/voltaicdynamics/screens/accumulator.json}. The Advanced Accumulator draws its gauge from
+ * the {@code energy_advanced} widget (same place, gold texture).
+ */
 public class AccumulatorScreen extends MachineScreen<AccumulatorMenu> {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "textures/gui/accumulator_gui.png");
-
     public AccumulatorScreen(AccumulatorMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 166;
-        this.inventoryLabelY = 72;
+        super(menu, playerInventory, title, VoltaicDynamics.id("accumulator"));
+    }
+
+    private String gauge() {
+        return menu.isAdvanced() && widget("energy_advanced") != null ? "energy_advanced" : "energy";
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
-
-        guiGraphics.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight);
-
-        // Barra de Energia Dinâmica
-        int energyHeight = this.menu.getEnergyScaled(52);
-        if (energyHeight > 0) {
-            int uOffset = this.menu.isAdvanced() ? 196 : 176;
-            guiGraphics.blit(TEXTURE, x + 40, y + 18 + 52 - energyHeight, uOffset, 52 - energyHeight, 16, energyHeight);
-        }
+    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
+        drawBackground(g);
+        drawWidget(g, gauge(), fraction(menu.getEnergy(), menu.getCapacity()));
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
-        super.renderTooltip(guiGraphics, x, y);
-
-        // Tooltip na Barra de Energia
-        if (isHovering(40, 18, 16, 52, x, y)) {
-            ChatFormatting color = this.menu.isAdvanced() ? ChatFormatting.GOLD : ChatFormatting.AQUA;
-            List<Component> tooltip = List.of(
+    protected void renderTooltip(GuiGraphics g, int x, int y) {
+        super.renderTooltip(g, x, y);
+        ScreenLayout.Widget gauge = widget(gauge());
+        if (isHovering(gauge, x, y)) {
+            ChatFormatting color = menu.isAdvanced() ? ChatFormatting.GOLD : ChatFormatting.AQUA;
+            g.renderComponentTooltip(font, List.of(
                     Component.translatable("tooltip.voltaicdynamics.gui.energy",
-                            String.format("%,d", this.menu.getEnergy()),
-                            String.format("%,d", this.menu.getCapacity())).withStyle(color),
+                            String.format("%,d", menu.getEnergy()), String.format("%,d", menu.getCapacity())).withStyle(color),
                     Component.translatable("tooltip.voltaicdynamics.gui.io_rate",
-                            String.format("%,d", this.menu.getMaxTransfer())).withStyle(ChatFormatting.GRAY)
-            );
-            guiGraphics.renderComponentTooltip(this.font, tooltip, x, y);
+                            String.format("%,d", menu.getMaxTransfer())).withStyle(ChatFormatting.GRAY)), x, y);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.voltaicdynamics.client;
 
 import com.voltaicdynamics.VoltaicDynamics;
+import com.voltaicdynamics.core.client.layout.ScreenLayouts;
 import com.voltaicdynamics.generators.VoltaicGenerators;
 import com.voltaicdynamics.generators.client.CombustionGeneratorScreen;
 import com.voltaicdynamics.logistics.VoltaicLogistics;
@@ -18,6 +19,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
@@ -41,6 +43,12 @@ public class ClientModEvents {
     @SubscribeEvent
     public static void clientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(FluidTankItemRendering::registerFillProperty);
+    }
+
+    /** Screen layouts (assets/<mod>/screens/*.json), reloaded with F3+T. */
+    @SubscribeEvent
+    public static void registerReloadListeners(RegisterClientReloadListenersEvent event) {
+        event.registerReloadListener(ScreenLayouts.INSTANCE);
     }
 
     @SubscribeEvent

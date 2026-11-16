@@ -35,15 +35,10 @@ public class AccumulatorMenu extends MachineMenu {
         this.maxTransfer = syncInt(() -> cell.getTier().transfer());
         this.tier = syncInt(() -> cell.getTier().ordinal());
 
-        // Slot 0: Charge Slot (x: 101, y: 25)
-        this.addSlot(new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 0, 101, 25));
-        // Slot 1: Discharge Slot (x: 101, y: 51)
-        this.addSlot(new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 1, 101, 51));
+        addMachineSlot("charge", new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 0, 0, 0));
+        addMachineSlot("discharge", new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 1, 0, 0));
 
-        // Player Inventory
         addPlayerInventory(inv);
-        // Player Hotbar
-        addPlayerHotbar(inv);
     }
 
     public int getEnergy() {
@@ -67,20 +62,6 @@ public class AccumulatorMenu extends MachineMenu {
         int capacity = getCapacity();
         if (capacity == 0) return 0;
         return (int) (((long) energy * pixels) / capacity);
-    }
-
-    private void addPlayerInventory(Inventory playerInventory) {
-        for (int row = 0; row < 3; row++) {
-            for (int col = 0; col < 9; col++) {
-                this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 8 + col * 18, 84 + row * 18));
-            }
-        }
-    }
-
-    private void addPlayerHotbar(Inventory playerInventory) {
-        for (int col = 0; col < 9; col++) {
-            this.addSlot(new Slot(playerInventory, col, 8 + col * 18, 142));
-        }
     }
 
     @Override
