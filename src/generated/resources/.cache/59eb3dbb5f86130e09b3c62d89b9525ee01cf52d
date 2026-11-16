@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-15T08:31:29.066382404	Loot Tables
+// 1.21.1	2026-11-15T23:58:42.010721289	Loot Tables
 61acc5b8562849bdde5d0157a1bc5754f77451cb data/voltaicdynamics/loot_table/blocks/advanced_accumulator.json
 d430991446c2e80828cbd660d4e8be525b44ec01 data/voltaicdynamics/loot_table/blocks/alloy_smelter.json
 3138068b67062d8c4b8b8792e825aa0c1e038726 data/voltaicdynamics/loot_table/blocks/basic_accumulator.json
@@ -7,5 +7,6 @@ d430991446c2e80828cbd660d4e8be525b44ec01 data/voltaicdynamics/loot_table/blocks/
 d8eabe45685b796e0d41c7f7a5afbeab616a1a5d data/voltaicdynamics/loot_table/blocks/fluid_cable.json
 5b20214620f4e9a1c1f1cd4d5629024e1d627d21 data/voltaicdynamics/loot_table/blocks/fluid_tank.json
 53395b9cf05b5fa7381697fc9f7bdcab4f2425f4 data/voltaicdynamics/loot_table/blocks/item_cable.json
+4a0259f076b1c633d749c0fee07844e47444df05 data/voltaicdynamics/loot_table/blocks/pulverizer.json
 6eafd5e2a8272ab9f717ff5c2e5cdc9a9deee8fd data/voltaicdynamics/loot_table/blocks/thermoelectric_generator.json
 95313fd7d129403a4c4c9c6c456a5f7fd1872273 data/voltaicdynamics/loot_table/blocks/voltaic_cable.json

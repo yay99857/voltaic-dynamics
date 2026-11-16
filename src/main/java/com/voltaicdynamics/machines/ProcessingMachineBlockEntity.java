@@ -66,8 +66,19 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     @Nullable
     private RecipeManager cachedRecipes;
 
-    /** One operation the machine can run with what is in its input slots right now. */
-    public record Craft(ItemStack result, int ticks, float experience, Runnable consume) {
+    /**
+     * One operation the machine can run with what is in its input slots right now. {@code bonusChance} (0..1) is
+     * the chance of one extra result item; the output slot must have room for it before the operation starts.
+     */
+    public record Craft(ItemStack result, int ticks, float experience, Runnable consume, float bonusChance) {
+        public Craft(ItemStack result, int ticks, float experience, Runnable consume) {
+            this(result, ticks, experience, consume, 0F);
+        }
+
+        /** The most the operation can put in the output slot. */
+        ItemStack maxResult() {
+            return bonusChance > 0 ? result.copyWithCount(result.getCount() + 1) : result;
+        }
     }
 
     protected ProcessingMachineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, int inputSlots, int capacity) {
@@ -198,7 +209,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
             return false;
         }
         maxProgress = Math.max(1, craft.ticks());
-        if (!canOutput(craft.result())) return false;
+        if (!canOutput(craft.maxResult())) return false;
 
         // Without enough energy the machine pauses and keeps its progress.
         if (!energyStorage.consumeEnergy(energyPerTick())) return false;
@@ -207,11 +218,13 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
         if (progress >= maxProgress) {
             progress = 0;
             craft.consume().run();
+            ItemStack made = craft.result().copy();
+            if (craft.bonusChance() > 0 && level.random.nextFloat() < craft.bonusChance()) made.grow(1);
             ItemStack output = itemHandler.getStackInSlot(outputSlot());
             if (output.isEmpty()) {
-                itemHandler.setStackInSlot(outputSlot(), craft.result().copy());
+                itemHandler.setStackInSlot(outputSlot(), made);
             } else {
-                output.grow(craft.result().getCount());
+                output.grow(made.getCount());
                 itemHandler.setStackInSlot(outputSlot(), output);
             }
             storedExperience += craft.experience();

@@ -32,6 +32,10 @@ public final class VoltaicCore {
     // Dusts (for ore processing, crushing and blending)
     public static final DeferredItem<Item> VOLTAIC_DUST = ITEMS.registerSimpleItem("voltaic_dust");
     public static final DeferredItem<Item> GALVANIC_DUST = ITEMS.registerSimpleItem("galvanic_dust");
+    /** Made by the Pulverizer (in c:dusts/*, so packs can unify them with other mods' dusts); smelt into ingots. */
+    public static final DeferredItem<Item> IRON_DUST = ITEMS.registerSimpleItem("iron_dust");
+    public static final DeferredItem<Item> COPPER_DUST = ITEMS.registerSimpleItem("copper_dust");
+    public static final DeferredItem<Item> GOLD_DUST = ITEMS.registerSimpleItem("gold_dust");
 
     // Components
     public static final DeferredItem<Item> THERMOPILE_CORE = ITEMS.registerSimpleItem("thermopile_core");
@@ -49,6 +53,9 @@ public final class VoltaicCore {
                         output.accept(GALVANIC_ALLOY.get());
                         output.accept(VOLTAIC_DUST.get());
                         output.accept(GALVANIC_DUST.get());
+                        output.accept(IRON_DUST.get());
+                        output.accept(COPPER_DUST.get());
+                        output.accept(GOLD_DUST.get());
                         output.accept(THERMOPILE_CORE.get());
                     })
                     .build());

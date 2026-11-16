@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "tag": "c:ingots/copper"
+    },
+    "F": {
+      "item": "minecraft:flint"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "pattern": [
+    "IFI",
+    "CPC",
+    "IRI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:pulverizer"
+  }
+}

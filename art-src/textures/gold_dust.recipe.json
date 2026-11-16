@@ -1,0 +1,48 @@
+{
+ "name": "gold_dust",
+ "description": "gold dust: Voltaic Dust recoloured (gen_metal_dusts.py).",
+ "steps": [
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#5a1414",
+    "to": "#6b5a10"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#8c2626",
+    "to": "#9c8418"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#b8423a",
+    "to": "#c9ad25"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#d4664e",
+    "to": "#e8cf3a"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#ea8f6c",
+    "to": "#f8e86a"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#ffc49e",
+    "to": "#fffbc4"
+   }
+  }
+ ]
+}

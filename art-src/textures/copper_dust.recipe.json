@@ -1,0 +1,48 @@
+{
+ "name": "copper_dust",
+ "description": "copper dust: Voltaic Dust recoloured (gen_metal_dusts.py).",
+ "steps": [
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#5a1414",
+    "to": "#5a2a12"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#8c2626",
+    "to": "#8a4419"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#b8423a",
+    "to": "#b8622a"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#d4664e",
+    "to": "#d9823c"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#ea8f6c",
+    "to": "#eda45e"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#ffc49e",
+    "to": "#ffd0a0"
+   }
+  }
+ ]
+}

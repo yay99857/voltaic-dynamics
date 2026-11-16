@@ -23,6 +23,9 @@ public final class VoltaicConfig {
     public static final ModConfigSpec.IntValue ALLOY_ENERGY_PER_TICK;
     public static final ModConfigSpec.DoubleValue ALLOY_TIME_MULTIPLIER;
     public static final ModConfigSpec.IntValue ALLOY_CAPACITY;
+    public static final ModConfigSpec.IntValue PULVERIZER_ENERGY_PER_TICK;
+    public static final ModConfigSpec.DoubleValue PULVERIZER_TIME_MULTIPLIER;
+    public static final ModConfigSpec.IntValue PULVERIZER_CAPACITY;
 
     public static final ModConfigSpec.IntValue TANK_CAPACITY;
     public static final ModConfigSpec.IntValue TANK_EJECT_RATE;
@@ -78,6 +81,15 @@ public final class VoltaicConfig {
         ALLOY_TIME_MULTIPLIER = b.comment("Multiplies the time of every alloying recipe (0.5 = twice as fast).")
                 .defineInRange("timeMultiplier", 1.0, 0.01, 100.0);
         ALLOY_CAPACITY = b.comment("Internal buffer in FE.")
+                .defineInRange("capacity", 20_000, 1, Integer.MAX_VALUE);
+        b.pop();
+
+        b.push("pulverizer");
+        PULVERIZER_ENERGY_PER_TICK = b.comment("FE/t consumed while crushing.")
+                .defineInRange("energyPerTick", 20, 0, 32_000);
+        PULVERIZER_TIME_MULTIPLIER = b.comment("Multiplies the time of every crushing recipe (0.5 = twice as fast).")
+                .defineInRange("timeMultiplier", 1.0, 0.01, 100.0);
+        PULVERIZER_CAPACITY = b.comment("Internal buffer in FE.")
                 .defineInRange("capacity", 20_000, 1, Integer.MAX_VALUE);
         b.pop();
 

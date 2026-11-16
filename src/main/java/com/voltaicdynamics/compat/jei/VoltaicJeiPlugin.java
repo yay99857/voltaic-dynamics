@@ -11,6 +11,8 @@ import com.voltaicdynamics.machines.ElectricFurnaceMenu;
 import com.voltaicdynamics.machines.VoltaicMachines;
 import com.voltaicdynamics.machines.client.AlloySmelterScreen;
 import com.voltaicdynamics.machines.client.ElectricFurnaceScreen;
+import com.voltaicdynamics.machines.client.PulverizerScreen;
+import com.voltaicdynamics.machines.PulverizerMenu;
 import com.voltaicdynamics.machines.recipe.ModRecipes;
 
 import mezz.jei.api.IModPlugin;
@@ -42,11 +44,13 @@ public class VoltaicJeiPlugin implements IModPlugin {
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new AlloyingCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new CrushingCategory(registration.getJeiHelpers().getGuiHelper()));
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(VoltaicMachines.ALLOY_SMELTER.get(), AlloyingCategory.TYPE);
+        registration.addRecipeCatalyst(VoltaicMachines.PULVERIZER.get(), CrushingCategory.TYPE);
         registration.addRecipeCatalyst(VoltaicMachines.ELECTRIC_FURNACE.get(), RecipeTypes.SMELTING);
         registration.addRecipeCatalyst(VoltaicGenerators.COMBUSTION_GENERATOR.get(), RecipeTypes.FUELING);
     }
@@ -69,6 +73,8 @@ public class VoltaicJeiPlugin implements IModPlugin {
                     type = RecipeTypes.SMELTING;
                 } else if (screen instanceof AlloySmelterScreen) {
                     type = AlloyingCategory.TYPE;
+                } else if (screen instanceof PulverizerScreen) {
+                    type = CrushingCategory.TYPE;
                 } else if (screen instanceof CombustionGeneratorScreen) {
                     type = RecipeTypes.FUELING;
                     widget = "burn";
@@ -88,6 +94,9 @@ public class VoltaicJeiPlugin implements IModPlugin {
         // Slots 0..2 = inputs, 3 = output, 4..39 = player inventory.
         registration.addRecipeTransferHandler(AlloySmelterMenu.class, VoltaicMachines.ALLOY_SMELTER_MENU.get(),
                 AlloyingCategory.TYPE, 0, 3, 4, 36);
+        // Slot 0 = input, 1 = output, 2..37 = player inventory.
+        registration.addRecipeTransferHandler(PulverizerMenu.class, VoltaicMachines.PULVERIZER_MENU.get(),
+                CrushingCategory.TYPE, 0, 1, 2, 36);
     }
 
     @Override
@@ -96,6 +105,8 @@ public class VoltaicJeiPlugin implements IModPlugin {
         if (level != null) {
             registration.addRecipes(AlloyingCategory.TYPE,
                     List.copyOf(level.getRecipeManager().getAllRecipesFor(ModRecipes.ALLOYING.get())));
+            registration.addRecipes(CrushingCategory.TYPE,
+                    List.copyOf(level.getRecipeManager().getAllRecipesFor(ModRecipes.CRUSHING.get())));
         }
         for (VoltaicInfo.Entry entry : VoltaicInfo.ENTRIES) {
             registration.addIngredientInfo(entry.item().get(), entry.text());

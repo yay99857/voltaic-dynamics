@@ -1,0 +1,12 @@
+{
+  "type": "voltaicdynamics:crushing",
+  "ingredient": {
+    "count": 2,
+    "item": "minecraft:gravel"
+  },
+  "result": {
+    "count": 1,
+    "id": "minecraft:flint"
+  },
+  "time": 80
+}

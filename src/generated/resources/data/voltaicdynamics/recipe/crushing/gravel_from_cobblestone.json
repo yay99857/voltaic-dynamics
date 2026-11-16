@@ -1,0 +1,12 @@
+{
+  "type": "voltaicdynamics:crushing",
+  "ingredient": {
+    "count": 1,
+    "tag": "c:cobblestones/normal"
+  },
+  "result": {
+    "count": 1,
+    "id": "minecraft:gravel"
+  },
+  "time": 60
+}

@@ -16,7 +16,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-/** Machines that turn FE into processing: Electric Furnace, Alloy Smelter and the alloying recipe type. */
+/** Machines that turn FE into processing: Electric Furnace, Alloy Smelter, Pulverizer and their recipe types. */
 public final class VoltaicMachines {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(VoltaicDynamics.MOD_ID);
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(VoltaicDynamics.MOD_ID);
@@ -35,6 +35,11 @@ public final class VoltaicMachines {
             () -> new AlloySmelterBlock(VoltaicDynamics.machineProperties(3.5F, 6.0F)
                     .lightLevel(state -> state.getValue(AlloySmelterBlock.LIT) ? 10 : 0)));
 
+    public static final DeferredBlock<PulverizerBlock> PULVERIZER = BLOCKS.register(
+            "pulverizer",
+            () -> new PulverizerBlock(VoltaicDynamics.machineProperties(3.5F, 6.0F)
+                    .lightLevel(state -> state.getValue(PulverizerBlock.LIT) ? 6 : 0)));
+
     // Block entities
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricFurnaceBlockEntity>> ELECTRIC_FURNACE_BE =
             BLOCK_ENTITIES.register("electric_furnace", () ->
@@ -44,6 +49,10 @@ public final class VoltaicMachines {
             BLOCK_ENTITIES.register("alloy_smelter", () ->
                     BlockEntityType.Builder.of(AlloySmelterBlockEntity::new, ALLOY_SMELTER.get()).build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PulverizerBlockEntity>> PULVERIZER_BE =
+            BLOCK_ENTITIES.register("pulverizer", () ->
+                    BlockEntityType.Builder.of(PulverizerBlockEntity::new, PULVERIZER.get()).build(null));
+
     // Menus
     public static final DeferredHolder<MenuType<?>, MenuType<ElectricFurnaceMenu>> ELECTRIC_FURNACE_MENU =
             MENUS.register("electric_furnace_menu", () -> IMenuTypeExtension.create(ElectricFurnaceMenu::new));
@@ -51,12 +60,16 @@ public final class VoltaicMachines {
     public static final DeferredHolder<MenuType<?>, MenuType<AlloySmelterMenu>> ALLOY_SMELTER_MENU =
             MENUS.register("alloy_smelter_menu", () -> IMenuTypeExtension.create(AlloySmelterMenu::new));
 
+    public static final DeferredHolder<MenuType<?>, MenuType<PulverizerMenu>> PULVERIZER_MENU =
+            MENUS.register("pulverizer_menu", () -> IMenuTypeExtension.create(PulverizerMenu::new));
+
     private VoltaicMachines() {
     }
 
     public static void register(IEventBus modEventBus) {
         ITEMS.registerSimpleBlockItem(ELECTRIC_FURNACE);
         ITEMS.registerSimpleBlockItem(ALLOY_SMELTER);
+        ITEMS.registerSimpleBlockItem(PULVERIZER);
 
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
@@ -78,12 +91,17 @@ public final class VoltaicMachines {
                 (be, side) -> be.getEnergyStorage(side));
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ALLOY_SMELTER_BE.get(),
                 (be, side) -> be.getItemHandler(side));
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, PULVERIZER_BE.get(),
+                (be, side) -> be.getEnergyStorage(side));
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, PULVERIZER_BE.get(),
+                (be, side) -> be.getItemHandler(side));
     }
 
     private static void addToCreativeTab(BuildCreativeModeTabContentsEvent event) {
         if (VoltaicCore.VOLTAIC_TAB.is(event.getTabKey())) {
             event.accept(ELECTRIC_FURNACE.get());
             event.accept(ALLOY_SMELTER.get());
+            event.accept(PULVERIZER.get());
         }
     }
 }

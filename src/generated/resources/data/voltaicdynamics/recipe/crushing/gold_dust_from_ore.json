@@ -1,0 +1,22 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:ores/gold"
+      }
+    }
+  ],
+  "type": "voltaicdynamics:crushing",
+  "experience": 0.2,
+  "ingredient": {
+    "count": 1,
+    "tag": "c:ores/gold"
+  },
+  "result": {
+    "count": 2,
+    "id": "voltaicdynamics:gold_dust"
+  },
+  "time": 120
+}

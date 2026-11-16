@@ -8,6 +8,8 @@ import com.voltaicdynamics.machines.AlloySmelterMenu;
 import com.voltaicdynamics.machines.ElectricFurnaceMenu;
 import com.voltaicdynamics.machines.VoltaicMachines;
 import com.voltaicdynamics.machines.recipe.AlloyingRecipe;
+import com.voltaicdynamics.machines.recipe.CrushingRecipe;
+import com.voltaicdynamics.machines.PulverizerMenu;
 import com.voltaicdynamics.machines.recipe.ModRecipes;
 
 import dev.emi.emi.api.EmiEntrypoint;
@@ -36,8 +38,33 @@ public class VoltaicEmiPlugin implements EmiPlugin {
     public static final EmiRecipeCategory ALLOYING = new EmiRecipeCategory(
             ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "alloying"), EmiStack.of(VoltaicMachines.ALLOY_SMELTER.get()));
 
+    public static final EmiRecipeCategory CRUSHING = new EmiRecipeCategory(
+            ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "crushing"), EmiStack.of(VoltaicMachines.PULVERIZER.get()));
+
     @Override
     public void register(EmiRegistry registry) {
+        registry.addCategory(CRUSHING);
+        registry.addWorkstation(CRUSHING, EmiStack.of(VoltaicMachines.PULVERIZER.get()));
+        for (RecipeHolder<CrushingRecipe> holder : registry.getRecipeManager().getAllRecipesFor(ModRecipes.CRUSHING.get())) {
+            registry.addRecipe(new CrushingEmiRecipe(holder));
+        }
+        registry.addRecipeHandler(VoltaicMachines.PULVERIZER_MENU.get(), new StandardRecipeHandler<PulverizerMenu>() {
+            @Override
+            public List<Slot> getInputSources(PulverizerMenu menu) {
+                return menu.slots.subList(2, 38);
+            }
+
+            @Override
+            public List<Slot> getCraftingSlots(PulverizerMenu menu) {
+                return menu.slots.subList(0, 1);
+            }
+
+            @Override
+            public boolean supportsRecipe(EmiRecipe recipe) {
+                return recipe.getCategory() == CRUSHING && recipe.supportsRecipeTree();
+            }
+        });
+
         registry.addCategory(ALLOYING);
         registry.addWorkstation(ALLOYING, EmiStack.of(VoltaicMachines.ALLOY_SMELTER.get()));
         for (RecipeHolder<AlloyingRecipe> holder : registry.getRecipeManager().getAllRecipesFor(ModRecipes.ALLOYING.get())) {

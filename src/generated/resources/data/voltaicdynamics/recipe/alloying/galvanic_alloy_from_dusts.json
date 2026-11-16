@@ -1,13 +1,4 @@
 {
-  "neoforge:conditions": [
-    {
-      "type": "neoforge:not",
-      "value": {
-        "type": "neoforge:tag_empty",
-        "tag": "c:dusts/gold"
-      }
-    }
-  ],
   "type": "voltaicdynamics:alloying",
   "experience": 0.8,
   "ingredients": [

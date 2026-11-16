@@ -109,5 +109,16 @@
   "tooltip.voltaicdynamics.voltaic_wrench.rotate": "Botão direito numa máquina: gira",
   "tooltip.voltaicdynamics.voltaic_wrench.cable": "Botão direito no braço de um cabo de itens ou fluidos: entrega / puxa / desligado",
   "tooltip.voltaicdynamics.voltaic_wrench.dismantle": "Agachado + botão direito num bloco Voltaic: recolhe",
-  "info.voltaicdynamics.voltaic_wrench": "Botão direito numa máquina gira ela um quarto de volta; a configuração de lados gira junto. Botão direito (agachado ou não) no braço de um cabo de itens ou fluidos alterna: entrega, puxa (conector laranja), desligado. Agachado + botão direito em qualquer outro bloco Voltaic recolhe direto para o inventário, com energia e fluido. Também funciona como chave para outros mods (c:tools/wrench)."
+  "info.voltaicdynamics.voltaic_wrench": "Botão direito numa máquina gira ela um quarto de volta; a configuração de lados gira junto. Botão direito (agachado ou não) no braço de um cabo de itens ou fluidos alterna: entrega, puxa (conector laranja), desligado. Agachado + botão direito em qualquer outro bloco Voltaic recolhe direto para o inventário, com energia e fluido. Também funciona como chave para outros mods (c:tools/wrench).",
+  "block.voltaicdynamics.pulverizer": "Pulverizador",
+  "item.voltaicdynamics.iron_dust": "Pó de Ferro",
+  "item.voltaicdynamics.copper_dust": "Pó de Cobre",
+  "item.voltaicdynamics.gold_dust": "Pó de Ouro",
+  "tag.item.c.dusts.gold": "Pós de Ouro",
+  "tooltip.voltaicdynamics.pulverizer.desc1": "Tritura minérios, metais brutos e lingotes em pó usando %s FE/t.",
+  "tooltip.voltaicdynamics.pulverizer.desc2": "Minério: 2 pós. Metal bruto: 1 pó, com 50% de chance de um segundo.",
+  "jei.voltaicdynamics.crushing": "Trituração",
+  "jei.voltaicdynamics.crushing.bonus": "+1 com %s%%",
+  "emi.category.voltaicdynamics.crushing": "Trituração",
+  "info.voltaicdynamics.pulverizer": "Tritura com FE: um bloco de minério dá 2 pós, um metal bruto dá 1 pó com 50% de chance de um segundo, um lingote dá 1 pó. Funda os pós em lingotes, ou misture Pó de Ferro e de Cobre com Redstone para fazer Pó Voltaico. Também transforma pedregulho em cascalho e cascalho em areia ou sílex. Packs podem adicionar receitas do tipo voltaicdynamics:crushing."
 }

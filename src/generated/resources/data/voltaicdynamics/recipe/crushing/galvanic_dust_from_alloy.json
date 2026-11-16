@@ -1,0 +1,12 @@
+{
+  "type": "voltaicdynamics:crushing",
+  "ingredient": {
+    "count": 1,
+    "tag": "voltaicdynamics:alloys/galvanic"
+  },
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:galvanic_dust"
+  },
+  "time": 80
+}

@@ -109,5 +109,16 @@
   "tooltip.voltaicdynamics.voltaic_wrench.rotate": "Right-click a machine: turn it",
   "tooltip.voltaicdynamics.voltaic_wrench.cable": "Right-click an item or fluid cable arm: deliver / pull / off",
   "tooltip.voltaicdynamics.voltaic_wrench.dismantle": "Sneak + right-click a Voltaic block: pick it up",
-  "info.voltaicdynamics.voltaic_wrench": "Right-click a machine to turn it a quarter turn; its side configuration turns with it. Right-click (sneaking or not) the arm of an item or fluid cable to cycle it: deliver, pull (orange connector), off. Sneak + right-click any other Voltaic block to pick it up straight into your inventory, energy and fluid included. Works as a wrench for other mods too (c:tools/wrench)."
+  "info.voltaicdynamics.voltaic_wrench": "Right-click a machine to turn it a quarter turn; its side configuration turns with it. Right-click (sneaking or not) the arm of an item or fluid cable to cycle it: deliver, pull (orange connector), off. Sneak + right-click any other Voltaic block to pick it up straight into your inventory, energy and fluid included. Works as a wrench for other mods too (c:tools/wrench).",
+  "block.voltaicdynamics.pulverizer": "Pulverizer",
+  "item.voltaicdynamics.iron_dust": "Iron Dust",
+  "item.voltaicdynamics.copper_dust": "Copper Dust",
+  "item.voltaicdynamics.gold_dust": "Gold Dust",
+  "tag.item.c.dusts.gold": "Gold Dusts",
+  "tooltip.voltaicdynamics.pulverizer.desc1": "Crushes ores, raw metals and ingots into dusts using %s FE/t.",
+  "tooltip.voltaicdynamics.pulverizer.desc2": "Ore: 2 dusts. Raw metal: 1 dust, 50% chance of a second.",
+  "jei.voltaicdynamics.crushing": "Crushing",
+  "jei.voltaicdynamics.crushing.bonus": "+1 at %s%%",
+  "emi.category.voltaicdynamics.crushing": "Crushing",
+  "info.voltaicdynamics.pulverizer": "Crushes with FE: an ore block gives 2 dusts, a raw metal 1 dust with a 50% chance of a second, an ingot 1 dust. Smelt the dusts into ingots, or mix Iron and Copper Dust with Redstone into Voltaic Dust. Also turns cobblestone into gravel and gravel into sand or flint. Packs can add recipes of type voltaicdynamics:crushing."
 }

@@ -20,6 +20,12 @@ public final class ModRecipes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<AlloyingRecipe>> ALLOYING_SERIALIZER =
             SERIALIZERS.register("alloying", AlloyingRecipe.Serializer::new);
 
+    public static final DeferredHolder<RecipeType<?>, RecipeType<CrushingRecipe>> CRUSHING =
+            TYPES.register("crushing", () -> RecipeType.simple(
+                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "crushing")));
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<CrushingRecipe>> CRUSHING_SERIALIZER =
+            SERIALIZERS.register("crushing", CrushingRecipe.Serializer::new);
+
     private ModRecipes() {
     }
 }

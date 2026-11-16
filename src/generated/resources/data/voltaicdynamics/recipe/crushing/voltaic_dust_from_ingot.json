@@ -1,0 +1,12 @@
+{
+  "type": "voltaicdynamics:crushing",
+  "ingredient": {
+    "count": 1,
+    "tag": "c:ingots/voltaic"
+  },
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:voltaic_dust"
+  },
+  "time": 80
+}

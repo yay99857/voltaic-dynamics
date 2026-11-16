@@ -7,6 +7,7 @@ import com.voltaicdynamics.core.energy.VoltaicEnergyStorage;
 import com.voltaicdynamics.datagen.ModTags;
 import com.voltaicdynamics.machines.AlloySmelterBlockEntity;
 import com.voltaicdynamics.machines.ElectricFurnaceBlockEntity;
+import com.voltaicdynamics.machines.PulverizerBlockEntity;
 import com.voltaicdynamics.machines.VoltaicMachines;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
@@ -17,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.minecraft.core.Direction;
@@ -26,7 +28,7 @@ import static com.voltaicdynamics.gametest.GameTestSupport.EMPTY;
 import static com.voltaicdynamics.gametest.GameTestSupport.power;
 
 /**
- * Electric Furnace, Alloy Smelter and the recipe set. Run with {@code ./gradlew runGameTestServer};
+ * Electric Furnace, Alloy Smelter, Pulverizer and the recipe set. Run with {@code ./gradlew runGameTestServer};
  * the server exits non-zero when a required test fails. Only loaded when game tests are enabled.
  */
 @GameTestHolder(VoltaicDynamics.MOD_ID)
@@ -75,7 +77,7 @@ public class MachineGameTests {
         });
     }
 
-    /** Ingots come only from smelting dust: the old shapeless shortcut recipes are gone. */
+    /** No shapeless shortcuts to ingots or alloy; Voltaic Dust from dusts, and from ingots to get started. */
     @GameTest(template = EMPTY)
     public static void noDuplicateAlloyRecipes(GameTestHelper helper) {
         var recipes = helper.getLevel().getRecipeManager();
@@ -84,30 +86,20 @@ public class MachineGameTests {
         helper.assertTrue(recipes.byKey(ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "galvanic_alloy")).isEmpty(),
                 "shapeless galvanic_alloy recipe still exists");
 
-        // Voltaic Dust takes dusts; ingots only work as a fallback when no mod provides the dusts.
+        // Voltaic Dust: from iron + copper dust (2), and from ingots (1) so the first Voltaic Ingots can be made
+        // before any machine exists.
+        var registries = helper.getLevel().registryAccess();
         CraftingInput ingots = CraftingInput.of(3, 1, List.of(
                 new ItemStack(Items.IRON_INGOT), new ItemStack(Items.COPPER_INGOT), new ItemStack(Items.REDSTONE)));
-        var registries = helper.getLevel().registryAccess();
-        boolean dustsExist = BuiltInRegistries.ITEM.getTag(ModTags.DUSTS_IRON).map(t -> t.size() > 0).orElse(false)
-                && BuiltInRegistries.ITEM.getTag(ModTags.DUSTS_COPPER).map(t -> t.size() > 0).orElse(false);
-        boolean ingotsMakeDust = recipes.getRecipesFor(RecipeType.CRAFTING, ingots, helper.getLevel()).stream()
-                .anyMatch(r -> r.value().getResultItem(registries).is(VoltaicCore.VOLTAIC_DUST.get()));
-        helper.assertTrue(ingotsMakeDust != dustsExist,
-                dustsExist ? "ingots still make voltaic dust although dusts exist" : "no fallback voltaic dust recipe without dusts");
-
-        // With an ore-processing mod installed (as in Bubie Pack) the dust recipe must exist and work.
-        var ironDust = BuiltInRegistries.ITEM.getTag(ModTags.DUSTS_IRON).flatMap(t -> t.stream().findFirst());
-        var copperDust = BuiltInRegistries.ITEM.getTag(ModTags.DUSTS_COPPER).flatMap(t -> t.stream().findFirst());
-        if (ironDust.isPresent() && copperDust.isPresent()) {
-            CraftingInput dusts = CraftingInput.of(3, 1, List.of(new ItemStack(ironDust.get()),
-                    new ItemStack(copperDust.get()), new ItemStack(Items.REDSTONE)));
-            helper.assertTrue(recipes.getRecipesFor(RecipeType.CRAFTING, dusts, helper.getLevel()).stream()
-                            .anyMatch(r -> r.value().getResultItem(registries).is(VoltaicCore.VOLTAIC_DUST.get())),
-                    "iron dust + copper dust + redstone does not make voltaic dust");
-        } else {
-            helper.assertTrue(recipes.byKey(ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "voltaic_dust")).isEmpty(),
-                    "voltaic_dust recipe loaded although no mod provides iron or copper dust");
-        }
+        helper.assertTrue(recipes.getRecipesFor(RecipeType.CRAFTING, ingots, helper.getLevel()).stream()
+                        .anyMatch(r -> r.value().getResultItem(registries).is(VoltaicCore.VOLTAIC_DUST.get())),
+                "no voltaic dust from ingots: nothing to start with");
+        CraftingInput dusts = CraftingInput.of(3, 1, List.of(new ItemStack(VoltaicCore.IRON_DUST.get()),
+                new ItemStack(VoltaicCore.COPPER_DUST.get()), new ItemStack(Items.REDSTONE)));
+        helper.assertTrue(recipes.getRecipesFor(RecipeType.CRAFTING, dusts, helper.getLevel()).stream()
+                        .anyMatch(r -> r.value().getResultItem(registries).getCount() == 2
+                                && r.value().getResultItem(registries).is(VoltaicCore.VOLTAIC_DUST.get())),
+                "iron dust + copper dust + redstone does not make 2 voltaic dust");
         helper.succeed();
     }
 
@@ -153,6 +145,66 @@ public class MachineGameTests {
                 .byKey(ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "alloy_smelter"));
         helper.assertTrue(recipe.isPresent(), "alloy_smelter recipe missing");
         for (var ingredient : recipe.get().value().getIngredients()) {
+            helper.assertTrue(!ingredient.test(new ItemStack(VoltaicCore.GALVANIC_ALLOY.get())), "recipe needs Galvanic Alloy");
+        }
+        helper.succeed();
+    }
+
+    /** An iron ore block gives exactly 2 Iron Dust. */
+    @GameTest(template = EMPTY, timeoutTicks = 400)
+    public static void pulverizerCrushesOre(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(2, 1, 2);
+        helper.setBlock(pos, VoltaicMachines.PULVERIZER.get());
+        PulverizerBlockEntity pulverizer = helper.getBlockEntity(pos);
+        var items = pulverizer.getItemHandler(null);
+        items.insertItem(PulverizerBlockEntity.SLOT_INPUT, new ItemStack(Items.IRON_ORE), false);
+        power(pulverizer, 100_000);
+        helper.succeedWhen(() -> {
+            ItemStack out = items.getStackInSlot(PulverizerBlockEntity.SLOT_OUTPUT);
+            helper.assertTrue(out.is(VoltaicCore.IRON_DUST.get()) && out.getCount() == 2, "output is " + out);
+            helper.assertTrue(items.getStackInSlot(PulverizerBlockEntity.SLOT_INPUT).isEmpty(), "ore was not consumed");
+        });
+    }
+
+    /** 8 Raw Copper give 8 to 16 Copper Dust (one each, plus the 50% bonus), and nothing is left behind. */
+    @GameTest(template = EMPTY, timeoutTicks = 1200)
+    public static void pulverizerBonusOnRawMetal(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(2, 1, 2);
+        helper.setBlock(pos, VoltaicMachines.PULVERIZER.get());
+        PulverizerBlockEntity pulverizer = helper.getBlockEntity(pos);
+        var items = pulverizer.getItemHandler(null);
+        items.insertItem(PulverizerBlockEntity.SLOT_INPUT, new ItemStack(Items.RAW_COPPER, 8), false);
+        power(pulverizer, 1_000_000);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(items.getStackInSlot(PulverizerBlockEntity.SLOT_INPUT).isEmpty(), "raw copper left");
+            ItemStack out = items.getStackInSlot(PulverizerBlockEntity.SLOT_OUTPUT);
+            helper.assertTrue(out.is(VoltaicCore.COPPER_DUST.get()) && out.getCount() >= 8 && out.getCount() <= 16,
+                    "output is " + out);
+        });
+    }
+
+    /** The dusts smelt back into the vanilla ingots. */
+    @GameTest(template = EMPTY)
+    public static void metalDustsSmeltIntoIngots(GameTestHelper helper) {
+        var recipes = helper.getLevel().getRecipeManager();
+        var registries = helper.getLevel().registryAccess();
+        for (var pair : List.of(List.of(VoltaicCore.IRON_DUST.get(), Items.IRON_INGOT),
+                List.of(VoltaicCore.COPPER_DUST.get(), Items.COPPER_INGOT),
+                List.of(VoltaicCore.GOLD_DUST.get(), Items.GOLD_INGOT))) {
+            var result = recipes.getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(new ItemStack(pair.get(0))), helper.getLevel())
+                    .map(r -> r.value().getResultItem(registries));
+            helper.assertTrue(result.isPresent() && result.get().is(pair.get(1)), pair.get(0) + " does not smelt into " + pair.get(1));
+        }
+        helper.succeed();
+    }
+
+    /** The Pulverizer is how good Voltaic Ingots are made, so it must not need one. */
+    @GameTest(template = EMPTY)
+    public static void pulverizerHasNoBootstrapLoop(GameTestHelper helper) {
+        var recipe = helper.getLevel().getRecipeManager().byKey(VoltaicDynamics.id("pulverizer"));
+        helper.assertTrue(recipe.isPresent(), "pulverizer recipe missing");
+        for (var ingredient : recipe.get().value().getIngredients()) {
+            helper.assertTrue(!ingredient.test(new ItemStack(VoltaicCore.VOLTAIC_INGOT.get())), "recipe needs a Voltaic Ingot");
             helper.assertTrue(!ingredient.test(new ItemStack(VoltaicCore.GALVANIC_ALLOY.get())), "recipe needs Galvanic Alloy");
         }
         helper.succeed();

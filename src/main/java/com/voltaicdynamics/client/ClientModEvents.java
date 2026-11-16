@@ -11,6 +11,7 @@ import com.voltaicdynamics.logistics.client.FluidTankScreen;
 import com.voltaicdynamics.machines.VoltaicMachines;
 import com.voltaicdynamics.machines.client.AlloySmelterScreen;
 import com.voltaicdynamics.machines.client.ElectricFurnaceScreen;
+import com.voltaicdynamics.machines.client.PulverizerScreen;
 import com.voltaicdynamics.power.VoltaicPower;
 import com.voltaicdynamics.power.client.AccumulatorScreen;
 
@@ -32,6 +33,7 @@ public class ClientModEvents {
         event.register(VoltaicPower.ACCUMULATOR_MENU.get(), AccumulatorScreen::new);
         event.register(VoltaicMachines.ELECTRIC_FURNACE_MENU.get(), ElectricFurnaceScreen::new);
         event.register(VoltaicMachines.ALLOY_SMELTER_MENU.get(), AlloySmelterScreen::new);
+        event.register(VoltaicMachines.PULVERIZER_MENU.get(), PulverizerScreen::new);
         event.register(VoltaicLogistics.FLUID_TANK_MENU.get(), FluidTankScreen::new);
     }
 

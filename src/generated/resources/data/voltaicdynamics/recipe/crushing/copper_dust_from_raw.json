@@ -1,0 +1,22 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:raw_materials/copper"
+      }
+    }
+  ],
+  "type": "voltaicdynamics:crushing",
+  "bonus_chance": 0.5,
+  "experience": 0.1,
+  "ingredient": {
+    "count": 1,
+    "tag": "c:raw_materials/copper"
+  },
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:copper_dust"
+  }
+}

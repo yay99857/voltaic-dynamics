@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "voltaicdynamics:item/gold_dust"
+  }
+}

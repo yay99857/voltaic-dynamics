@@ -1,0 +1,48 @@
+{
+ "name": "iron_dust",
+ "description": "iron dust: Voltaic Dust recoloured (gen_metal_dusts.py).",
+ "steps": [
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#5a1414",
+    "to": "#4a4440"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#8c2626",
+    "to": "#6b635c"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#b8423a",
+    "to": "#8f877e"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#d4664e",
+    "to": "#b3aba1"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#ea8f6c",
+    "to": "#d4cdc4"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#ffc49e",
+    "to": "#f2ede6"
+   }
+  }
+ ]
+}

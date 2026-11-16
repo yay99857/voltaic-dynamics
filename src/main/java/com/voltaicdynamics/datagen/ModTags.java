@@ -11,7 +11,7 @@ public final class ModTags {
     public static final TagKey<Item> ALLOYS_GALVANIC = ItemTags.create(
             ResourceLocation.fromNamespaceAndPath("voltaicdynamics", "alloys/galvanic"));
     public static final TagKey<Item> DUSTS_VOLTAIC = common("dusts/voltaic");
-    /** Filled by ore-processing mods (Mekanism, Create, Ender IO, All the Ores); NeoForge has no constant for them. */
+    /** Our Pulverizer's dusts and other ore-processing mods' (Mekanism, Create...); NeoForge has no constant for them. */
     public static final TagKey<Item> DUSTS_IRON = common("dusts/iron");
     public static final TagKey<Item> DUSTS_COPPER = common("dusts/copper");
     public static final TagKey<Item> DUSTS_GOLD = common("dusts/gold");

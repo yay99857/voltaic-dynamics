@@ -33,6 +33,7 @@ public final class VoltaicInfo {
             new Entry("advanced_accumulator", VoltaicPower.ADVANCED_ACCUMULATOR),
             new Entry("voltaic_cable", VoltaicPower.VOLTAIC_CABLE),
             new Entry("alloy_smelter", VoltaicMachines.ALLOY_SMELTER),
+            new Entry("pulverizer", VoltaicMachines.PULVERIZER),
             new Entry("fluid_tank", VoltaicLogistics.FLUID_TANK),
             new Entry("item_cable", VoltaicLogistics.ITEM_CABLE),
             new Entry("fluid_cable", VoltaicLogistics.FLUID_CABLE),
