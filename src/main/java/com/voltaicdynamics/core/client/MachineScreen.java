@@ -94,9 +94,27 @@ public abstract class MachineScreen<M extends MachineMenu> extends AbstractConta
         return layout == null ? null : layout.widget(name);
     }
 
-    /** Draws the layout's background texture. */
+    /** Draws the layout's background texture and the extra slot frames it asks for. */
     protected void drawBackground(GuiGraphics g) {
-        if (layout != null) g.blit(layout.texture(), leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        if (layout == null) return;
+        g.blit(layout.texture(), leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        for (String name : layout.slotFrames()) {
+            int[] pos = layout.slot(name);
+            if (pos != null) g.blit(layout.slotFrameTexture(), leftPos + pos[0] - 1, topPos + pos[1] - 1, 0, 0, 18, 18, 18, 18);
+        }
+    }
+
+    @Override
+    protected void renderTooltip(GuiGraphics g, int x, int y) {
+        if (layout != null && hoveredSlot != null && !hoveredSlot.hasItem() && menu.getCarried().isEmpty()) {
+            String name = menu.slotName(hoveredSlot);
+            String hint = name == null ? null : layout.slotHints().get(name);
+            if (hint != null) {
+                g.renderTooltip(font, Component.translatable(hint), x, y);
+                return;
+            }
+        }
+        super.renderTooltip(g, x, y);
     }
 
     /** Draws a widget's texture part filled to {@code fraction}; does nothing if the layout lacks it. */

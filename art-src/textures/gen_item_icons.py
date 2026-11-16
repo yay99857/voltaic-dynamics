@@ -169,10 +169,41 @@ def wrench_recipe():
     }
 
 
+def upgrade_recipe(name, symbol, light, dark):
+    """Upgrade card: dark steel board, gold contacts along the bottom, a coloured symbol."""
+    board = [[x, y, "#2b313b"] for y in range(2, 14) for x in range(2, 14) if (x, y) not in ((2, 2), (13, 2))]
+    rim = ([[x, 2, "#687180"] for x in range(3, 13)] + [[2, y, "#4d5562"] for y in range(3, 14)]
+           + [[13, y, "#1f242c"] for y in range(3, 14)])
+    contacts = [[x, 13, "#e8cf3a"] for x in range(4, 12, 2)] + [[x, 12, "#9c8418"] for x in range(4, 12, 2)]
+    sym = [[x, y, light if shade else dark] for x, y, shade in symbol]
+    return {
+        "name": f"Ícone {name}",
+        "description": f"Ícone 16x16 do {name} (gerado por gen_item_icons.py).",
+        "steps": [
+            {"id": "doc.new", "params": {"width": 16, "height": 16, "name": name, "discard": True}},
+            {"id": "layer.setProps", "params": {"name": "placa"}},
+            {"id": "draw.pixels", "params": {"pixels": board}},
+            {"id": "draw.pixels", "params": {"pixels": rim}},
+            {"id": "draw.pixels", "params": {"pixels": contacts}},
+            {"id": "draw.pixels", "params": {"pixels": sym}},
+            {"id": "effect.outline", "params": {"color": OUTLINE}},
+        ],
+    }
+
+
+# (x, y, lit) — lit pixels face the top-left light
+SPEED = [(7, 3, 1), (8, 3, 1), (6, 4, 1), (7, 4, 1), (8, 4, 1), (9, 4, 1), (5, 5, 1), (6, 5, 1), (9, 5, 1), (10, 5, 0), (4, 6, 1), (5, 6, 1), (10, 6, 0), (11, 6, 0), (7, 7, 1), (8, 7, 1), (6, 8, 1), (7, 8, 1), (8, 8, 1), (9, 8, 1), (5, 9, 1), (6, 9, 1), (9, 9, 1), (10, 9, 0), (4, 10, 1), (5, 10, 1), (10, 10, 0), (11, 10, 0)]
+EFFICIENCY = [(9, 4, 1), (10, 4, 1), (8, 5, 1), (9, 5, 1), (10, 5, 0), (7, 6, 1), (8, 6, 1), (9, 6, 0), (10, 6, 0),
+              (6, 7, 1), (7, 7, 1), (8, 7, 0), (9, 7, 0), (6, 8, 1), (7, 8, 0), (8, 8, 0), (5, 9, 1), (6, 9, 0),
+              (5, 10, 0)]
+
+
 if __name__ == "__main__":
     recipes = {name: cable_recipe(name, spec) for name, spec in CABLES.items()}
     recipes["fluid_tank"] = tank_recipe()
     recipes["voltaic_wrench"] = wrench_recipe()
+    recipes["speed_upgrade"] = upgrade_recipe("speed_upgrade", SPEED, "#f07a52", "#9c2a2a")
+    recipes["efficiency_upgrade"] = upgrade_recipe("efficiency_upgrade", EFFICIENCY, "#8fd96a", "#2f7d4a")
     for name, recipe in recipes.items():
         path = HERE / f"item_icon_{name}.recipe.json"
         path.write_text(json.dumps(recipe, indent=1) + "\n")

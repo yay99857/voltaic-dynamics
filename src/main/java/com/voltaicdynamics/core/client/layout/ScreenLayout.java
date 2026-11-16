@@ -8,7 +8,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,12 +32,20 @@ import java.util.Map;
  * }
  * }</pre>
  *
- * Slot names come from the menu ({@code MachineMenu.addMachineSlot}). A widget is a rectangle on the background
+ * {@code "slot_frames": ["upgrade_0"]} draws an 18x18 slot frame ({@code "slot_frame_texture"}, default
+ * {@code voltaicdynamics:textures/gui/slot.png}) behind slots the background texture has no frame for, and
+ * {@code "slot_hints": {"upgrade_0": "<translation key>"}} is the tooltip of such a slot while it is empty.
+ *
+ * <p>Slot names come from the menu ({@code MachineMenu.addMachineSlot}). A widget is a rectangle on the background
  * plus, when it has {@code u}/{@code v}, the part of the texture drawn over it ("fill": up, down, right, left
  * for gauges and arrows, "none" for a fixed overlay). Screens also use widgets for their tooltip areas.
  */
 public record ScreenLayout(ResourceLocation texture, int width, int height, int[] title, int[] inventoryLabel,
-                           int[] playerInventory, Map<String, int[]> slots, Map<String, Widget> widgets) {
+                           int[] playerInventory, Map<String, int[]> slots, Map<String, Widget> widgets,
+                           List<String> slotFrames, ResourceLocation slotFrameTexture, Map<String, String> slotHints) {
+    public static final ResourceLocation DEFAULT_SLOT_FRAME =
+            ResourceLocation.fromNamespaceAndPath("voltaicdynamics", "textures/gui/slot.png");
+
 
     @Nullable
     public Widget widget(String name) {
@@ -106,11 +116,19 @@ public record ScreenLayout(ResourceLocation texture, int width, int height, int[
                     GsonHelper.getAsInt(w, "u", -1), GsonHelper.getAsInt(w, "v", -1),
                     Fill.valueOf(GsonHelper.getAsString(w, "fill", "none").toUpperCase())));
         }
+        List<String> frames = new ArrayList<>();
+        for (JsonElement e : GsonHelper.getAsJsonArray(json, "slot_frames", new JsonArray())) frames.add(e.getAsString());
+        Map<String, String> hints = new HashMap<>();
+        for (Map.Entry<String, JsonElement> e : GsonHelper.getAsJsonObject(json, "slot_hints", new JsonObject()).entrySet()) {
+            hints.put(e.getKey(), e.getValue().getAsString());
+        }
+        ResourceLocation frameTexture = json.has("slot_frame_texture")
+                ? ResourceLocation.parse(GsonHelper.getAsString(json, "slot_frame_texture")) : DEFAULT_SLOT_FRAME;
         return new ScreenLayout(texture, size[0], size[1],
                 pair(json, "title", new int[]{8, 6}),
                 pair(json, "inventory_label", new int[]{8, size[1] - 94}),
                 pair(json, "player_inventory", new int[]{8, size[1] - 82}),
-                Map.copyOf(slots), Map.copyOf(widgets));
+                Map.copyOf(slots), Map.copyOf(widgets), List.copyOf(frames), frameTexture, Map.copyOf(hints));
     }
 
     private static int[] pair(JsonObject json, String key, int[] fallback) {

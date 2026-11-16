@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "tag": "voltaicdynamics:alloys/galvanic"
+    },
+    "Q": {
+      "tag": "c:gems/quartz"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "pattern": [
+    " R ",
+    "RAR",
+    " Q "
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:speed_upgrade"
+  }
+}

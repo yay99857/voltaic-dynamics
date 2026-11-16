@@ -120,5 +120,13 @@
   "jei.voltaicdynamics.crushing": "Trituração",
   "jei.voltaicdynamics.crushing.bonus": "+1 com %s%%",
   "emi.category.voltaicdynamics.crushing": "Trituração",
-  "info.voltaicdynamics.pulverizer": "Tritura com FE: um bloco de minério dá 2 pós, um metal bruto dá 1 pó com 50% de chance de um segundo, um lingote dá 1 pó. Funda os pós em lingotes, ou misture Pó de Ferro e de Cobre com Redstone para fazer Pó Voltaico. Também transforma pedregulho em cascalho e cascalho em areia ou sílex. Packs podem adicionar receitas do tipo voltaicdynamics:crushing."
+  "info.voltaicdynamics.pulverizer": "Tritura com FE: um bloco de minério dá 2 pós, um metal bruto dá 1 pó com 50% de chance de um segundo, um lingote dá 1 pó. Funda os pós em lingotes, ou misture Pó de Ferro e de Cobre com Redstone para fazer Pó Voltaico. Também transforma pedregulho em cascalho e cascalho em areia ou sílex. Packs podem adicionar receitas do tipo voltaicdynamics:crushing.",
+  "item.voltaicdynamics.speed_upgrade": "Melhoria de Velocidade",
+  "item.voltaicdynamics.efficiency_upgrade": "Melhoria de Eficiência",
+  "tooltip.voltaicdynamics.speed_upgrade": "+50% de velocidade cada; o FE/t sobe junto, o FE por operação fica igual.",
+  "tooltip.voltaicdynamics.efficiency_upgrade": "-15% de FE/t cada.",
+  "tooltip.voltaicdynamics.upgrade.where": "Fornalha Elétrica, Fundidora de Ligas, Pulverizador: contam até %s de cada tipo.",
+  "tooltip.voltaicdynamics.upgrade_slot": "Slot de melhoria (Velocidade ou Eficiência)",
+  "info.voltaicdynamics.speed_upgrade": "Vai nos slots de melhoria da Fornalha Elétrica, da Fundidora de Ligas e do Pulverizador. Cada uma deixa a máquina 50% mais rápida (até 3x com quatro); o FE/t sobe na mesma proporção, então cada operação gasta a mesma energia.",
+  "info.voltaicdynamics.efficiency_upgrade": "Vai nos slots de melhoria da Fornalha Elétrica, da Fundidora de Ligas e do Pulverizador. Cada uma corta 15% do FE/t (60% a menos com quatro). Junte com Melhorias de Velocidade para máquinas rápidas e econômicas."
 }

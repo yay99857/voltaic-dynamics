@@ -120,5 +120,13 @@
   "jei.voltaicdynamics.crushing": "Crushing",
   "jei.voltaicdynamics.crushing.bonus": "+1 at %s%%",
   "emi.category.voltaicdynamics.crushing": "Crushing",
-  "info.voltaicdynamics.pulverizer": "Crushes with FE: an ore block gives 2 dusts, a raw metal 1 dust with a 50% chance of a second, an ingot 1 dust. Smelt the dusts into ingots, or mix Iron and Copper Dust with Redstone into Voltaic Dust. Also turns cobblestone into gravel and gravel into sand or flint. Packs can add recipes of type voltaicdynamics:crushing."
+  "info.voltaicdynamics.pulverizer": "Crushes with FE: an ore block gives 2 dusts, a raw metal 1 dust with a 50% chance of a second, an ingot 1 dust. Smelt the dusts into ingots, or mix Iron and Copper Dust with Redstone into Voltaic Dust. Also turns cobblestone into gravel and gravel into sand or flint. Packs can add recipes of type voltaicdynamics:crushing.",
+  "item.voltaicdynamics.speed_upgrade": "Speed Upgrade",
+  "item.voltaicdynamics.efficiency_upgrade": "Efficiency Upgrade",
+  "tooltip.voltaicdynamics.speed_upgrade": "+50% speed each; FE/t rises with it, FE per operation stays the same.",
+  "tooltip.voltaicdynamics.efficiency_upgrade": "-15% FE/t each.",
+  "tooltip.voltaicdynamics.upgrade.where": "Electric Furnace, Alloy Smelter, Pulverizer: up to %s of each type count.",
+  "tooltip.voltaicdynamics.upgrade_slot": "Upgrade slot (Speed or Efficiency Upgrade)",
+  "info.voltaicdynamics.speed_upgrade": "Goes in the upgrade slots of the Electric Furnace, Alloy Smelter and Pulverizer. Each one makes the machine 50% faster (up to 3x with four); FE/t rises by the same factor, so each operation costs the same energy.",
+  "info.voltaicdynamics.efficiency_upgrade": "Goes in the upgrade slots of the Electric Furnace, Alloy Smelter and Pulverizer. Each one cuts the FE/t by 15% (60% less with four). Combine with Speed Upgrades for fast and cheap machines."
 }

@@ -21,7 +21,10 @@ public abstract class ProcessingMenu extends MachineMenu {
     private final SyncedInt maxProgress;
     private final SyncedInt usage;
 
-    /** Slots are named {@code input_0..n} and {@code output}; the screen layout places them. */
+    /**
+     * Slots: {@code input_0..n} and {@code output}, then the player inventory, then {@code upgrade_0..1} (after
+     * the player inventory, so recipe viewers keep their slot ranges). The screen layout places them all.
+     */
     protected ProcessingMenu(MenuType<?> type, int containerId, Inventory inv, BlockEntity entity) {
         super(type, containerId, entity);
         ProcessingMachineBlockEntity machine = (ProcessingMachineBlockEntity) entity;
@@ -30,7 +33,7 @@ public abstract class ProcessingMenu extends MachineMenu {
         this.capacity = syncInt(machine::getEnergyCapacity);
         this.progress = syncInt(machine::getProgress);
         this.maxProgress = syncInt(machine::getMaxProgress);
-        this.usage = syncInt(() -> machine.isActive() ? machine.energyPerTick() : 0);
+        this.usage = syncInt(() -> machine.isActive() ? machine.currentEnergyPerTick() : 0);
 
         int inputs = blockEntity.getInputSlots();
         for (int i = 0; i < inputs; i++) {
@@ -52,6 +55,9 @@ public abstract class ProcessingMenu extends MachineMenu {
         this.machineSlots = inputs + 1;
 
         addPlayerInventory(inv);
+        for (int i = 0; i < ProcessingMachineBlockEntity.UPGRADE_SLOTS; i++) {
+            addMachineSlot("upgrade_" + i, new SlotItemHandler(blockEntity.getUpgradeHandler(), i, 0, 0));
+        }
     }
 
     public int getMachineSlots() {
@@ -97,9 +103,13 @@ public abstract class ProcessingMenu extends MachineMenu {
         ItemStack sourceStack = sourceSlot.getItem();
         ItemStack copy = sourceStack.copy();
 
-        if (index < machineSlots) {
-            if (!moveItemStackTo(sourceStack, machineSlots, machineSlots + PLAYER_SLOTS, true)) return ItemStack.EMPTY;
+        int playerEnd = machineSlots + PLAYER_SLOTS;
+        int upgradeEnd = playerEnd + ProcessingMachineBlockEntity.UPGRADE_SLOTS;
+        if (index < machineSlots || index >= playerEnd) {
+            if (!moveItemStackTo(sourceStack, machineSlots, playerEnd, true)) return ItemStack.EMPTY;
             if (index == machineSlots - 1) sourceSlot.onQuickCraft(sourceStack, copy);
+        } else if (sourceStack.getItem() instanceof UpgradeItem) {
+            if (!moveItemStackTo(sourceStack, playerEnd, upgradeEnd, false)) return ItemStack.EMPTY;
         } else if (!moveItemStackTo(sourceStack, 0, machineSlots - 1, false)) {
             return ItemStack.EMPTY;
         }

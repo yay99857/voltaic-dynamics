@@ -148,6 +148,22 @@ public class ModRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_copper_ingot", has(Tags.Items.INGOTS_COPPER))
                 .save(output);
 
+        // Upgrades: the use for Galvanic Alloy once the Advanced Accumulator is built.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.SPEED_UPGRADE.get())
+                .pattern(" R ").pattern("RAR").pattern(" Q ")
+                .define('R', Tags.Items.DUSTS_REDSTONE)
+                .define('A', ModTags.ALLOYS_GALVANIC)
+                .define('Q', Tags.Items.GEMS_QUARTZ)
+                .unlockedBy("has_galvanic_alloy", has(ModTags.ALLOYS_GALVANIC))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.EFFICIENCY_UPGRADE.get())
+                .pattern(" L ").pattern("LAL").pattern(" G ")
+                .define('L', Tags.Items.GEMS_LAPIS)
+                .define('A', ModTags.ALLOYS_GALVANIC)
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .unlockedBy("has_galvanic_alloy", has(ModTags.ALLOYS_GALVANIC))
+                .save(output);
+
         alloying(output);
         crushing(output);
 

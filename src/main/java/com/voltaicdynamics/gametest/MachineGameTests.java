@@ -209,4 +209,27 @@ public class MachineGameTests {
         }
         helper.succeed();
     }
+
+    /** Four Speed Upgrades: three times faster at three times the FE/t; four Efficiency Upgrades: 60% less FE/t. */
+    @GameTest(template = EMPTY)
+    public static void upgradesChangeSpeedAndEnergy(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(2, 1, 2);
+        helper.setBlock(pos, VoltaicMachines.ELECTRIC_FURNACE.get());
+        ElectricFurnaceBlockEntity furnace = helper.getBlockEntity(pos);
+        int baseTicks = furnace.getMaxProgress();
+        int baseEnergy = furnace.currentEnergyPerTick();
+
+        furnace.getUpgradeHandler().insertItem(0, new ItemStack(VoltaicMachines.SPEED_UPGRADE.get(), 4), false);
+        helper.assertValueEqual(furnace.getMaxProgress(), Math.round(baseTicks / 3.0F), "ticks with 4 speed upgrades");
+        helper.assertValueEqual(furnace.currentEnergyPerTick(), baseEnergy * 3, "FE/t with 4 speed upgrades");
+
+        furnace.getUpgradeHandler().extractItem(0, 4, false);
+        furnace.getUpgradeHandler().insertItem(1, new ItemStack(VoltaicMachines.EFFICIENCY_UPGRADE.get(), 4), false);
+        helper.assertValueEqual(furnace.getMaxProgress(), baseTicks, "ticks with efficiency upgrades only");
+        helper.assertValueEqual(furnace.currentEnergyPerTick(), Math.round(baseEnergy * 0.4F), "FE/t with 4 efficiency upgrades");
+
+        helper.assertTrue(furnace.getUpgradeHandler().insertItem(0, new ItemStack(Items.IRON_INGOT), true).getCount() == 1,
+                "the upgrade slots take an ingot");
+        helper.succeed();
+    }
 }

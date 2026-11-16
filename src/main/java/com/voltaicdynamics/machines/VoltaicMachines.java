@@ -14,6 +14,8 @@ import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /** Machines that turn FE into processing: Electric Furnace, Alloy Smelter, Pulverizer and their recipe types. */
@@ -39,6 +41,12 @@ public final class VoltaicMachines {
             "pulverizer",
             () -> new PulverizerBlock(VoltaicDynamics.machineProperties(3.5F, 6.0F)
                     .lightLevel(state -> state.getValue(PulverizerBlock.LIT) ? 6 : 0)));
+
+    // Upgrades
+    public static final DeferredItem<UpgradeItem> SPEED_UPGRADE = ITEMS.register("speed_upgrade",
+            () -> new UpgradeItem(UpgradeItem.Type.SPEED, new Item.Properties()));
+    public static final DeferredItem<UpgradeItem> EFFICIENCY_UPGRADE = ITEMS.register("efficiency_upgrade",
+            () -> new UpgradeItem(UpgradeItem.Type.EFFICIENCY, new Item.Properties()));
 
     // Block entities
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricFurnaceBlockEntity>> ELECTRIC_FURNACE_BE =
@@ -102,6 +110,8 @@ public final class VoltaicMachines {
             event.accept(ELECTRIC_FURNACE.get());
             event.accept(ALLOY_SMELTER.get());
             event.accept(PULVERIZER.get());
+            event.accept(SPEED_UPGRADE.get());
+            event.accept(EFFICIENCY_UPGRADE.get());
         }
     }
 }

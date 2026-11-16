@@ -24,6 +24,14 @@
     "output": [
       116,
       35
+    ],
+    "upgrade_0": [
+      8,
+      26
+    ],
+    "upgrade_1": [
+      8,
+      44
     ]
   },
   "widgets": {
@@ -45,5 +53,13 @@
       "v": 18,
       "fill": "up"
     }
+  },
+  "slot_frames": [
+    "upgrade_0",
+    "upgrade_1"
+  ],
+  "slot_hints": {
+    "upgrade_0": "tooltip.voltaicdynamics.upgrade_slot",
+    "upgrade_1": "tooltip.voltaicdynamics.upgrade_slot"
   }
 }

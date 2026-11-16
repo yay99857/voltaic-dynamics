@@ -36,8 +36,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * Shared logic of the FE machines that turn input slots into one output slot (Electric Furnace, Alloy Smelter):
- * energy buffer, progress that pauses without power, XP, comparator, side configuration and auto-eject.
+ * Shared logic of the FE machines that turn input slots into one output slot (Electric Furnace, Alloy Smelter,
+ * Pulverizer): energy buffer, progress that pauses without power, XP, comparator, side configuration, auto-eject
+ * and two upgrade slots ({@link UpgradeItem}: speed and efficiency).
  */
 public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity implements MenuProvider, SideConfigurable {
     public static final int MAX_INPUT = 1_000;
@@ -47,6 +48,9 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     protected final int inputSlots;
     protected final VoltaicEnergyStorage energyStorage;
     protected final ItemStackHandler itemHandler;
+    /** Speed and efficiency upgrades; not reachable by pipes. */
+    protected final ItemStackHandler upgradeHandler;
+    public static final int UPGRADE_SLOTS = 2;
     private final IItemHandler automationHandler;
     private final SideConfig sideConfig;
     private final SidedHandlers sided;
@@ -95,6 +99,22 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
             @Override
             public boolean isItemValid(int slot, ItemStack stack) {
                 return slot < ProcessingMachineBlockEntity.this.inputSlots && isValidInput(stack);
+            }
+        };
+        this.upgradeHandler = new ItemStackHandler(UPGRADE_SLOTS) {
+            @Override
+            protected void onContentsChanged(int slot) {
+                saveChanges();
+            }
+
+            @Override
+            public boolean isItemValid(int slot, ItemStack stack) {
+                return stack.getItem() instanceof UpgradeItem;
+            }
+
+            @Override
+            public int getSlotLimit(int slot) {
+                return UpgradeItem.MAX_PER_TYPE;
             }
         };
         this.automationHandler = new IItemHandler() {
@@ -151,7 +171,34 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     @Nullable
     protected abstract Craft findCraft(Level level);
 
+    /** Base FE/t, before upgrades (see {@link #currentEnergyPerTick()}). */
     public abstract int energyPerTick();
+
+    /** Number of installed upgrades of one type (both slots counted, capped at {@link UpgradeItem#MAX_PER_TYPE}). */
+    public int upgrades(UpgradeItem.Type type) {
+        int count = 0;
+        for (int slot = 0; slot < upgradeHandler.getSlots(); slot++) {
+            ItemStack stack = upgradeHandler.getStackInSlot(slot);
+            if (stack.getItem() instanceof UpgradeItem upgrade && upgrade.type() == type) count += stack.getCount();
+        }
+        return Math.min(count, UpgradeItem.MAX_PER_TYPE);
+    }
+
+    /** FE/t with the installed upgrades: speed multiplies it, efficiency cuts it. */
+    public int currentEnergyPerTick() {
+        double factor = UpgradeItem.speedFactor(upgrades(UpgradeItem.Type.SPEED))
+                * UpgradeItem.energyFactor(upgrades(UpgradeItem.Type.EFFICIENCY));
+        return (int) Math.round(energyPerTick() * factor);
+    }
+
+    /** Ticks of an operation of {@code baseTicks} with the installed speed upgrades. */
+    public int upgradedTicks(int baseTicks) {
+        return Math.max(1, (int) Math.round(baseTicks / UpgradeItem.speedFactor(upgrades(UpgradeItem.Type.SPEED))));
+    }
+
+    public IItemHandler getUpgradeHandler() {
+        return upgradeHandler;
+    }
 
     /** Shown while idle: the default duration of one operation. */
     protected abstract int defaultTicks();
@@ -165,7 +212,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     }
 
     public int getMaxProgress() {
-        return maxProgress > 0 ? maxProgress : defaultTicks();
+        return maxProgress > 0 ? maxProgress : upgradedTicks(defaultTicks());
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, ProcessingMachineBlockEntity entity) {
@@ -208,11 +255,11 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
             maxProgress = 0;
             return false;
         }
-        maxProgress = Math.max(1, craft.ticks());
+        maxProgress = upgradedTicks(craft.ticks());
         if (!canOutput(craft.maxResult())) return false;
 
         // Without enough energy the machine pauses and keeps its progress.
-        if (!energyStorage.consumeEnergy(energyPerTick())) return false;
+        if (!energyStorage.consumeEnergy(currentEnergyPerTick())) return false;
 
         progress++;
         if (progress >= maxProgress) {
@@ -270,6 +317,10 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
             SimpleContainer inventory = new SimpleContainer(itemHandler.getSlots());
             for (int i = 0; i < itemHandler.getSlots(); i++) {
                 inventory.setItem(i, itemHandler.getStackInSlot(i));
+            }
+            for (int i = 0; i < upgradeHandler.getSlots(); i++) {
+                Containers.dropItemStack(level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(),
+                        upgradeHandler.getStackInSlot(i).copy());
             }
             Containers.dropContents(level, worldPosition, inventory);
         }
@@ -329,6 +380,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
         tag.putInt("Progress", progress);
         tag.putFloat("Experience", storedExperience);
         tag.put("SideConfig", sideConfig.save());
+        tag.put("Upgrades", upgradeHandler.serializeNBT(registries));
     }
 
     @Override
@@ -339,6 +391,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
         progress = tag.getInt("Progress");
         storedExperience = tag.getFloat("Experience");
         if (tag.contains("SideConfig")) sideConfig.load(tag.getCompound("SideConfig"));
+        if (tag.contains("Upgrades")) upgradeHandler.deserializeNBT(registries, tag.getCompound("Upgrades"));
         sided.invalidate();
     }
 }

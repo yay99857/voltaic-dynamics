@@ -94,6 +94,13 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 * Crafted from iron, flint, copper, a piston and redstone: **no Voltaic Ingot**, since its dusts are the good way to make them.
 * JEI and EMI category with the "+" transfer. `timeMultiplier` in the config speeds every recipe up or down.
 
+### 7c. ⏫ Machine upgrades (new)
+* **Speed Upgrade** (redstone, Galvanic Alloy, quartz): each makes the machine **+50% faster** (3x with four); FE/t rises
+  by the same factor, so every operation costs the same energy.
+* **Efficiency Upgrade** (lapis, Galvanic Alloy, gold): each cuts the **FE/t by 15%** (60% less with four).
+* Two upgrade slots on the Electric Furnace, Alloy Smelter and Pulverizer; up to 4 of each type count. Shift-click puts
+  them in the right slots, pipes never touch them, and they drop when the machine is broken.
+
 ### 8. 🛢️ Fluid Tank (new)
 * **32,000 mB** of one fluid (configurable). Keeps the fluid when broken; the item shows it and works as a fluid container.
 * Right-click with a bucket, or put containers in the GUI's top slot (filled ones are emptied, empty ones are filled).
@@ -152,7 +159,7 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 
   `client/ClientModEvents`, `compat`, `datagen` and `gametest` still cover every module.
 * **Data is generated:** tags, loot tables and recipes come from `src/main/java/com/voltaicdynamics/datagen`. Edit the providers and run `runData`; don't hand-edit `src/generated`.
-* **Game tests** live in `gametest/`, one class per module (36 tests): `CoreGameTests` (mining tags, deferred saves, menu sync, side configuration and auto-eject), `PowerGameTests` (cells keeping energy, no battery ping-pong, cable delivery), `GeneratorGameTests` (lava bucket, fuel extraction, Thermoelectric Generator), `GadgetGameTests` (Voltaic Wrench: turning, picking up, cable arms), `MachineGameTests` (Electric Furnace, recipe cache, recipe set, Alloy Smelter, Pulverizer, dust smelting) `LogisticsGameTests` (item and fluid cables, Fluid Tank) and `CompatGameTests` (other mods' blocks: Accumulator and Combustion Generator on Mekanism's Universal Cable, Fluid Cable pulling from and Fluid Tank ejecting into a Mekanism Fluid Tank, vanilla hoppers feeding and emptying the Electric Furnace). Shared helpers are in `GameTestSupport`.
+* **Game tests** live in `gametest/`, one class per module (37 tests): `CoreGameTests` (mining tags, deferred saves, menu sync, side configuration and auto-eject), `PowerGameTests` (cells keeping energy, no battery ping-pong, cable delivery), `GeneratorGameTests` (lava bucket, fuel extraction, Thermoelectric Generator), `GadgetGameTests` (Voltaic Wrench: turning, picking up, cable arms), `MachineGameTests` (Electric Furnace, recipe cache, recipe set, Alloy Smelter, Pulverizer, dust smelting, upgrades) `LogisticsGameTests` (item and fluid cables, Fluid Tank) and `CompatGameTests` (other mods' blocks: Accumulator and Combustion Generator on Mekanism's Universal Cable, Fluid Cable pulling from and Fluid Tank ejecting into a Mekanism Fluid Tank, vanilla hoppers feeding and emptying the Electric Furnace). Shared helpers are in `GameTestSupport`.
 * **Art sources** for the machine fronts, GUIs, tank and cable textures are in `art-src/textures/*.pontilha` (Pontilha).
 * Versions live in `gradle.properties`; `neoforge.mods.toml` is filled from it at build time.
 
@@ -163,6 +170,7 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 ### 1.5.0
 * New: Pulverizer and the `voltaicdynamics:crushing` recipe type (bonus chance; JEI, EMI, Jade). Ores give 2 dusts, raw metals 1 plus a 50% chance of a second.
 * New: Iron, Copper and Gold Dust, which smelt into ingots.
+* New: Speed and Efficiency Upgrades for the Electric Furnace, Alloy Smelter and Pulverizer (two upgrade slots each).
 * New: machine screens are laid out in `assets/voltaicdynamics/screens/*.json` (reloaded with F3+T).
 * Changed: Voltaic Dust from ingots is now always available, as the way to start before any machine exists.
 
