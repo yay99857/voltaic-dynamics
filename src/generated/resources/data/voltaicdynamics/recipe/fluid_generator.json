@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": {
+      "item": "minecraft:bucket"
+    },
+    "C": {
+      "item": "voltaicdynamics:combustion_generator"
+    },
+    "G": {
+      "tag": "c:glass_blocks"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "V": {
+      "tag": "c:ingots/voltaic"
+    }
+  },
+  "pattern": [
+    "IGI",
+    "VCV",
+    "IBI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:fluid_generator"
+  }
+}

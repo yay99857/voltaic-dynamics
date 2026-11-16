@@ -8,6 +8,7 @@
     "voltaicdynamics:voltaic_cable",
     "voltaicdynamics:alloy_smelter",
     "voltaicdynamics:pulverizer",
+    "voltaicdynamics:fluid_generator",
     "voltaicdynamics:fluid_tank",
     "voltaicdynamics:item_cable",
     "voltaicdynamics:fluid_cable"

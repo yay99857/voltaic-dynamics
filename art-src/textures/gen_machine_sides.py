@@ -12,6 +12,7 @@ ACCENTS = {
     "combustion_generator": ["#9c2a2a", "#e0573f"],  # ember red
     "alloy_smelter": ["#9c8418", "#e8cf3a"],         # galvanic gold
     "pulverizer": ["#2f7d4a", "#6fbf5a"],            # mineral green
+    "fluid_generator": ["#57307f", "#c98be0"],       # fuel violet
 }
 
 if __name__ == "__main__":

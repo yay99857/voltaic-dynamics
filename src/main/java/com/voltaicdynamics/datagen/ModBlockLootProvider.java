@@ -33,6 +33,7 @@ public class ModBlockLootProvider extends BlockLootSubProvider {
         dropSelf(VoltaicPower.VOLTAIC_CABLE.get());
         dropSelf(VoltaicMachines.ALLOY_SMELTER.get());
         dropSelf(VoltaicMachines.PULVERIZER.get());
+        dropSelf(VoltaicGenerators.FLUID_GENERATOR.get());
         dropSelf(VoltaicLogistics.ITEM_CABLE.get());
         dropSelf(VoltaicLogistics.FLUID_CABLE.get());
         add(VoltaicLogistics.FLUID_TANK.get(), block -> keeping(block, ModDataComponents.FLUID.get()));

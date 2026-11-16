@@ -115,6 +115,17 @@ public class ModRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_voltaic_ingot", has(ModTags.INGOTS_VOLTAIC))
                 .save(output);
 
+        // Fluid Generator: a Combustion Generator that takes its fuel through pipes.
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicGenerators.FLUID_GENERATOR.get())
+                .pattern("IGI").pattern("VCV").pattern("IBI")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('G', Tags.Items.GLASS_BLOCKS)
+                .define('V', ModTags.INGOTS_VOLTAIC)
+                .define('C', VoltaicGenerators.COMBUSTION_GENERATOR.get())
+                .define('B', Items.BUCKET)
+                .unlockedBy("has_combustion_generator", has(VoltaicGenerators.COMBUSTION_GENERATOR.get()))
+                .save(output);
+
         // Machines
         ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicMachines.ELECTRIC_FURNACE.get())
                 .pattern("ICI").pattern("VFV").pattern("IRI")

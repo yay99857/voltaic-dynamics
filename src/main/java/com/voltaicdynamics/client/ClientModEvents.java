@@ -4,6 +4,7 @@ import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.client.layout.ScreenLayouts;
 import com.voltaicdynamics.generators.VoltaicGenerators;
 import com.voltaicdynamics.generators.client.CombustionGeneratorScreen;
+import com.voltaicdynamics.generators.client.FluidGeneratorScreen;
 import com.voltaicdynamics.logistics.VoltaicLogistics;
 import com.voltaicdynamics.logistics.client.FluidTankItemRendering;
 import com.voltaicdynamics.logistics.client.FluidTankRenderer;
@@ -30,6 +31,7 @@ public class ClientModEvents {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(VoltaicGenerators.COMBUSTION_GENERATOR_MENU.get(), CombustionGeneratorScreen::new);
+        event.register(VoltaicGenerators.FLUID_GENERATOR_MENU.get(), FluidGeneratorScreen::new);
         event.register(VoltaicPower.ACCUMULATOR_MENU.get(), AccumulatorScreen::new);
         event.register(VoltaicMachines.ELECTRIC_FURNACE_MENU.get(), ElectricFurnaceScreen::new);
         event.register(VoltaicMachines.ALLOY_SMELTER_MENU.get(), AlloySmelterScreen::new);

@@ -128,5 +128,10 @@
   "tooltip.voltaicdynamics.upgrade.where": "Fornalha Elétrica, Fundidora de Ligas, Pulverizador: contam até %s de cada tipo.",
   "tooltip.voltaicdynamics.upgrade_slot": "Slot de melhoria (Velocidade ou Eficiência)",
   "info.voltaicdynamics.speed_upgrade": "Vai nos slots de melhoria da Fornalha Elétrica, da Fundidora de Ligas e do Pulverizador. Cada uma deixa a máquina 50% mais rápida (até 3x com quatro); o FE/t sobe na mesma proporção, então cada operação gasta a mesma energia.",
-  "info.voltaicdynamics.efficiency_upgrade": "Vai nos slots de melhoria da Fornalha Elétrica, da Fundidora de Ligas e do Pulverizador. Cada uma corta 15% do FE/t (60% a menos com quatro). Junte com Melhorias de Velocidade para máquinas rápidas e econômicas."
+  "info.voltaicdynamics.efficiency_upgrade": "Vai nos slots de melhoria da Fornalha Elétrica, da Fundidora de Ligas e do Pulverizador. Cada uma corta 15% do FE/t (60% a menos com quatro). Junte com Melhorias de Velocidade para máquinas rápidas e econômicas.",
+  "block.voltaicdynamics.fluid_generator": "Gerador a Fluido",
+  "tooltip.voltaicdynamics.fluid_generator.desc1": "Queima combustível líquido: lava dá %s FE/t, %s FE por balde.",
+  "tooltip.voltaicdynamics.fluid_generator.desc2": "Abastecido por canos, cabos de fluido, baldes ou pelo slot da GUI.",
+  "tooltip.voltaicdynamics.fluid_generator.no_fuel": "Sem combustível",
+  "info.voltaicdynamics.fluid_generator": "Queima combustível líquido em FE: lava dá 80 FE/t e 200.000 FE por balde, o dobro da velocidade do Gerador a Combustão e sem ninguém precisar colocar baldes. Recebe combustível de canos, cabos de fluido, baldes clicados nele ou recipientes no slot. Packs podem adicionar outros combustíveis no data map voltaicdynamics:fluid_fuels."
 }

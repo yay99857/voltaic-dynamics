@@ -128,5 +128,10 @@
   "tooltip.voltaicdynamics.upgrade.where": "Electric Furnace, Alloy Smelter, Pulverizer: up to %s of each type count.",
   "tooltip.voltaicdynamics.upgrade_slot": "Upgrade slot (Speed or Efficiency Upgrade)",
   "info.voltaicdynamics.speed_upgrade": "Goes in the upgrade slots of the Electric Furnace, Alloy Smelter and Pulverizer. Each one makes the machine 50% faster (up to 3x with four); FE/t rises by the same factor, so each operation costs the same energy.",
-  "info.voltaicdynamics.efficiency_upgrade": "Goes in the upgrade slots of the Electric Furnace, Alloy Smelter and Pulverizer. Each one cuts the FE/t by 15% (60% less with four). Combine with Speed Upgrades for fast and cheap machines."
+  "info.voltaicdynamics.efficiency_upgrade": "Goes in the upgrade slots of the Electric Furnace, Alloy Smelter and Pulverizer. Each one cuts the FE/t by 15% (60% less with four). Combine with Speed Upgrades for fast and cheap machines.",
+  "block.voltaicdynamics.fluid_generator": "Fluid Generator",
+  "tooltip.voltaicdynamics.fluid_generator.desc1": "Burns liquid fuel: lava gives %s FE/t, %s FE per bucket.",
+  "tooltip.voltaicdynamics.fluid_generator.desc2": "Fed by pipes, fluid cables, buckets or the GUI slot.",
+  "tooltip.voltaicdynamics.fluid_generator.no_fuel": "No fuel",
+  "info.voltaicdynamics.fluid_generator": "Burns liquid fuel into FE: lava gives 80 FE/t and 200,000 FE per bucket, twice as fast as the Combustion Generator and without anyone feeding it buckets. Takes fuel from pipes, fluid cables, buckets clicked on it or containers in its slot. Packs can add other fuels to the voltaicdynamics:fluid_fuels data map."
 }

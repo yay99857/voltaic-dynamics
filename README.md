@@ -25,11 +25,20 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 * 50,000 FE buffer, pushes to neighbours. Right-click shows the current rate and buffer.
 
 ### 2. 🔥 Combustion Generator
-* Burns any furnace fuel for **40 FE/t**, 100,000 FE buffer, 400 FE/t output.
+* Burns any furnace fuel for **40 FE/t**, 100,000 FE buffer, 400 FE/t output. Each fuel lasts **half its furnace burn time**
+  (`burnTimeMultiplier`), so a coal gives **32,000 FE** and a lava bucket 200,000 FE.
 * **Lava buckets** leave the empty bucket in the slot, like a vanilla furnace.
 * **Pauses when full** instead of wasting fuel, and only starts a new item when there is room.
 * Pipes and hoppers can insert fuel but cannot pull it out (they can take the empty bucket).
 * GUI with burn meter and an energy gauge whose tooltip shows the real generation rate.
+
+### 2b. 🟣 Fluid Generator (new)
+* Burns **liquid fuel**: lava gives **80 FE/t** and **200,000 FE per bucket**, the same energy as burning the bucket in the
+  Combustion Generator but twice as fast and without anyone feeding it.
+* 8,000 mB tank fed by pipes, our Fluid Cables, buckets clicked on it or containers in its slot (the empties come back out).
+* Fuels live in the **`voltaicdynamics:fluid_fuels` data map**, so packs can add any mod's fuel:
+  `{"values": {"#c:biodiesel": {"energy_per_mb": 300, "rate": 120}}}` in `data/<pack>/data_maps/fluid/fluid_fuels.json`.
+* Side configuration (fuel in, energy out with auto-eject), Jade shows the FE/t.
 
 ### 3. 🔥 Electric Furnace (new)
 * Smelts **any vanilla furnace recipe** using **20 FE/t**, **5 s per item** (twice as fast as a furnace).
@@ -137,6 +146,25 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 
 ---
 
+## ⚖️ Balance
+
+Numbers are set against the mods a pack like Bubie Pack runs next to this one, so neither side makes the other pointless.
+Sources: the [FTB wiki on Thermal's dynamos](https://ftbwiki.org/Dynamo_(Thermal_Expansion)),
+[Magmatic Dynamo](https://ftbwiki.org/Magmatic_Dynamo) and [Mekanism's Heat Generator](https://www.minecraft-guides.com/mod/mekanism/wiki/heat-generator/);
+the published figures differ between versions, so these are ballpark targets, all adjustable in the server config.
+
+| | Voltaic Dynamics | Reference |
+|---|---|---|
+| Solid fuel | Combustion Generator: 40 FE/t, coal = 32,000 FE | Thermal Stirling Dynamo: 40 RF/t, coal ≈ 24k-48k RF |
+| Lava | Fluid Generator: 80 FE/t, 200,000 FE/bucket | Thermal Magmatic Dynamo: 80 RF/t, ≈ 120k-180k RF/bucket |
+| Passive | Thermoelectric: up to 100 FE/t, wears its blocks | Mekanism Heat Generator: ≈ 45 FE/t burning |
+| Smelting | Electric Furnace: 2,000 FE/item, 2x vanilla speed | coal smelts 8 items in a vanilla furnace, 16 here |
+| Crushing | Pulverizer: 2,000-2,400 FE/op, ore → 2 dust | Thermal Pulverizer, Mekanism Enrichment Chamber: 2x per ore |
+| Storage | Accumulators: 1M / 8M FE, 2k / 10k FE/t | Thermal Energy Cell: 1M RF base |
+
+**Changed in 1.5.0:** the Combustion Generator used to run each fuel for its full furnace burn time, which made a coal worth
+64,000 FE and a lava bucket 800,000 FE, several times Thermal's dynamos. It now runs half the burn time (configurable).
+
 ## 🛠️ Development
 
 ```bash
@@ -159,7 +187,7 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 
   `client/ClientModEvents`, `compat`, `datagen` and `gametest` still cover every module.
 * **Data is generated:** tags, loot tables and recipes come from `src/main/java/com/voltaicdynamics/datagen`. Edit the providers and run `runData`; don't hand-edit `src/generated`.
-* **Game tests** live in `gametest/`, one class per module (37 tests): `CoreGameTests` (mining tags, deferred saves, menu sync, side configuration and auto-eject), `PowerGameTests` (cells keeping energy, no battery ping-pong, cable delivery), `GeneratorGameTests` (lava bucket, fuel extraction, Thermoelectric Generator), `GadgetGameTests` (Voltaic Wrench: turning, picking up, cable arms), `MachineGameTests` (Electric Furnace, recipe cache, recipe set, Alloy Smelter, Pulverizer, dust smelting, upgrades) `LogisticsGameTests` (item and fluid cables, Fluid Tank) and `CompatGameTests` (other mods' blocks: Accumulator and Combustion Generator on Mekanism's Universal Cable, Fluid Cable pulling from and Fluid Tank ejecting into a Mekanism Fluid Tank, vanilla hoppers feeding and emptying the Electric Furnace). Shared helpers are in `GameTestSupport`.
+* **Game tests** live in `gametest/`, one class per module (40 tests): `CoreGameTests` (mining tags, deferred saves, menu sync, side configuration and auto-eject), `PowerGameTests` (cells keeping energy, no battery ping-pong, cable delivery), `GeneratorGameTests` (lava bucket, fuel extraction, burn time, Thermoelectric and Fluid Generators), `GadgetGameTests` (Voltaic Wrench: turning, picking up, cable arms), `MachineGameTests` (Electric Furnace, recipe cache, recipe set, Alloy Smelter, Pulverizer, dust smelting, upgrades) `LogisticsGameTests` (item and fluid cables, Fluid Tank) and `CompatGameTests` (other mods' blocks: Accumulator and Combustion Generator on Mekanism's Universal Cable, Fluid Cable pulling from and Fluid Tank ejecting into a Mekanism Fluid Tank, vanilla hoppers feeding and emptying the Electric Furnace). Shared helpers are in `GameTestSupport`.
 * **Art sources** for the machine fronts, GUIs, tank and cable textures are in `art-src/textures/*.pontilha` (Pontilha).
 * Versions live in `gradle.properties`; `neoforge.mods.toml` is filled from it at build time.
 
@@ -170,6 +198,8 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 ### 1.5.0
 * New: Pulverizer and the `voltaicdynamics:crushing` recipe type (bonus chance; JEI, EMI, Jade). Ores give 2 dusts, raw metals 1 plus a 50% chance of a second.
 * New: Iron, Copper and Gold Dust, which smelt into ingots.
+* New: Fluid Generator: burns lava (80 FE/t, 200,000 FE/bucket) or any fluid in the `voltaicdynamics:fluid_fuels` data map.
+* Changed: Combustion Generator fuels last half their furnace burn time (coal 32,000 FE, lava bucket 200,000 FE); `burnTimeMultiplier` in the config.
 * New: Speed and Efficiency Upgrades for the Electric Furnace, Alloy Smelter and Pulverizer (two upgrade slots each).
 * New: machine screens are laid out in `assets/voltaicdynamics/screens/*.json` (reloaded with F3+T).
 * Changed: Voltaic Dust from ingots is now always available, as the way to start before any machine exists.

@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-16T00:25:05.836871714	Recipes
+// 1.21.1	2026-11-16T00:30:30.308670779	Recipes
 5609da0f885d5d19a147702f203dd84b379d650c data/voltaicdynamics/advancement/recipes/misc/copper_ingot_from_dust_from_blasting.json
 3dade26eb65692c2a2e0eb61f631921cd075a7c5 data/voltaicdynamics/advancement/recipes/misc/copper_ingot_from_dust_from_smelting.json
 e14868dddbfa4108d6f0ac77a085dfe513f9c9f5 data/voltaicdynamics/advancement/recipes/misc/efficiency_upgrade.json
@@ -22,6 +22,7 @@ b871bf06f89257d35d59c582e30a7a3b0a1b6842 data/voltaicdynamics/advancement/recipe
 d1b93e7f06f23958ebc0b33a3f2800958e6d87c0 data/voltaicdynamics/advancement/recipes/redstone/combustion_generator.json
 4b72b87c1c4406fb42f665d1a4e9c6ddf63a2e19 data/voltaicdynamics/advancement/recipes/redstone/electric_furnace.json
 a10a18c6ec56ca15b65a795ad26ffef7d9c9289b data/voltaicdynamics/advancement/recipes/redstone/fluid_cable.json
+cfb6a3c1e9c76d1019c1c445612df67e8cfb03da data/voltaicdynamics/advancement/recipes/redstone/fluid_generator.json
 9fa11c8b07776795525a7de7da7ec3f2b30212f6 data/voltaicdynamics/advancement/recipes/redstone/item_cable.json
 02418b264d3c642e131cd578c5763c0a73a95d26 data/voltaicdynamics/advancement/recipes/redstone/pulverizer.json
 e0b07d3eb5be065587e4785bac861c829938be6e data/voltaicdynamics/advancement/recipes/redstone/thermoelectric_generator.json
@@ -57,6 +58,7 @@ b5f4cf000e8af9216685377314bad89f7a8e3002 data/voltaicdynamics/recipe/crushing/sa
 fdf2131a8bebc20a0e30f0a9dd2d7ee46818cb51 data/voltaicdynamics/recipe/efficiency_upgrade.json
 12e3759e2ef64ade4449cb09dfbb702280a0cef5 data/voltaicdynamics/recipe/electric_furnace.json
 0d687fbd206eb889ae07e9471c1e3eacb6f3b6e6 data/voltaicdynamics/recipe/fluid_cable.json
+e51accdae5dd506c56ac23bc20d761dc18331b18 data/voltaicdynamics/recipe/fluid_generator.json
 05d566a9b1e380e764bd984bf60ed44b1e562787 data/voltaicdynamics/recipe/fluid_tank.json
 567781b40e3f39c39df85d22106916fdea190921 data/voltaicdynamics/recipe/galvanic_alloy_from_blasting.json
 79267748712a99aa3bf36606f6d3d99f36663880 data/voltaicdynamics/recipe/galvanic_alloy_from_smelting.json

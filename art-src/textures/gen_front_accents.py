@@ -14,12 +14,14 @@ ACCENTS = {
     "electric_furnace": ["#a9592a", "#d6864a"],
     "alloy_smelter": ["#9c8418", "#e8cf3a"],
     "pulverizer": ["#2f7d4a", "#6fbf5a"],
+    "fluid_generator": ["#57307f", "#c98be0"],
 }
 FRONTS = {  # file -> (machine, tiles)
     "combustion_front": ("combustion", 1), "combustion_front_on": ("combustion", 1),
     "electric_furnace_front": ("electric_furnace", 1), "electric_furnace_front_on": ("electric_furnace", 1),
     "alloy_smelter_front": ("alloy_smelter", 1), "alloy_smelter_front_on": ("alloy_smelter", 1),
     "pulverizer_front": ("pulverizer", 1), "pulverizer_front_on": ("pulverizer", 2),
+    "fluid_generator_front": ("fluid_generator", 1), "fluid_generator_front_on": ("fluid_generator", 1),
 }
 
 

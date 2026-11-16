@@ -3,6 +3,8 @@ package com.voltaicdynamics.compat.jade;
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.generators.CombustionGeneratorBlock;
 import com.voltaicdynamics.generators.CombustionGeneratorBlockEntity;
+import com.voltaicdynamics.generators.FluidGeneratorBlock;
+import com.voltaicdynamics.generators.FluidGeneratorBlockEntity;
 import com.voltaicdynamics.generators.ThermoelectricGeneratorBlock;
 import com.voltaicdynamics.generators.ThermoelectricGeneratorBlockEntity;
 import com.voltaicdynamics.core.ModDataComponents;
@@ -57,6 +59,7 @@ public class VoltaicJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(MachineInfo.INSTANCE, ProcessingMachineBlockEntity.class);
         registration.registerBlockDataProvider(MachineInfo.INSTANCE, LogisticsCableBlockEntity.class);
         registration.registerBlockDataProvider(MachineInfo.INSTANCE, CombustionGeneratorBlockEntity.class);
+        registration.registerBlockDataProvider(MachineInfo.INSTANCE, FluidGeneratorBlockEntity.class);
         registration.registerBlockDataProvider(MachineInfo.INSTANCE, ThermoelectricGeneratorBlockEntity.class);
         registration.registerEnergyStorage(NoCableEnergy.INSTANCE, VoltaicCableBlockEntity.class);
     }
@@ -66,6 +69,7 @@ public class VoltaicJadePlugin implements IWailaPlugin {
         registration.registerBlockComponent(MachineInfo.INSTANCE, ProcessingMachineBlock.class);
         registration.registerBlockComponent(MachineInfo.INSTANCE, LogisticsCableBlock.class);
         registration.registerBlockComponent(MachineInfo.INSTANCE, CombustionGeneratorBlock.class);
+        registration.registerBlockComponent(MachineInfo.INSTANCE, FluidGeneratorBlock.class);
         registration.registerBlockComponent(MachineInfo.INSTANCE, ThermoelectricGeneratorBlock.class);
         registration.registerBlockIcon(TankIcon.INSTANCE, FluidTankBlock.class);
     }
@@ -97,6 +101,7 @@ public class VoltaicJadePlugin implements IWailaPlugin {
                     }
                 }
                 case CombustionGeneratorBlockEntity generator -> data.putInt("Rate", generator.getCurrentRate());
+                case FluidGeneratorBlockEntity generator -> data.putInt("Rate", generator.getCurrentRate());
                 case ThermoelectricGeneratorBlockEntity generator -> data.putInt("Rate", generator.getLastGenerated());
                 default -> {
                 }

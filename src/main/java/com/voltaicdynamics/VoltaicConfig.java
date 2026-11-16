@@ -15,6 +15,9 @@ public final class VoltaicConfig {
 
     public static final ModConfigSpec.IntValue COMBUSTION_GENERATION;
     public static final ModConfigSpec.IntValue COMBUSTION_CAPACITY;
+    public static final ModConfigSpec.DoubleValue COMBUSTION_BURN_TIME_MULTIPLIER;
+    public static final ModConfigSpec.IntValue FLUID_GEN_CAPACITY;
+    public static final ModConfigSpec.IntValue FLUID_GEN_TANK;
 
     public static final ModConfigSpec.IntValue FURNACE_ENERGY_PER_TICK;
     public static final ModConfigSpec.IntValue FURNACE_TICKS_PER_ITEM;
@@ -64,6 +67,17 @@ public final class VoltaicConfig {
                 .defineInRange("generation", 40, 1, 32_000);
         COMBUSTION_CAPACITY = b.comment("Internal buffer in FE.")
                 .defineInRange("capacity", 100_000, 1, Integer.MAX_VALUE);
+        COMBUSTION_BURN_TIME_MULTIPLIER = b.comment("Multiplies each fuel's furnace burn time. With 0.5 a coal burns 800 ticks",
+                        "at 40 FE/t = 32,000 FE, close to Thermal's Stirling Dynamo; 1.0 doubles every fuel.")
+                .defineInRange("burnTimeMultiplier", 0.5, 0.01, 100.0);
+        b.pop();
+
+        b.push("fluid_generator");
+        FLUID_GEN_CAPACITY = b.comment("Internal buffer in FE. The fuels and their FE/mB and FE/t are in the",
+                        "voltaicdynamics:fluid_fuels data map (datapack), not here.")
+                .defineInRange("capacity", 100_000, 1, Integer.MAX_VALUE);
+        FLUID_GEN_TANK = b.comment("Fuel tank in mB.")
+                .defineInRange("tankCapacity", 8_000, 1_000, Integer.MAX_VALUE);
         b.pop();
 
         b.push("electric_furnace");

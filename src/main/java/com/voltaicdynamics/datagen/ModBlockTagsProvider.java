@@ -31,6 +31,7 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
                 VoltaicPower.VOLTAIC_CABLE.get(),
                 VoltaicMachines.ALLOY_SMELTER.get(),
                 VoltaicMachines.PULVERIZER.get(),
+                VoltaicGenerators.FLUID_GENERATOR.get(),
                 VoltaicLogistics.FLUID_TANK.get(),
                 VoltaicLogistics.ITEM_CABLE.get(),
                 VoltaicLogistics.FLUID_CABLE.get());

@@ -137,8 +137,9 @@ public class CombustionGeneratorBlockEntity extends VoltaicBlockEntity implement
         if (fuelBurn <= 0) return;
 
         ItemStack remainder = fuel.getCraftingRemainingItem();
-        maxBurnTime = fuelBurn;
-        burnTime = fuelBurn;
+        int scaled = Math.max(1, (int) Math.round(fuelBurn * VoltaicConfig.get(VoltaicConfig.COMBUSTION_BURN_TIME_MULTIPLIER)));
+        maxBurnTime = scaled;
+        burnTime = scaled;
         if (fuel.getCount() == 1) {
             // Lava bucket -> empty bucket stays in the slot, like a vanilla furnace.
             itemHandler.setStackInSlot(0, remainder);

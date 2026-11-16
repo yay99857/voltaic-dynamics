@@ -29,6 +29,7 @@ public final class VoltaicInfo {
             new Entry("galvanic_alloy", VoltaicCore.GALVANIC_ALLOY),
             new Entry("thermoelectric_generator", VoltaicGenerators.THERMOELECTRIC_GENERATOR),
             new Entry("combustion_generator", VoltaicGenerators.COMBUSTION_GENERATOR),
+            new Entry("fluid_generator", VoltaicGenerators.FLUID_GENERATOR),
             new Entry("basic_accumulator", VoltaicPower.BASIC_ACCUMULATOR),
             new Entry("advanced_accumulator", VoltaicPower.ADVANCED_ACCUMULATOR),
             new Entry("voltaic_cable", VoltaicPower.VOLTAIC_CABLE),

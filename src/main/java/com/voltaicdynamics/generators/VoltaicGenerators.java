@@ -14,6 +14,7 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.datamaps.RegisterDataMapTypesEvent;
 
 /** Voltaic Generators: the blocks that make FE. Depends only on Voltaic Core. */
 public final class VoltaicGenerators {
@@ -33,6 +34,11 @@ public final class VoltaicGenerators {
             () -> new CombustionGeneratorBlock(VoltaicDynamics.machineProperties(3.5F, 6.0F)
                     .lightLevel(state -> state.getValue(CombustionGeneratorBlock.LIT) ? 13 : 0)));
 
+    public static final DeferredBlock<FluidGeneratorBlock> FLUID_GENERATOR = BLOCKS.register(
+            "fluid_generator",
+            () -> new FluidGeneratorBlock(VoltaicDynamics.machineProperties(3.5F, 6.0F)
+                    .lightLevel(state -> state.getValue(FluidGeneratorBlock.LIT) ? 10 : 0)));
+
     // Block entities
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ThermoelectricGeneratorBlockEntity>> THERMOELECTRIC_GENERATOR_BE =
             BLOCK_ENTITIES.register("thermoelectric_generator", () ->
@@ -42,9 +48,16 @@ public final class VoltaicGenerators {
             BLOCK_ENTITIES.register("combustion_generator", () ->
                     BlockEntityType.Builder.of(CombustionGeneratorBlockEntity::new, COMBUSTION_GENERATOR.get()).build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluidGeneratorBlockEntity>> FLUID_GENERATOR_BE =
+            BLOCK_ENTITIES.register("fluid_generator", () ->
+                    BlockEntityType.Builder.of(FluidGeneratorBlockEntity::new, FLUID_GENERATOR.get()).build(null));
+
     // Menus
     public static final DeferredHolder<MenuType<?>, MenuType<CombustionGeneratorMenu>> COMBUSTION_GENERATOR_MENU =
             MENUS.register("combustion_generator_menu", () -> IMenuTypeExtension.create(CombustionGeneratorMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<FluidGeneratorMenu>> FLUID_GENERATOR_MENU =
+            MENUS.register("fluid_generator_menu", () -> IMenuTypeExtension.create(FluidGeneratorMenu::new));
 
     private VoltaicGenerators() {
     }
@@ -52,6 +65,7 @@ public final class VoltaicGenerators {
     public static void register(IEventBus modEventBus) {
         ITEMS.registerSimpleBlockItem(THERMOELECTRIC_GENERATOR);
         ITEMS.registerSimpleBlockItem(COMBUSTION_GENERATOR);
+        ITEMS.registerSimpleBlockItem(FLUID_GENERATOR);
 
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
@@ -59,6 +73,7 @@ public final class VoltaicGenerators {
         MENUS.register(modEventBus);
         modEventBus.addListener(VoltaicGenerators::registerCapabilities);
         modEventBus.addListener(VoltaicGenerators::addToCreativeTab);
+        modEventBus.addListener((RegisterDataMapTypesEvent event) -> event.register(FluidFuel.DATA_MAP));
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
@@ -68,12 +83,19 @@ public final class VoltaicGenerators {
                 (be, side) -> be.getEnergyStorage(side));
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, COMBUSTION_GENERATOR_BE.get(),
                 (be, side) -> be.getItemHandler(side));
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, FLUID_GENERATOR_BE.get(),
+                (be, side) -> be.getEnergyStorage(side));
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, FLUID_GENERATOR_BE.get(),
+                (be, side) -> be.getFluidHandler(side));
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, FLUID_GENERATOR_BE.get(),
+                (be, side) -> be.getItemHandler(side));
     }
 
     private static void addToCreativeTab(BuildCreativeModeTabContentsEvent event) {
         if (VoltaicCore.VOLTAIC_TAB.is(event.getTabKey())) {
             event.accept(THERMOELECTRIC_GENERATOR.get());
             event.accept(COMBUSTION_GENERATOR.get());
+            event.accept(FLUID_GENERATOR.get());
         }
     }
 }
