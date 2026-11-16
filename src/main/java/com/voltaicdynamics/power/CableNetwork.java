@@ -1,6 +1,7 @@
-package com.voltaicdynamics.energy;
+package com.voltaicdynamics.power;
 
 import com.voltaicdynamics.VoltaicConfig;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -17,7 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * One connected group of Energy Cables. The network holds no energy: whatever is inserted through a
+ * One connected group of Voltaic Cables. The network holds no energy: whatever is inserted through a
  * cable face is delivered in the same call to the blocks touching the network.
  *
  * <p>Routing rules:

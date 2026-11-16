@@ -1,0 +1,15 @@
+{
+  "type": "voltaicdynamics:alloying",
+  "experience": 0.5,
+  "ingredients": [
+    {
+      "count": 2,
+      "tag": "c:dusts/galvanic_alloy"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "voltaicdynamics:galvanic_alloy"
+  },
+  "time": 60
+}

@@ -1,7 +1,11 @@
 package com.voltaicdynamics.datagen;
 
 import com.voltaicdynamics.VoltaicDynamics;
-import com.voltaicdynamics.block.ModBlocks;
+import com.voltaicdynamics.generators.VoltaicGenerators;
+import com.voltaicdynamics.logistics.VoltaicLogistics;
+import com.voltaicdynamics.machines.VoltaicMachines;
+import com.voltaicdynamics.power.VoltaicPower;
+
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
@@ -19,11 +23,15 @@ public class ModBlockTagsProvider extends BlockTagsProvider {
     protected void addTags(HolderLookup.Provider provider) {
         // Without this tag, requiresCorrectToolForDrops() makes the machines drop nothing.
         tag(BlockTags.MINEABLE_WITH_PICKAXE).add(
-                ModBlocks.THERMOELECTRIC_GENERATOR.get(),
-                ModBlocks.COMBUSTION_GENERATOR.get(),
-                ModBlocks.ELECTRIC_FURNACE.get(),
-                ModBlocks.BASIC_ENERGY_CELL.get(),
-                ModBlocks.ADVANCED_ENERGY_CELL.get(),
-                ModBlocks.ENERGY_CABLE.get());
+                VoltaicGenerators.THERMOELECTRIC_GENERATOR.get(),
+                VoltaicGenerators.COMBUSTION_GENERATOR.get(),
+                VoltaicMachines.ELECTRIC_FURNACE.get(),
+                VoltaicPower.BASIC_ACCUMULATOR.get(),
+                VoltaicPower.ADVANCED_ACCUMULATOR.get(),
+                VoltaicPower.VOLTAIC_CABLE.get(),
+                VoltaicMachines.ALLOY_SMELTER.get(),
+                VoltaicLogistics.FLUID_TANK.get(),
+                VoltaicLogistics.ITEM_CABLE.get(),
+                VoltaicLogistics.FLUID_CABLE.get());
     }
 }

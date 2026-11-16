@@ -1,8 +1,10 @@
-package com.voltaicdynamics.blockentity;
+package com.voltaicdynamics.generators;
 
+import com.voltaicdynamics.core.blockentity.VoltaicBlockEntity;
 import com.voltaicdynamics.VoltaicConfig;
-import com.voltaicdynamics.energy.NeighborEnergyCache;
-import com.voltaicdynamics.energy.VoltaicEnergyStorage;
+import com.voltaicdynamics.core.energy.NeighborEnergyCache;
+import com.voltaicdynamics.core.energy.VoltaicEnergyStorage;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -22,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ThermoelectricGeneratorBlockEntity extends BlockEntity {
+public class ThermoelectricGeneratorBlockEntity extends VoltaicBlockEntity {
     public static final int MAX_OUTPUT = 1_000;
 
     private final VoltaicEnergyStorage energyStorage;
@@ -31,9 +33,9 @@ public class ThermoelectricGeneratorBlockEntity extends BlockEntity {
     private int tickCount = 0;
 
     public ThermoelectricGeneratorBlockEntity(BlockPos pos, BlockState blockState) {
-        super(ModBlockEntities.THERMOELECTRIC_GENERATOR.get(), pos, blockState);
+        super(VoltaicGenerators.THERMOELECTRIC_GENERATOR_BE.get(), pos, blockState);
         this.energyStorage = new VoltaicEnergyStorage(VoltaicConfig.get(VoltaicConfig.THERMO_CAPACITY),
-                0, MAX_OUTPUT, this::setChanged);
+                0, MAX_OUTPUT, this::saveChanges);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, ThermoelectricGeneratorBlockEntity entity) {

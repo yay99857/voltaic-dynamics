@@ -1,9 +1,8 @@
-package com.voltaicdynamics.block;
+package com.voltaicdynamics.generators;
+
+import com.voltaicdynamics.VoltaicConfig;
 
 import com.mojang.serialization.MapCodec;
-import com.voltaicdynamics.VoltaicConfig;
-import com.voltaicdynamics.blockentity.CombustionGeneratorBlockEntity;
-import com.voltaicdynamics.blockentity.ModBlockEntities;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -79,7 +78,7 @@ public class CombustionGeneratorBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
         if (level.isClientSide) return null;
-        return createTickerHelper(blockEntityType, ModBlockEntities.COMBUSTION_GENERATOR.get(), CombustionGeneratorBlockEntity::tick);
+        return createTickerHelper(blockEntityType, VoltaicGenerators.COMBUSTION_GENERATOR_BE.get(), CombustionGeneratorBlockEntity::tick);
     }
 
     @Override

@@ -1,11 +1,27 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:dusts/iron"
+      }
+    },
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:dusts/copper"
+      }
+    }
+  ],
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_copper": {
+    "has_copper_dust": {
       "conditions": {
         "items": [
           {
-            "items": "#c:ingots/copper"
+            "items": "#c:dusts/copper"
           }
         ]
       },
@@ -21,7 +37,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_copper"
+      "has_copper_dust"
     ]
   ],
   "rewards": {

@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_conductive_alloy": {
+    "has_galvanic_alloy": {
       "conditions": {
         "items": [
           {
-            "items": "#c:ingots/conductive_alloy"
+            "items": "#voltaicdynamics:alloys/galvanic"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_conductive_alloy"
+      "has_galvanic_alloy"
     ]
   ],
   "rewards": {

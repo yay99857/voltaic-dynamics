@@ -1,0 +1,15 @@
+{
+  "type": "voltaicdynamics:alloying",
+  "experience": 0.4,
+  "ingredients": [
+    {
+      "count": 2,
+      "tag": "c:dusts/voltaic"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "voltaicdynamics:voltaic_ingot"
+  },
+  "time": 60
+}

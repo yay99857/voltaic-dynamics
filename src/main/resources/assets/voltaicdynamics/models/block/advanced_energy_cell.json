@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:block/cube_column",
-  "textures": {
-    "end": "voltaicdynamics:block/advanced_energy_cell_top",
-    "side": "voltaicdynamics:block/advanced_energy_cell_side"
-  }
-}

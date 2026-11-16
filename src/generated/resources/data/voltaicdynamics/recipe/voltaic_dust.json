@@ -1,12 +1,28 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:dusts/iron"
+      }
+    },
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:dusts/copper"
+      }
+    }
+  ],
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
     {
-      "tag": "c:ingots/iron"
+      "tag": "c:dusts/iron"
     },
     {
-      "tag": "c:ingots/copper"
+      "tag": "c:dusts/copper"
     },
     {
       "tag": "c:dusts/redstone"

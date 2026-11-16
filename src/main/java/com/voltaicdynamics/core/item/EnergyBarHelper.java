@@ -1,6 +1,7 @@
-package com.voltaicdynamics.item;
+package com.voltaicdynamics.core.item;
 
-import com.voltaicdynamics.ModDataComponents;
+import com.voltaicdynamics.core.ModDataComponents;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;

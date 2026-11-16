@@ -1,0 +1,168 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_core"
+      }
+    },
+    {
+      "when": {
+        "north": "cable"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_arm"
+      }
+    },
+    {
+      "when": {
+        "north": "block"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector"
+      }
+    },
+    {
+      "when": {
+        "north": "pull"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector_pull"
+      }
+    },
+    {
+      "when": {
+        "south": "cable"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_arm",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "block"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "pull"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector_pull",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "east": "cable"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_arm",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "block"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "pull"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector_pull",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "west": "cable"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_arm",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "block"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "pull"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector_pull",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "up": "cable"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_arm",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "up": "block"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "up": "pull"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector_pull",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "down": "cable"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_arm",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "down": "block"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "down": "pull"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/fluid_cable_connector_pull",
+        "x": 90
+      }
+    }
+  ]
+}

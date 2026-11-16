@@ -1,0 +1,39 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:dusts/iron"
+      }
+    },
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:dusts/copper"
+      }
+    }
+  ],
+  "type": "voltaicdynamics:alloying",
+  "experience": 0.6,
+  "ingredients": [
+    {
+      "count": 1,
+      "tag": "c:dusts/iron"
+    },
+    {
+      "count": 1,
+      "tag": "c:dusts/copper"
+    },
+    {
+      "count": 1,
+      "tag": "c:dusts/redstone"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "voltaicdynamics:voltaic_ingot"
+  },
+  "time": 80
+}

@@ -20,6 +20,17 @@ public final class VoltaicConfig {
     public static final ModConfigSpec.IntValue FURNACE_TICKS_PER_ITEM;
     public static final ModConfigSpec.IntValue FURNACE_CAPACITY;
 
+    public static final ModConfigSpec.IntValue ALLOY_ENERGY_PER_TICK;
+    public static final ModConfigSpec.DoubleValue ALLOY_TIME_MULTIPLIER;
+    public static final ModConfigSpec.IntValue ALLOY_CAPACITY;
+
+    public static final ModConfigSpec.IntValue TANK_CAPACITY;
+    public static final ModConfigSpec.IntValue TANK_EJECT_RATE;
+
+    public static final ModConfigSpec.IntValue ITEM_CABLE_ITEMS;
+    public static final ModConfigSpec.IntValue ITEM_CABLE_INTERVAL;
+    public static final ModConfigSpec.IntValue FLUID_CABLE_RATE;
+
     public static final ModConfigSpec.IntValue BASIC_CELL_CAPACITY;
     public static final ModConfigSpec.IntValue BASIC_CELL_TRANSFER;
     public static final ModConfigSpec.IntValue ADVANCED_CELL_CAPACITY;
@@ -59,6 +70,34 @@ public final class VoltaicConfig {
                 .defineInRange("ticksPerItem", 100, 1, 32_000);
         FURNACE_CAPACITY = b.comment("Internal buffer in FE.")
                 .defineInRange("capacity", 20_000, 1, Integer.MAX_VALUE);
+        b.pop();
+
+        b.push("alloy_smelter");
+        ALLOY_ENERGY_PER_TICK = b.comment("FE/t consumed while alloying.")
+                .defineInRange("energyPerTick", 30, 0, 32_000);
+        ALLOY_TIME_MULTIPLIER = b.comment("Multiplies the time of every alloying recipe (0.5 = twice as fast).")
+                .defineInRange("timeMultiplier", 1.0, 0.01, 100.0);
+        ALLOY_CAPACITY = b.comment("Internal buffer in FE.")
+                .defineInRange("capacity", 20_000, 1, Integer.MAX_VALUE);
+        b.pop();
+
+        b.push("fluid_tank");
+        TANK_CAPACITY = b.comment("Capacity in mB (1 bucket = 1,000 mB).")
+                .defineInRange("capacity", 32_000, 1_000, Integer.MAX_VALUE);
+        TANK_EJECT_RATE = b.comment("mB/t pushed out of output faces when auto-eject is on.")
+                .defineInRange("ejectRate", 1_000, 1, Integer.MAX_VALUE);
+        b.pop();
+
+        b.push("item_cable");
+        ITEM_CABLE_ITEMS = b.comment("Items each pulling connector moves per operation.")
+                .defineInRange("itemsPerOperation", 16, 1, 64);
+        ITEM_CABLE_INTERVAL = b.comment("Ticks between operations (10 = twice a second). Higher is lighter on the server.")
+                .defineInRange("ticksPerOperation", 10, 1, 200);
+        b.pop();
+
+        b.push("fluid_cable");
+        FLUID_CABLE_RATE = b.comment("mB/t each pulling connector moves.")
+                .defineInRange("transferPerConnection", 1_000, 1, Integer.MAX_VALUE);
         b.pop();
 
         b.push("energy_cells");

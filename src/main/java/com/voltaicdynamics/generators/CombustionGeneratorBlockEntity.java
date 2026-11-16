@@ -1,9 +1,16 @@
-package com.voltaicdynamics.blockentity;
+package com.voltaicdynamics.generators;
 
+import com.voltaicdynamics.core.blockentity.VoltaicBlockEntity;
 import com.voltaicdynamics.VoltaicConfig;
-import com.voltaicdynamics.energy.NeighborEnergyCache;
-import com.voltaicdynamics.energy.VoltaicEnergyStorage;
-import com.voltaicdynamics.menu.CombustionGeneratorMenu;
+import com.voltaicdynamics.core.energy.VoltaicEnergyStorage;
+import com.voltaicdynamics.core.sideconfig.IoMode;
+import com.voltaicdynamics.core.sideconfig.SideConfig;
+import com.voltaicdynamics.core.sideconfig.SideConfigHelper;
+import com.voltaicdynamics.core.sideconfig.SideConfigurable;
+import com.voltaicdynamics.core.sideconfig.SidedHandlers;
+import com.voltaicdynamics.core.sideconfig.TransferType;
+
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -15,7 +22,6 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -27,17 +33,22 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
-public class CombustionGeneratorBlockEntity extends BlockEntity implements MenuProvider {
+public class CombustionGeneratorBlockEntity extends VoltaicBlockEntity implements MenuProvider, SideConfigurable {
     /** FE/t pushed out to neighbours. */
     public static final int MAX_OUTPUT = 400;
 
     private final VoltaicEnergyStorage energyStorage;
-    private final NeighborEnergyCache neighbors = new NeighborEnergyCache(this);
+    private final SideConfigHelper.Neighbors neighbors = new SideConfigHelper.Neighbors(this);
+    private final SideConfig sideConfig = SideConfig.builder()
+            .add(TransferType.ITEM, List.of(IoMode.BOTH, IoMode.INPUT, IoMode.OUTPUT, IoMode.NONE), IoMode.BOTH, true, false)
+            .add(TransferType.ENERGY, List.of(IoMode.OUTPUT, IoMode.NONE), IoMode.OUTPUT, true, true)
+            .build();
+    private SidedHandlers sided;
 
     private final ItemStackHandler itemHandler = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
-            setChanged();
+            saveChanges();
         }
 
         @Override
@@ -84,37 +95,10 @@ public class CombustionGeneratorBlockEntity extends BlockEntity implements MenuP
     private int maxBurnTime = 0;
     private int currentRate = 0;
 
-    protected final ContainerData dataAccess = new ContainerData() {
-        @Override
-        public int get(int index) {
-            int energy = energyStorage.getEnergyStored();
-            int capacity = energyStorage.getMaxEnergyStored();
-            return switch (index) {
-                case 0 -> energy & 0xFFFF;
-                case 1 -> (energy >>> 16) & 0xFFFF;
-                case 2 -> burnTime & 0xFFFF;
-                case 3 -> maxBurnTime & 0xFFFF;
-                case 4 -> capacity & 0xFFFF;
-                case 5 -> (capacity >>> 16) & 0xFFFF;
-                case 6 -> currentRate;
-                default -> 0;
-            };
-        }
-
-        @Override
-        public void set(int index, int value) {
-        }
-
-        @Override
-        public int getCount() {
-            return 7;
-        }
-    };
-
     public CombustionGeneratorBlockEntity(BlockPos pos, BlockState blockState) {
-        super(ModBlockEntities.COMBUSTION_GENERATOR.get(), pos, blockState);
+        super(VoltaicGenerators.COMBUSTION_GENERATOR_BE.get(), pos, blockState);
         this.energyStorage = new VoltaicEnergyStorage(VoltaicConfig.get(VoltaicConfig.COMBUSTION_CAPACITY),
-                0, MAX_OUTPUT, this::setChanged);
+                0, MAX_OUTPUT, this::saveChanges);
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, CombustionGeneratorBlockEntity entity) {
@@ -139,7 +123,12 @@ public class CombustionGeneratorBlockEntity extends BlockEntity implements MenuP
             level.setBlock(pos, state.setValue(BlockStateProperties.LIT, generating), 3);
         }
 
-        entity.neighbors.push(entity.energyStorage, MAX_OUTPUT, false);
+        if (entity.sideConfig.eject(TransferType.ENERGY)) {
+            SideConfigHelper.ejectEnergy(entity, entity.neighbors, entity.energyStorage, MAX_OUTPUT, false);
+        }
+        if (entity.sideConfig.eject(TransferType.ITEM) && Math.floorMod(level.getGameTime() + pos.asLong(), 10) == 0) {
+            SideConfigHelper.ejectItems(entity, entity.neighbors, entity.automationHandler, new int[]{0}, 16);
+        }
     }
 
     private void consumeFuel(Level level) {
@@ -160,7 +149,7 @@ public class CombustionGeneratorBlockEntity extends BlockEntity implements MenuP
                         worldPosition.getZ() + 0.5, remainder);
             }
         }
-        setChanged();
+        saveChanges();
     }
 
     private static int burnTimeOf(ItemStack stack) {
@@ -178,12 +167,34 @@ public class CombustionGeneratorBlockEntity extends BlockEntity implements MenuP
         }
     }
 
-    public IEnergyStorage getEnergyStorage(@Nullable Direction side) {
-        return energyStorage;
+    private SidedHandlers sided() {
+        if (sided == null) sided = new SidedHandlers(this, automationHandler, null, energyStorage);
+        return sided;
     }
 
+    @Nullable
+    public IEnergyStorage getEnergyStorage(@Nullable Direction side) {
+        return sided().energy(side);
+    }
+
+    @Nullable
     public IItemHandler getItemHandler(@Nullable Direction side) {
-        return automationHandler;
+        return sided().items(side);
+    }
+
+    @Override
+    public SideConfig getSideConfig() {
+        return sideConfig;
+    }
+
+    @Override
+    public Direction getFacing() {
+        return getBlockState().getValue(CombustionGeneratorBlock.FACING);
+    }
+
+    @Override
+    public void onSideConfigChanged() {
+        SideConfigHelper.applyChange(this, sided());
     }
 
     /** Unrestricted handler for the GUI slot, so players can take the empty bucket or fuel back. */
@@ -199,6 +210,19 @@ public class CombustionGeneratorBlockEntity extends BlockEntity implements MenuP
         return burnTime;
     }
 
+    public int getEnergyCapacity() {
+        return energyStorage.getMaxEnergyStored();
+    }
+
+    public int getMaxBurnTime() {
+        return maxBurnTime;
+    }
+
+    /** FE/t produced this tick (0 when idle or full). Shown by the Jade integration. */
+    public int getCurrentRate() {
+        return currentRate;
+    }
+
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.voltaicdynamics.combustion_generator");
@@ -207,7 +231,7 @@ public class CombustionGeneratorBlockEntity extends BlockEntity implements MenuP
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new CombustionGeneratorMenu(containerId, playerInventory, this, dataAccess);
+        return new CombustionGeneratorMenu(containerId, playerInventory, this);
     }
 
     @Override
@@ -217,6 +241,7 @@ public class CombustionGeneratorBlockEntity extends BlockEntity implements MenuP
         tag.put("Energy", energyStorage.serializeNBT(registries));
         tag.putInt("BurnTime", burnTime);
         tag.putInt("MaxBurnTime", maxBurnTime);
+        tag.put("SideConfig", sideConfig.save());
     }
 
     @Override
@@ -226,5 +251,7 @@ public class CombustionGeneratorBlockEntity extends BlockEntity implements MenuP
         if (tag.contains("Energy")) energyStorage.deserializeNBT(registries, tag.getCompound("Energy"));
         burnTime = tag.getInt("BurnTime");
         maxBurnTime = tag.getInt("MaxBurnTime");
+        if (tag.contains("SideConfig")) sideConfig.load(tag.getCompound("SideConfig"));
+        sided().invalidate();
     }
 }

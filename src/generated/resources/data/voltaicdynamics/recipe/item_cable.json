@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "G": {
+      "tag": "c:glass_panes"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "V": {
+      "tag": "c:ingots/voltaic"
+    }
+  },
+  "pattern": [
+    "IGI",
+    "VHV",
+    "IGI"
+  ],
+  "result": {
+    "count": 8,
+    "id": "voltaicdynamics:item_cable"
+  }
+}

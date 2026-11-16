@@ -1,6 +1,7 @@
 package com.voltaicdynamics.datagen;
 
 import com.voltaicdynamics.VoltaicDynamics;
+
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;

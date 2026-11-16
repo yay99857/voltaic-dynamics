@@ -1,7 +1,8 @@
 package com.voltaicdynamics.datagen;
 
 import com.voltaicdynamics.VoltaicDynamics;
-import com.voltaicdynamics.item.ModItems;
+import com.voltaicdynamics.core.VoltaicCore;
+
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
@@ -19,12 +20,12 @@ public class ModItemTagsProvider extends ItemTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
-        tag(ModTags.INGOTS_VOLTAIC).add(ModItems.VOLTAIC_INGOT.get());
-        tag(ModTags.INGOTS_CONDUCTIVE_ALLOY).add(ModItems.CONDUCTIVE_ALLOY.get());
-        tag(ModTags.DUSTS_VOLTAIC).add(ModItems.VOLTAIC_DUST.get());
-        tag(ModTags.DUSTS_CONDUCTIVE_ALLOY).add(ModItems.CONDUCTIVE_DUST.get());
+        tag(ModTags.INGOTS_VOLTAIC).add(VoltaicCore.VOLTAIC_INGOT.get());
+        tag(ModTags.ALLOYS_GALVANIC).add(VoltaicCore.GALVANIC_ALLOY.get());
+        tag(ModTags.DUSTS_VOLTAIC).add(VoltaicCore.VOLTAIC_DUST.get());
+        tag(ModTags.DUSTS_GALVANIC_ALLOY).add(VoltaicCore.GALVANIC_DUST.get());
 
-        tag(Tags.Items.INGOTS).addTag(ModTags.INGOTS_VOLTAIC).addTag(ModTags.INGOTS_CONDUCTIVE_ALLOY);
-        tag(Tags.Items.DUSTS).addTag(ModTags.DUSTS_VOLTAIC).addTag(ModTags.DUSTS_CONDUCTIVE_ALLOY);
+        tag(Tags.Items.INGOTS).addTag(ModTags.INGOTS_VOLTAIC);
+        tag(Tags.Items.DUSTS).addTag(ModTags.DUSTS_VOLTAIC).addTag(ModTags.DUSTS_GALVANIC_ALLOY);
     }
 }

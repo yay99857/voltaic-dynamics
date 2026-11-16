@@ -1,7 +1,9 @@
-package com.voltaicdynamics.client;
+package com.voltaicdynamics.generators.client;
 
 import com.voltaicdynamics.VoltaicDynamics;
-import com.voltaicdynamics.menu.CombustionGeneratorMenu;
+import com.voltaicdynamics.core.client.MachineScreen;
+import com.voltaicdynamics.generators.CombustionGeneratorMenu;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -11,7 +13,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 import java.util.List;
 
-public class CombustionGeneratorScreen extends AbstractContainerScreen<CombustionGeneratorMenu> {
+public class CombustionGeneratorScreen extends MachineScreen<CombustionGeneratorMenu> {
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "textures/gui/combustion_generator_gui.png");
 
@@ -41,12 +43,6 @@ public class CombustionGeneratorScreen extends AbstractContainerScreen<Combustio
         if (energyHeight > 0) {
             guiGraphics.blit(TEXTURE, x + 152, y + 18 + 52 - energyHeight, 176, 18 + 52 - energyHeight, 16, energyHeight);
         }
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        renderTooltip(guiGraphics, mouseX, mouseY);
     }
 
     @Override

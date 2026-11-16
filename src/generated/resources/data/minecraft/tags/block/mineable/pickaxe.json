@@ -3,8 +3,12 @@
     "voltaicdynamics:thermoelectric_generator",
     "voltaicdynamics:combustion_generator",
     "voltaicdynamics:electric_furnace",
-    "voltaicdynamics:basic_energy_cell",
-    "voltaicdynamics:advanced_energy_cell",
-    "voltaicdynamics:energy_cable"
+    "voltaicdynamics:basic_accumulator",
+    "voltaicdynamics:advanced_accumulator",
+    "voltaicdynamics:voltaic_cable",
+    "voltaicdynamics:alloy_smelter",
+    "voltaicdynamics:fluid_tank",
+    "voltaicdynamics:item_cable",
+    "voltaicdynamics:fluid_cable"
   ]
 }

@@ -1,4 +1,4 @@
-package com.voltaicdynamics.energy;
+package com.voltaicdynamics.core.energy;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;

@@ -3,7 +3,7 @@
   "category": "redstone",
   "key": {
     "C": {
-      "tag": "c:ingots/conductive_alloy"
+      "tag": "voltaicdynamics:alloys/galvanic"
     },
     "F": {
       "item": "minecraft:furnace"

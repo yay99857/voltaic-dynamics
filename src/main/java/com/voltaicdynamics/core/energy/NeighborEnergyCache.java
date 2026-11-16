@@ -1,4 +1,4 @@
-package com.voltaicdynamics.energy;
+package com.voltaicdynamics.core.energy;
 
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;

@@ -28,6 +28,10 @@ neoForge {
         client {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            // ./gradlew runClient -PquickPlay="World Name" : opens that save directly (used for the showcase world)
+            if (project.hasProperty('quickPlay')) {
+                programArguments.addAll '--quickPlaySingleplayer', project.property('quickPlay').toString()
+            }
         }
         server {
             server()
@@ -58,9 +62,25 @@ neoForge {
 repositories {
     mavenLocal()
     mavenCentral()
+    // JEI, EMI and Jade at the exact versions shipped in Bubie Pack (CurseForge file ids).
+    maven {
+        url = 'https://cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
 }
 
 dependencies {
+    // Optional integrations: compiled against, never required at runtime (see compat/*).
+    compileOnly 'curse.maven:jei-238222:9205121'    // JEI 19.64.0.455
+    compileOnly 'curse.maven:emi-580555:8081408'    // EMI 1.1.24
+    compileOnly 'curse.maven:jade-324717:8591319'   // Jade 15.10.6
+    // Loaded in runClient / runServer / runGameTestServer so the integrations are exercised in dev.
+    runtimeOnly 'curse.maven:jei-238222:9205121'
+    runtimeOnly 'curse.maven:emi-580555:8081408'
+    runtimeOnly 'curse.maven:jade-324717:8591319'
+    // Dev only: Mekanism supplies iron/copper dust (Voltaic Dust recipe) and FE machines to test cables against.
+    runtimeOnly 'curse.maven:mekanism-268560:7904058'            // Mekanism 10.7.19
+    runtimeOnly 'curse.maven:mekanism-generators-268566:7904061' // Mekanism Generators 10.7.19
 }
 
 tasks.withType(JavaCompile).configureEach {

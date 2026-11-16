@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "voltaicdynamics:item/conductive_dust"
-  }
-}

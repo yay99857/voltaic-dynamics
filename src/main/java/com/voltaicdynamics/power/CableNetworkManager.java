@@ -1,6 +1,5 @@
-package com.voltaicdynamics.energy;
+package com.voltaicdynamics.power;
 
-import com.voltaicdynamics.block.EnergyCableBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -109,7 +108,7 @@ public final class CableNetworkManager {
     }
 
     private boolean isCable(BlockPos pos) {
-        return level.isLoaded(pos) && level.getBlockState(pos).getBlock() instanceof EnergyCableBlock;
+        return level.isLoaded(pos) && level.getBlockState(pos).getBlock() instanceof VoltaicCableBlock;
     }
 
     private CableNetwork build(BlockPos start) {

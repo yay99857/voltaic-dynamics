@@ -1,9 +1,8 @@
-package com.voltaicdynamics.block;
+package com.voltaicdynamics.generators;
+
+import com.voltaicdynamics.VoltaicConfig;
 
 import com.mojang.serialization.MapCodec;
-import com.voltaicdynamics.VoltaicConfig;
-import com.voltaicdynamics.blockentity.ModBlockEntities;
-import com.voltaicdynamics.blockentity.ThermoelectricGeneratorBlockEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -52,7 +51,7 @@ public class ThermoelectricGeneratorBlock extends BaseEntityBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
         if (level.isClientSide) return null;
-        return createTickerHelper(blockEntityType, ModBlockEntities.THERMOELECTRIC_GENERATOR.get(), ThermoelectricGeneratorBlockEntity::tick);
+        return createTickerHelper(blockEntityType, VoltaicGenerators.THERMOELECTRIC_GENERATOR_BE.get(), ThermoelectricGeneratorBlockEntity::tick);
     }
 
     @Override
