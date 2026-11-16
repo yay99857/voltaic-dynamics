@@ -59,6 +59,10 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 * 100,000 FE personal bank with a charge bar.
 * While in your inventory it charges the items **in both hands and the armor you wear**, up to 500 FE/t in total.
 * Can be charged or emptied in an Accumulator.
+* **🔧 Voltaic Wrench** (iron + Voltaic Ingot): right-click a machine to **turn it** (its side configuration turns with it);
+  right-click, sneaking or not, an **item or fluid cable arm** to cycle *deliver* → *pull* → *off*;
+  **sneak + right-click** any other Voltaic block to **pick it up** straight into your inventory, energy and fluid included.
+  It is in `c:tools/wrench`, so other mods treat it as a wrench and other mods' wrenches configure our cables.
 
 ### 7. 🔥 Alloy Smelter (new)
 * Three input slots and one output, **30 FE/t**, same rules as the Electric Furnace (pauses without power, keeps progress, XP, comparator).
@@ -82,7 +86,7 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 
 ### 9. 📦 Item Cable and 💧 Fluid Cable (new)
 * Look and work like Mekanism transporters / AE2 cables: thin core, arms to other cables, a **connector plate** on every machine.
-* **Sneak + right-click an arm** (empty hand or any `c:tools/wrench`): *deliver* → *pull* (orange plate) → *off*. Off between two cables splits the network.
+* **Right-click an arm with the Voltaic Wrench** (or any `c:tools/wrench`), or **sneak + right-click it with an empty hand**: *deliver* → *pull* (orange plate) → *off*. Off between two cables splits the network.
 * Pulling connectors move **16 items every 0.5 s** or **1,000 mB/t** into the delivering connectors, **round-robin**.
 * Machines and hoppers can also push straight into a connector (auto-eject works with cables).
 * **No lag by design:** no items in transit (nothing to tick, sync or render), cables never tick, one network tick per group,
@@ -132,7 +136,7 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 
   `client/ClientModEvents`, `compat`, `datagen` and `gametest` still cover every module.
 * **Data is generated:** tags, loot tables and recipes come from `src/main/java/com/voltaicdynamics/datagen`. Edit the providers and run `runData`; don't hand-edit `src/generated`.
-* **Game tests** live in `gametest/`, one class per module (29 tests): `CoreGameTests` (mining tags, deferred saves, menu sync, side configuration and auto-eject), `PowerGameTests` (cells keeping energy, no battery ping-pong, cable delivery), `GeneratorGameTests` (lava bucket, fuel extraction, Thermoelectric Generator), `MachineGameTests` (Electric Furnace, recipe cache, recipe set, Alloy Smelter) `LogisticsGameTests` (item and fluid cables, Fluid Tank) and `CompatGameTests` (other mods' blocks: Accumulator and Combustion Generator on Mekanism's Universal Cable, Fluid Cable pulling from and Fluid Tank ejecting into a Mekanism Fluid Tank, vanilla hoppers feeding and emptying the Electric Furnace). Shared helpers are in `GameTestSupport`.
+* **Game tests** live in `gametest/`, one class per module (32 tests): `CoreGameTests` (mining tags, deferred saves, menu sync, side configuration and auto-eject), `PowerGameTests` (cells keeping energy, no battery ping-pong, cable delivery), `GeneratorGameTests` (lava bucket, fuel extraction, Thermoelectric Generator), `GadgetGameTests` (Voltaic Wrench: turning, picking up, cable arms), `MachineGameTests` (Electric Furnace, recipe cache, recipe set, Alloy Smelter) `LogisticsGameTests` (item and fluid cables, Fluid Tank) and `CompatGameTests` (other mods' blocks: Accumulator and Combustion Generator on Mekanism's Universal Cable, Fluid Cable pulling from and Fluid Tank ejecting into a Mekanism Fluid Tank, vanilla hoppers feeding and emptying the Electric Furnace). Shared helpers are in `GameTestSupport`.
 * **Art sources** for the machine fronts, GUIs, tank and cable textures are in `art-src/textures/*.pontilha` (Pontilha).
 * Versions live in `gradle.properties`; `neoforge.mods.toml` is filled from it at build time.
 
@@ -146,6 +150,7 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 * Faster: machines cache their recipe and only search again when the inputs or the loaded recipes change.
 * Faster: block entities mark themselves changed once per tick instead of on every energy or item transfer.
 * Fixed: machine GUIs now sync full 32-bit values, so energy above 32,767 FE, long fuel burn times and long recipes show correctly.
+* New: Voltaic Wrench: turns machines, cycles cable arms, picks Voltaic blocks up with their contents; tagged `c:tools/wrench`.
 * Fixed: Accumulators now work on other mods' cable networks (Mekanism's Universal Cable): they used to skip those cables as if they were batteries, and once fed would hand the energy straight back instead of charging.
 * Internal: code split into modules (`core`, `generators`, `machines`, `power`, `logistics`, `gadgets`) that only depend on `core`; game tests split per module.
 

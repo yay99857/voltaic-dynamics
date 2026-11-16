@@ -1,4 +1,4 @@
-// 1.21.1	2026-11-15T08:31:29.068274044	Recipes
+// 1.21.1	2026-11-15T23:40:18.166768434	Recipes
 877b4806e3c1ef01b419305815f9e2623deb4348 data/voltaicdynamics/advancement/recipes/misc/fluid_tank.json
 91ecc5e51098e38aaaa7f96443926d0211133afd data/voltaicdynamics/advancement/recipes/misc/galvanic_alloy_from_blasting.json
 ef12c97bd4a8b9e3f20360e566cd47eed3d0db61 data/voltaicdynamics/advancement/recipes/misc/galvanic_alloy_from_smelting.json
@@ -18,6 +18,7 @@ a10a18c6ec56ca15b65a795ad26ffef7d9c9289b data/voltaicdynamics/advancement/recipe
 e0b07d3eb5be065587e4785bac861c829938be6e data/voltaicdynamics/advancement/recipes/redstone/thermoelectric_generator.json
 33615c442c54999f485736adad55d50fce630bd2 data/voltaicdynamics/advancement/recipes/redstone/voltaic_cable.json
 7f29e73e42932136f65dc4cc3d424c1cbeb35a42 data/voltaicdynamics/advancement/recipes/tools/pocket_accumulator.json
+b0fa71e451194a187e0af8db1d4dff5ec71e3cba data/voltaicdynamics/advancement/recipes/tools/voltaic_wrench.json
 e6b9405791541511e1d4f8a92683feed8e0c4f59 data/voltaicdynamics/recipe/advanced_accumulator.json
 8640dc783a6a864cfd32b7a0d57b4df33d5b4018 data/voltaicdynamics/recipe/alloy_smelter.json
 4c6cb8a259ce0d5b07898aefe6168866fc6a7258 data/voltaicdynamics/recipe/alloying/galvanic_alloy.json
@@ -43,3 +44,4 @@ db62d75c1f3a95f73d3c083f6bbc8ef5c0bd2c49 data/voltaicdynamics/recipe/voltaic_dus
 3c72ec08e8f9b5f11154a74711924641591a3f66 data/voltaicdynamics/recipe/voltaic_dust_from_ingots.json
 85efe6ee6db0ea164a3020273f2e52410a71e6b2 data/voltaicdynamics/recipe/voltaic_ingot_from_blasting.json
 7a08dffe91946dfa1a6d864aac00e8a6745c208c data/voltaicdynamics/recipe/voltaic_ingot_from_smelting.json
+214fadffc364a9b220632863c44bdb7e5aff8492 data/voltaicdynamics/recipe/voltaic_wrench.json

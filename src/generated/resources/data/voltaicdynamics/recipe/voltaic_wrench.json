@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "I": {
+      "tag": "c:ingots/iron"
+    },
+    "V": {
+      "tag": "c:ingots/voltaic"
+    }
+  },
+  "pattern": [
+    "I I",
+    " V ",
+    " I "
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:voltaic_wrench"
+  }
+}

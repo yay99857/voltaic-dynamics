@@ -2,6 +2,7 @@ package com.voltaicdynamics.datagen;
 
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.VoltaicCore;
+import com.voltaicdynamics.gadgets.VoltaicGadgets;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
@@ -25,6 +26,7 @@ public class ModItemTagsProvider extends ItemTagsProvider {
         tag(ModTags.DUSTS_VOLTAIC).add(VoltaicCore.VOLTAIC_DUST.get());
         tag(ModTags.DUSTS_GALVANIC_ALLOY).add(VoltaicCore.GALVANIC_DUST.get());
 
+        tag(Tags.Items.TOOLS_WRENCH).add(VoltaicGadgets.VOLTAIC_WRENCH.get());
         tag(Tags.Items.INGOTS).addTag(ModTags.INGOTS_VOLTAIC);
         tag(Tags.Items.DUSTS).addTag(ModTags.DUSTS_VOLTAIC).addTag(ModTags.DUSTS_GALVANIC_ALLOY);
     }

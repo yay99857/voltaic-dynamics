@@ -84,6 +84,12 @@ public class ModRecipeProvider extends RecipeProvider {
                 .define('I', ModTags.INGOTS_VOLTAIC)
                 .unlockedBy("has_voltaic_ingot", has(ModTags.INGOTS_VOLTAIC))
                 .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, VoltaicGadgets.VOLTAIC_WRENCH.get())
+                .pattern("I I").pattern(" V ").pattern(" I ")
+                .define('I', Tags.Items.INGOTS_IRON)
+                .define('V', ModTags.INGOTS_VOLTAIC)
+                .unlockedBy("has_voltaic_ingot", has(ModTags.INGOTS_VOLTAIC))
+                .save(output);
         ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, VoltaicGadgets.POCKET_ACCUMULATOR.get())
                 .pattern(" R ").pattern("CVC").pattern(" R ")
                 .define('R', Tags.Items.DUSTS_REDSTONE)

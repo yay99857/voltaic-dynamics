@@ -133,9 +133,46 @@ def tank_recipe():
     }
 
 
+def wrench_recipe():
+    """Diagonal open-end wrench: steel head top-right with the jaw opening at the tip, Voltaic cyan grip."""
+    steel = {-4: "#d8dee6", -3: "#d8dee6", -2: "#b4bdc9", -1: "#b4bdc9", 0: "#8c96a5", 1: "#687180", 2: "#4d5562",
+             3: "#3f4753", 4: "#3f4753"}
+    grip = {-1: "#59dcff", 0: "#1fa9d4", 1: "#0f6683"}
+    handle, head, grips, glints = [], [], [], []
+    for y in range(16):
+        for x in range(16):
+            u, v = x - y, x + y - 15
+            if 2 <= u <= 9 and abs(v) <= 4:
+                if u >= 5 and abs(v) <= 2:
+                    continue  # the jaw opening
+                if (u == 2 or u == 9) and abs(v) == 4:
+                    continue  # round off the corners
+                head.append([x, y, steel[v]])
+            elif -9 <= u <= 2 and abs(v) <= 1:
+                if u <= -3:
+                    grips.append([x, y, grip[v]])
+                else:
+                    handle.append([x, y, steel[v]])
+    glints = [[x, y, "#ffffff"] for y in range(16) for x in range(16) if (x - y, x + y - 15) in ((3, -3), (7, -4), (-7, -1))]
+    return {
+        "name": "Ícone voltaic_wrench",
+        "description": "Ícone 16x16 da Chave Voltaica (gerado por gen_item_icons.py).",
+        "steps": [
+            {"id": "doc.new", "params": {"width": 16, "height": 16, "name": "voltaic_wrench", "discard": True}},
+            {"id": "layer.setProps", "params": {"name": "chave"}},
+            {"id": "draw.pixels", "params": {"pixels": handle}},
+            {"id": "draw.pixels", "params": {"pixels": head}},
+            {"id": "draw.pixels", "params": {"pixels": grips}},
+            {"id": "draw.pixels", "params": {"pixels": glints}},
+            {"id": "effect.outline", "params": {"color": OUTLINE}},
+        ],
+    }
+
+
 if __name__ == "__main__":
     recipes = {name: cable_recipe(name, spec) for name, spec in CABLES.items()}
     recipes["fluid_tank"] = tank_recipe()
+    recipes["voltaic_wrench"] = wrench_recipe()
     for name, recipe in recipes.items():
         path = HERE / f"item_icon_{name}.recipe.json"
         path.write_text(json.dumps(recipe, indent=1) + "\n")

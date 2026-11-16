@@ -104,5 +104,10 @@
   "info.voltaicdynamics.fluid_tank": "Stores 32,000 mB of one fluid and keeps it when broken. Right-click with a bucket, or use the GUI slots. Faces and auto-eject are set in the side tab.",
   "info.voltaicdynamics.item_cable": "Sneak + right-click the arm touching an inventory to make it pull (orange connector). Items go straight to the other connectors, round-robin, with no items in transit.",
   "info.voltaicdynamics.fluid_cable": "Sneak + right-click the arm touching a tank to make it pull (orange connector). Moves 1,000 mB/t per pulling connector to the other connectors.",
-  "emi.category.voltaicdynamics.alloying": "Alloying"
+  "emi.category.voltaicdynamics.alloying": "Alloying",
+  "item.voltaicdynamics.voltaic_wrench": "Voltaic Wrench",
+  "tooltip.voltaicdynamics.voltaic_wrench.rotate": "Right-click a machine: turn it",
+  "tooltip.voltaicdynamics.voltaic_wrench.cable": "Right-click an item or fluid cable arm: deliver / pull / off",
+  "tooltip.voltaicdynamics.voltaic_wrench.dismantle": "Sneak + right-click a Voltaic block: pick it up",
+  "info.voltaicdynamics.voltaic_wrench": "Right-click a machine to turn it a quarter turn; its side configuration turns with it. Right-click (sneaking or not) the arm of an item or fluid cable to cycle it: deliver, pull (orange connector), off. Sneak + right-click any other Voltaic block to pick it up straight into your inventory, energy and fluid included. Works as a wrench for other mods too (c:tools/wrench)."
 }

@@ -1,7 +1,8 @@
-// 1.21.1	2026-11-15T01:10:04.439839151	Tags for minecraft:item mod id voltaicdynamics
+// 1.21.1	2026-11-15T23:40:18.168476532	Tags for minecraft:item mod id voltaicdynamics
 a262f8a76c5563cc2da43887792957100a10d2e6 data/c/tags/item/dusts.json
 8e0da0f0fe295a74b0a29ddf64e75409416958df data/c/tags/item/dusts/galvanic_alloy.json
 501dad5d6f40c16e5901b5605921e14b8e19aab9 data/c/tags/item/dusts/voltaic.json
 e7efd3bd5b40b65578de6ba93c8258dcbc892102 data/c/tags/item/ingots.json
 ca4ed64328dcd9f2d57f9d04b9ea76acb497aff2 data/c/tags/item/ingots/voltaic.json
+feb4311dfbebc86ea9c5c0a358fa90f44d8591bd data/c/tags/item/tools/wrench.json
 db2f617407f6fd38cecf8074baf98e39a1d4cea5 data/voltaicdynamics/tags/item/alloys/galvanic.json

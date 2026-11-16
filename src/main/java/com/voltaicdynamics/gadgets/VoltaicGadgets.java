@@ -13,12 +13,15 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-/** Voltaic Gadgets: powered tools you carry. Depends only on Voltaic Core. */
+/** Voltaic Gadgets: tools you carry (Pocket Accumulator, Voltaic Wrench). Depends only on Voltaic Core. */
 public final class VoltaicGadgets {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(VoltaicDynamics.MOD_ID);
 
     public static final DeferredItem<PocketAccumulatorItem> POCKET_ACCUMULATOR = ITEMS.register("pocket_accumulator",
             () -> new PocketAccumulatorItem(new Item.Properties()));
+
+    public static final DeferredItem<VoltaicWrenchItem> VOLTAIC_WRENCH = ITEMS.register("voltaic_wrench",
+            () -> new VoltaicWrenchItem(new Item.Properties().stacksTo(1)));
 
     private VoltaicGadgets() {
     }
@@ -41,6 +44,7 @@ public final class VoltaicGadgets {
     private static void addToCreativeTab(BuildCreativeModeTabContentsEvent event) {
         if (VoltaicCore.VOLTAIC_TAB.is(event.getTabKey())) {
             event.accept(POCKET_ACCUMULATOR.get());
+            event.accept(VOLTAIC_WRENCH.get());
         }
     }
 }

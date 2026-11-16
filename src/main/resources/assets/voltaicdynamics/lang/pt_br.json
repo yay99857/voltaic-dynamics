@@ -104,5 +104,10 @@
   "info.voltaicdynamics.fluid_tank": "Guarda 32.000 mB de um fluido e não perde ao ser quebrado. Clique com balde ou use os slots da interface. Lados e ejeção ficam na aba lateral.",
   "info.voltaicdynamics.item_cable": "Agachado + botão direito no braço encostado num inventário faz ele puxar (conector laranja). Os itens vão direto aos outros conectores, em rodízio, sem itens em trânsito.",
   "info.voltaicdynamics.fluid_cable": "Agachado + botão direito no braço encostado num tanque faz ele puxar (conector laranja). Move 1.000 mB/t por conector puxando.",
-  "emi.category.voltaicdynamics.alloying": "Fundição de Ligas"
+  "emi.category.voltaicdynamics.alloying": "Fundição de Ligas",
+  "item.voltaicdynamics.voltaic_wrench": "Chave Voltaica",
+  "tooltip.voltaicdynamics.voltaic_wrench.rotate": "Botão direito numa máquina: gira",
+  "tooltip.voltaicdynamics.voltaic_wrench.cable": "Botão direito no braço de um cabo de itens ou fluidos: entrega / puxa / desligado",
+  "tooltip.voltaicdynamics.voltaic_wrench.dismantle": "Agachado + botão direito num bloco Voltaic: recolhe",
+  "info.voltaicdynamics.voltaic_wrench": "Botão direito numa máquina gira ela um quarto de volta; a configuração de lados gira junto. Botão direito (agachado ou não) no braço de um cabo de itens ou fluidos alterna: entrega, puxa (conector laranja), desligado. Agachado + botão direito em qualquer outro bloco Voltaic recolhe direto para o inventário, com energia e fluido. Também funciona como chave para outros mods (c:tools/wrench)."
 }

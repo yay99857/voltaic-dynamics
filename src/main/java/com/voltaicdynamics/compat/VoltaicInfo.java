@@ -36,7 +36,8 @@ public final class VoltaicInfo {
             new Entry("fluid_tank", VoltaicLogistics.FLUID_TANK),
             new Entry("item_cable", VoltaicLogistics.ITEM_CABLE),
             new Entry("fluid_cable", VoltaicLogistics.FLUID_CABLE),
-            new Entry("pocket_accumulator", VoltaicGadgets.POCKET_ACCUMULATOR));
+            new Entry("pocket_accumulator", VoltaicGadgets.POCKET_ACCUMULATOR),
+            new Entry("voltaic_wrench", VoltaicGadgets.VOLTAIC_WRENCH));
 
     private VoltaicInfo() {
     }

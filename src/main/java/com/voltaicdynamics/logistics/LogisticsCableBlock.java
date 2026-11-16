@@ -1,5 +1,7 @@
 package com.voltaicdynamics.logistics;
 
+import com.voltaicdynamics.core.block.WrenchConfigurable;
+
 import com.voltaicdynamics.VoltaicConfig;
 
 import net.minecraft.ChatFormatting;
@@ -44,13 +46,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Item and fluid cables. Looks and behaves like Mekanism transporters / AE2 cables: a thin core, arms to other
- * cables and a wider connector plate where it meets a machine. Sneak + right-click an arm (empty hand or any
- * wrench) to cycle it: deliver -> pull (orange plate) -> off. Off between two cables cuts them apart.
+ * cables and a wider connector plate where it meets a machine. Sneak + right-click an arm with an empty hand,
+ * or right-click it with any wrench (Voltaic Wrench or any item in {@code c:tools/wrench}), to cycle it: deliver -> pull (orange plate) -> off. Off between two cables cuts them apart.
  *
  * <p>No item ever travels as an entity and cables never tick: each network moves items directly from the
  * pulling connectors into the targets on a fixed interval (see {@link LogisticsNetwork}).
  */
-public abstract class LogisticsCableBlock extends BaseEntityBlock {
+public abstract class LogisticsCableBlock extends BaseEntityBlock implements WrenchConfigurable {
     public static final EnumProperty<ConnectionType> NORTH = EnumProperty.create("north", ConnectionType.class);
     public static final EnumProperty<ConnectionType> SOUTH = EnumProperty.create("south", ConnectionType.class);
     public static final EnumProperty<ConnectionType> EAST = EnumProperty.create("east", ConnectionType.class);
