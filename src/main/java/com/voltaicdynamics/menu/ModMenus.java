@@ -18,4 +18,8 @@ public class ModMenus {
     public static final DeferredHolder<MenuType<?>, MenuType<EnergyCellMenu>> ENERGY_CELL_MENU =
             MENUS.register("energy_cell_menu", () ->
                     IMenuTypeExtension.create(EnergyCellMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<ElectricFurnaceMenu>> ELECTRIC_FURNACE_MENU =
+            MENUS.register("electric_furnace_menu", () ->
+                    IMenuTypeExtension.create(ElectricFurnaceMenu::new));
 }

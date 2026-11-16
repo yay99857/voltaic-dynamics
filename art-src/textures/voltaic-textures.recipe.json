@@ -1,0 +1,909 @@
+{
+ "name": "Voltaic Dynamics textures",
+ "layout": [
+  [
+   "machine_side",
+   0,
+   0
+  ],
+  [
+   "machine_top",
+   18,
+   0
+  ],
+  [
+   "machine_bottom",
+   36,
+   0
+  ],
+  [
+   "thermoelectric_side",
+   54,
+   0
+  ],
+  [
+   "combustion_front",
+   72,
+   0
+  ],
+  [
+   "combustion_front_on",
+   90,
+   0
+  ],
+  [
+   "electric_furnace_front",
+   0,
+   18
+  ],
+  [
+   "electric_furnace_front_on",
+   18,
+   18
+  ],
+  [
+   "basic_accumulator_side",
+   36,
+   18
+  ],
+  [
+   "basic_accumulator_top",
+   54,
+   18
+  ],
+  [
+   "advanced_accumulator_side",
+   72,
+   18
+  ],
+  [
+   "advanced_accumulator_top",
+   90,
+   18
+  ],
+  [
+   "voltaic_cable",
+   0,
+   36
+  ],
+  [
+   "voltaic_cable_core",
+   18,
+   36
+  ],
+  [
+   "voltaic_ingot",
+   36,
+   36
+  ],
+  [
+   "voltaic_dust",
+   54,
+   36
+  ],
+  [
+   "galvanic_alloy",
+   72,
+   36
+  ],
+  [
+   "galvanic_dust",
+   90,
+   36
+  ],
+  [
+   "thermopile_core",
+   0,
+   54
+  ],
+  [
+   "pocket_accumulator",
+   18,
+   54
+  ]
+ ],
+ "steps": [
+  {
+   "id": "doc.new",
+   "params": {
+    "width": 106,
+    "height": 70,
+    "name": "voltaic-textures"
+   }
+  },
+  {
+   "id": "palette.set",
+   "params": {
+    "colors": [
+     "#0a2f3c",
+     "#0f6683",
+     "#13161b",
+     "#1b3a74",
+     "#1f242c",
+     "#1fa9d4",
+     "#2b313b",
+     "#3576c8",
+     "#3a0c06",
+     "#3b1a10",
+     "#3d4450",
+     "#4d5562",
+     "#553609",
+     "#59dcff",
+     "#5a2027",
+     "#687180",
+     "#73361b",
+     "#8a2509",
+     "#8a5d12",
+     "#8c96a5",
+     "#96d2ff",
+     "#a9592a",
+     "#b4bdc9",
+     "#c4911d",
+     "#c6f6ff",
+     "#d0521a",
+     "#d6864a",
+     "#eec142",
+     "#f2bd87",
+     "#ff9330",
+     "#ffdd70",
+     "#fff0a6"
+    ]
+   }
+  },
+  {
+   "id": "layer.setProps",
+   "params": {
+    "name": "maquinas"
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 0,
+    "y": 0,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndmstmmstmlnek",
+     "khndmstkkstmlnek",
+     "khndmst23stmlnek",
+     "khndmst23stmlnek",
+     "khndmst34stmlnek",
+     "khndmst34stmlnek",
+     "khndmstkkstmlnek",
+     "khndmstmmstmlnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "2": "#0f6683",
+     "3": "#1fa9d4",
+     "4": "#59dcff",
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "h": "#8c96a5",
+     "k": "#13161b",
+     "l": "#687180",
+     "m": "#3d4450",
+     "n": "#4d5562",
+     "s": "#a9592a",
+     "t": "#d6864a",
+     "w": "#b4bdc9"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 18,
+    "y": 0,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khnddkkddkkdlnek",
+     "khndmllmmllmlnek",
+     "khndmmmmmmmmlnek",
+     "khnddkkddkkdlnek",
+     "khndmllmmllmlnek",
+     "khndmmmmmmmmlnek",
+     "khnddkkddkkdlnek",
+     "khndmllmmllmlnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "h": "#8c96a5",
+     "k": "#13161b",
+     "l": "#687180",
+     "m": "#3d4450",
+     "n": "#4d5562",
+     "w": "#b4bdc9"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 36,
+    "y": 0,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndnmmmmmmnlnek",
+     "khndmnmmmmnmlnek",
+     "khndmmnmmnmmlnek",
+     "khndmmmddmmmlnek",
+     "khndmmmddmmmlnek",
+     "khndmmnmmnmmlnek",
+     "khndmnmmmmnmlnek",
+     "khndnmmmmmmnlnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "h": "#8c96a5",
+     "k": "#13161b",
+     "l": "#687180",
+     "m": "#3d4450",
+     "n": "#4d5562",
+     "w": "#b4bdc9"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 54,
+    "y": 0,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndQSQkkDFDlnek",
+     "khndQSQstDFDlnek",
+     "khndPQP34BDBlnek",
+     "khndQSQstDFDlnek",
+     "khndPQP34BDBlnek",
+     "khndQSQstDFDlnek",
+     "khndPQP34BDBlnek",
+     "khndQSQkkDFDlnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "3": "#1fa9d4",
+     "4": "#59dcff",
+     "B": "#8a2509",
+     "D": "#d0521a",
+     "F": "#ffdd70",
+     "P": "#1b3a74",
+     "Q": "#3576c8",
+     "S": "#96d2ff",
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "h": "#8c96a5",
+     "k": "#13161b",
+     "l": "#687180",
+     "n": "#4d5562",
+     "s": "#a9592a",
+     "t": "#d6864a",
+     "w": "#b4bdc9"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 72,
+    "y": 0,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndmmmmmmmmlnek",
+     "khndmkkkkkkmlnek",
+     "khndmkdkkdkmlnek",
+     "khndmkdkkdkmlnek",
+     "khndmnnnnnnmlnek",
+     "khndmmmmmmmmlnek",
+     "khndmkkmmkkmlnek",
+     "khndmmmmmmxmlnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "h": "#8c96a5",
+     "k": "#13161b",
+     "l": "#687180",
+     "m": "#3d4450",
+     "n": "#4d5562",
+     "w": "#b4bdc9",
+     "x": "#5a2027"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 90,
+    "y": 0,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndmmmmmmmmlnek",
+     "khndmBDEEDBmlnek",
+     "khndmEdFFdEmlnek",
+     "khndmDdEEdDmlnek",
+     "khndmBBBBBBmlnek",
+     "khndmmmmmmmmlnek",
+     "khndmkkmmkkmlnek",
+     "khndmmmmmm4mlnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "4": "#59dcff",
+     "B": "#8a2509",
+     "D": "#d0521a",
+     "E": "#ff9330",
+     "F": "#ffdd70",
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "h": "#8c96a5",
+     "k": "#13161b",
+     "l": "#687180",
+     "m": "#3d4450",
+     "n": "#4d5562",
+     "w": "#b4bdc9"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 0,
+    "y": 18,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndmmmmmmmmlnek",
+     "khndmkkkkkkmlnek",
+     "khndmksrrskmlnek",
+     "khndmkkkkkkmlnek",
+     "khndmksrrskmlnek",
+     "khndmkkkkkkmlnek",
+     "khndmksrrskmlnek",
+     "khndmnnnnnxmlnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "h": "#8c96a5",
+     "k": "#13161b",
+     "l": "#687180",
+     "m": "#3d4450",
+     "n": "#4d5562",
+     "r": "#73361b",
+     "s": "#a9592a",
+     "w": "#b4bdc9",
+     "x": "#5a2027"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 18,
+    "y": 18,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndmmmmmmmmlnek",
+     "khndmAAAAAAmlnek",
+     "khndmAEFFEAmlnek",
+     "khndmABBBBAmlnek",
+     "khndmAEFFEAmlnek",
+     "khndmABBBBAmlnek",
+     "khndmAEFFEAmlnek",
+     "khndmBBBBB4mlnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "4": "#59dcff",
+     "A": "#3a0c06",
+     "B": "#8a2509",
+     "E": "#ff9330",
+     "F": "#ffdd70",
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "h": "#8c96a5",
+     "k": "#13161b",
+     "l": "#687180",
+     "m": "#3d4450",
+     "n": "#4d5562",
+     "w": "#b4bdc9"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 36,
+    "y": 18,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndkkkkkkkklnek",
+     "khndk234432klnek",
+     "khndkkkkkkkklnek",
+     "khndk234432klnek",
+     "khndkkkkkkkklnek",
+     "khndk234432klnek",
+     "khndkkkkkkkklnek",
+     "khndk234432klnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "2": "#0f6683",
+     "3": "#1fa9d4",
+     "4": "#59dcff",
+     "d": "#1f242c",
+     "e": "#73361b",
+     "h": "#d6864a",
+     "k": "#13161b",
+     "l": "#687180",
+     "n": "#a9592a",
+     "w": "#f2bd87"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 54,
+    "y": 18,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndmmmmmmmmlnek",
+     "khndmmkkkkmmlnek",
+     "khndmk2442kmlnek",
+     "khndmk4554kmlnek",
+     "khndmk4554kmlnek",
+     "khndmk2442kmlnek",
+     "khndmmkkkkmmlnek",
+     "khndmmmmmmmmlnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "2": "#0f6683",
+     "4": "#59dcff",
+     "5": "#c6f6ff",
+     "d": "#1f242c",
+     "e": "#73361b",
+     "h": "#d6864a",
+     "k": "#13161b",
+     "l": "#687180",
+     "m": "#3d4450",
+     "n": "#a9592a",
+     "w": "#f2bd87"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 72,
+    "y": 18,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndkkkkkkkklnek",
+     "khndk234432klnek",
+     "khndkkkkkkkklnek",
+     "khndk234432klnek",
+     "khndkkkkkkkklnek",
+     "khndk234432klnek",
+     "khndkkkkkkkklnek",
+     "khndk234432klnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "2": "#0f6683",
+     "3": "#1fa9d4",
+     "4": "#59dcff",
+     "d": "#1f242c",
+     "e": "#8a5d12",
+     "h": "#eec142",
+     "k": "#13161b",
+     "l": "#687180",
+     "n": "#c4911d",
+     "w": "#fff0a6"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 90,
+    "y": 18,
+    "rows": [
+     "kkkkkkkkkkkkkkkk",
+     "khhhhhhhhhhhhhnk",
+     "khwnnnnnnnnnwnek",
+     "khnddddddddddnek",
+     "khndmmmmmmmmlnek",
+     "khndmmkkkkmmlnek",
+     "khndmk2442kmlnek",
+     "khndmk4554kmlnek",
+     "khndmk4554kmlnek",
+     "khndmk2442kmlnek",
+     "khndmmkkkkmmlnek",
+     "khndmmmmmmmmlnek",
+     "khndlllllllllnek",
+     "khwnnnnnnnnnlnek",
+     "kneeeeeeeeeeeeek",
+     "kkkkkkkkkkkkkkkk"
+    ],
+    "legend": {
+     "2": "#0f6683",
+     "4": "#59dcff",
+     "5": "#c6f6ff",
+     "d": "#1f242c",
+     "e": "#8a5d12",
+     "h": "#eec142",
+     "k": "#13161b",
+     "l": "#687180",
+     "m": "#3d4450",
+     "n": "#c4911d",
+     "w": "#fff0a6"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 0,
+    "y": 36,
+    "rows": [
+     ".....dl34nd.....",
+     ".....dl34nd.....",
+     ".....rsttsr.....",
+     ".....dl34nd.....",
+     ".....dl34nd.....",
+     "ddrdddeeeedddrdd",
+     "llsllesttsellsll",
+     "33t33et45te33t33",
+     "44t44et54te44t44",
+     "nnsnnesttsennsnn",
+     "ddrdddeeeedddrdd",
+     ".....dl34nd.....",
+     ".....dl34nd.....",
+     ".....rsttsr.....",
+     ".....dl34nd.....",
+     ".....dl34nd....."
+    ],
+    "legend": {
+     "3": "#1fa9d4",
+     "4": "#59dcff",
+     "5": "#c6f6ff",
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "l": "#687180",
+     "n": "#4d5562",
+     "r": "#73361b",
+     "s": "#a9592a",
+     "t": "#d6864a"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 18,
+    "y": 36,
+    "rows": [
+     ".....dl34nd.....",
+     ".....dl34nd.....",
+     ".....rsttsr.....",
+     ".....dl34nd.....",
+     ".....dl34nd.....",
+     "ddrdddeeeedddrdd",
+     "llsllesttsellsll",
+     "33t33et45te33t33",
+     "44t44et54te44t44",
+     "nnsnnesttsennsnn",
+     "ddrdddeeeedddrdd",
+     ".....dl34nd.....",
+     ".....dl34nd.....",
+     ".....rsttsr.....",
+     ".....dl34nd.....",
+     ".....dl34nd....."
+    ],
+    "legend": {
+     "3": "#1fa9d4",
+     "4": "#59dcff",
+     "5": "#c6f6ff",
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "l": "#687180",
+     "n": "#4d5562",
+     "r": "#73361b",
+     "s": "#a9592a",
+     "t": "#d6864a"
+    }
+   }
+  },
+  {
+   "id": "layer.new",
+   "params": {
+    "name": "itens"
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 36,
+    "y": 36,
+    "rows": [
+     "................",
+     "................",
+     "..........33....",
+     ".......333443...",
+     "....3334444443..",
+     ".33344444444453.",
+     "2544444444555220",
+     "2354445555221220",
+     "2335552212222120",
+     "1333422221222000",
+     ".133412220000...",
+     "..1342000.......",
+     "...110..........",
+     "................",
+     "................",
+     "................"
+    ],
+    "legend": {
+     "0": "#5a1414",
+     "1": "#8c2626",
+     "2": "#b8423a",
+     "3": "#d4664e",
+     "4": "#ea8f6c",
+     "5": "#ffc49e"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 54,
+    "y": 36,
+    "rows": [
+     "................",
+     "................",
+     "................",
+     ".......10.......",
+     "......1440......",
+     ".....144440.....",
+     "....13434240....",
+     "...1443434230...",
+     "..135443534240..",
+     "..144323343420..",
+     "..034343422230..",
+     "...0342323230...",
+     "....00423200....",
+     "......0000......",
+     "................",
+     "................"
+    ],
+    "legend": {
+     "0": "#5a1414",
+     "1": "#8c2626",
+     "2": "#b8423a",
+     "3": "#d4664e",
+     "4": "#ea8f6c",
+     "5": "#ffc49e"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 72,
+    "y": 36,
+    "rows": [
+     "................",
+     "................",
+     "......5544......",
+     "....55444444....",
+     "..554444444444..",
+     "..334444444420..",
+     "..333344442220..",
+     "..333134122220..",
+     "..331134122220..",
+     "..331334122220..",
+     "..223334122200..",
+     "....22341200....",
+     "......2200......",
+     "................",
+     "................",
+     "................"
+    ],
+    "legend": {
+     "0": "#5c3008",
+     "1": "#94560e",
+     "2": "#c7831a",
+     "3": "#e6a92c",
+     "4": "#f6cf5a",
+     "5": "#fff0a8"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 90,
+    "y": 36,
+    "rows": [
+     "................",
+     "................",
+     "................",
+     ".......10.......",
+     "......1440......",
+     ".....144440.....",
+     "....13434240....",
+     "...1443434230...",
+     "..135443534240..",
+     "..144323343420..",
+     "..034343422230..",
+     "...0342323230...",
+     "....00423200....",
+     "......0000......",
+     "................",
+     "................"
+    ],
+    "legend": {
+     "0": "#5c3008",
+     "1": "#94560e",
+     "2": "#c7831a",
+     "3": "#e6a92c",
+     "4": "#f6cf5a",
+     "5": "#fff0a8"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 0,
+    "y": 54,
+    "rows": [
+     "................",
+     "................",
+     "................",
+     "...kkkkkkkkkk...",
+     "..khhhhhhhhhhk..",
+     "..kQSttttttEDk..",
+     "..kPQddddddDBk..",
+     "..kQSttttttEDk..",
+     "..kPQddddddDBk..",
+     "..kQSttttttEDk..",
+     "..kPQddddddDBk..",
+     "..keeeeeeeeeek..",
+     "...kkkkkkkkkk...",
+     "....s......s....",
+     "....r......r....",
+     "................"
+    ],
+    "legend": {
+     "B": "#8a2509",
+     "D": "#d0521a",
+     "E": "#ff9330",
+     "P": "#1b3a74",
+     "Q": "#3576c8",
+     "S": "#96d2ff",
+     "d": "#1f242c",
+     "e": "#2b313b",
+     "h": "#8c96a5",
+     "k": "#13161b",
+     "r": "#73361b",
+     "s": "#a9592a",
+     "t": "#d6864a"
+    }
+   }
+  },
+  {
+   "id": "draw.pattern",
+   "params": {
+    "x": 18,
+    "y": 54,
+    "rows": [
+     "................",
+     "......kkkk......",
+     "......ktsk......",
+     "....kkkkkkkk....",
+     "....khllllnk....",
+     "....khkkkknk....",
+     "....khk45knk....",
+     "....khk34knk....",
+     "....khk34knk....",
+     "....khk23knk....",
+     "....khk23knk....",
+     "....khkkkknk....",
+     "....khnnnnek....",
+     "....ktssssrk....",
+     "....kkkkkkkk....",
+     "................"
+    ],
+    "legend": {
+     "2": "#0f6683",
+     "3": "#1fa9d4",
+     "4": "#59dcff",
+     "5": "#c6f6ff",
+     "e": "#2b313b",
+     "h": "#8c96a5",
+     "k": "#13161b",
+     "l": "#687180",
+     "n": "#4d5562",
+     "r": "#73361b",
+     "s": "#a9592a",
+     "t": "#d6864a"
+    }
+   }
+  }
+ ]
+}

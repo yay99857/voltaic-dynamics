@@ -1,15 +1,14 @@
 package com.voltaicdynamics.item;
 
+import com.voltaicdynamics.VoltaicConfig;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
@@ -17,40 +16,21 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 import java.util.List;
 
 public class PocketCapacitorItem extends Item {
-    public static final int CAPACITY = 100_000;
-    public static final int MAX_TRANSFER = 500;
+    private static final EquipmentSlot[] CHARGED_SLOTS = {
+            EquipmentSlot.MAINHAND, EquipmentSlot.OFFHAND,
+            EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
+    };
 
     public PocketCapacitorItem(Properties properties) {
         super(properties.stacksTo(1));
     }
 
-    public static int getEnergy(ItemStack stack) {
-        CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
-        CompoundTag tag = customData.copyTag();
-        return tag.getInt("Energy");
+    public static int capacity() {
+        return VoltaicConfig.get(VoltaicConfig.CAPACITOR_CAPACITY);
     }
 
-    public static void setEnergy(ItemStack stack, int energy) {
-        int clamped = Math.max(0, Math.min(energy, CAPACITY));
-        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> tag.putInt("Energy", clamped));
-    }
-
-    public static int receiveEnergy(ItemStack stack, int maxReceive, boolean simulate) {
-        int current = getEnergy(stack);
-        int received = Math.min(CAPACITY - current, Math.min(MAX_TRANSFER, maxReceive));
-        if (!simulate && received > 0) {
-            setEnergy(stack, current + received);
-        }
-        return received;
-    }
-
-    public static int extractEnergy(ItemStack stack, int maxExtract, boolean simulate) {
-        int current = getEnergy(stack);
-        int extracted = Math.min(current, Math.min(MAX_TRANSFER, maxExtract));
-        if (!simulate && extracted > 0) {
-            setEnergy(stack, current - extracted);
-        }
-        return extracted;
+    public static int transfer() {
+        return VoltaicConfig.get(VoltaicConfig.CAPACITOR_TRANSFER);
     }
 
     @Override
@@ -60,43 +40,42 @@ public class PocketCapacitorItem extends Item {
 
     @Override
     public int getBarWidth(ItemStack stack) {
-        return Math.round(13.0F * (float) getEnergy(stack) / (float) CAPACITY);
+        return EnergyBarHelper.barWidth(stack, capacity());
     }
 
     @Override
     public int getBarColor(ItemStack stack) {
-        return Mth.color(0.0F, 0.85F, 0.95F); // Electric Cyan
+        return EnergyBarHelper.BAR_COLOR;
     }
 
+    /** Charges the held items and worn armor; the per-tick transfer limit is shared between them. */
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
-        if (level.isClientSide) return;
+        if (level.isClientSide || !(entity instanceof Player player)) return;
+        EnergyBarHelper.migrateLegacy(stack);
 
-        // Automatically charges electric tools held in main hand
-        int currentEnergy = getEnergy(stack);
-        if (currentEnergy <= 0) return;
+        IEnergyStorage self = stack.getCapability(Capabilities.EnergyStorage.ITEM);
+        if (self == null) return;
+        int budget = self.extractEnergy(transfer(), true);
+        if (budget <= 0) return;
 
-        if (entity instanceof net.minecraft.world.entity.player.Player player) {
-            ItemStack mainHand = player.getMainHandItem();
-            if (!mainHand.isEmpty() && mainHand != stack) {
-                IEnergyStorage targetEnergy = mainHand.getCapability(Capabilities.EnergyStorage.ITEM);
-                if (targetEnergy != null && targetEnergy.canReceive()) {
-                    int toTransfer = Math.min(currentEnergy, Math.min(MAX_TRANSFER, 250));
-                    int accepted = targetEnergy.receiveEnergy(toTransfer, false);
-                    if (accepted > 0) {
-                        extractEnergy(stack, accepted, false);
-                    }
-                }
+        for (EquipmentSlot slot : CHARGED_SLOTS) {
+            ItemStack target = player.getItemBySlot(slot);
+            if (target.isEmpty() || target == stack || target.getItem() instanceof PocketCapacitorItem) continue;
+            IEnergyStorage targetEnergy = target.getCapability(Capabilities.EnergyStorage.ITEM);
+            if (targetEnergy == null || !targetEnergy.canReceive()) continue;
+            int accepted = targetEnergy.receiveEnergy(budget, false);
+            if (accepted > 0) {
+                self.extractEnergy(accepted, false);
+                budget -= accepted;
+                if (budget <= 0) return;
             }
         }
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        int energy = getEnergy(stack);
-        tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.energy",
-                String.format("%,d", energy), String.format("%,d", CAPACITY)).withStyle(ChatFormatting.AQUA));
-        tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.pocket_capacitor.desc")
-                .withStyle(ChatFormatting.GRAY));
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        EnergyBarHelper.addTooltip(stack, capacity(), tooltip, ChatFormatting.AQUA);
+        tooltip.add(Component.translatable("tooltip.voltaicdynamics.pocket_capacitor.desc").withStyle(ChatFormatting.GRAY));
     }
 }

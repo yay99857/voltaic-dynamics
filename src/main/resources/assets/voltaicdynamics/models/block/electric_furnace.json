@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "voltaicdynamics:block/machine_top",
+    "bottom": "voltaicdynamics:block/machine_bottom",
+    "front": "voltaicdynamics:block/electric_furnace_front",
+    "side": "voltaicdynamics:block/machine_side"
+  }
+}

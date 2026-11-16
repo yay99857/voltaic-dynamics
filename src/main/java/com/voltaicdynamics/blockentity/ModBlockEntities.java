@@ -2,10 +2,8 @@ package com.voltaicdynamics.blockentity;
 
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.block.ModBlocks;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -29,10 +27,18 @@ public class ModBlockEntities {
                     ).build(null)
             );
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricFurnaceBlockEntity>> ELECTRIC_FURNACE =
+            BLOCK_ENTITIES.register("electric_furnace", () ->
+                    BlockEntityType.Builder.of(
+                            ElectricFurnaceBlockEntity::new,
+                            ModBlocks.ELECTRIC_FURNACE.get()
+                    ).build(null)
+            );
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EnergyCellBlockEntity>> BASIC_ENERGY_CELL =
             BLOCK_ENTITIES.register("basic_energy_cell", () ->
                     BlockEntityType.Builder.of(
-                            ModBlockEntities::createBasicEnergyCell,
+                            EnergyCellBlockEntity::new,
                             ModBlocks.BASIC_ENERGY_CELL.get()
                     ).build(null)
             );
@@ -40,7 +46,7 @@ public class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EnergyCellBlockEntity>> ADVANCED_ENERGY_CELL =
             BLOCK_ENTITIES.register("advanced_energy_cell", () ->
                     BlockEntityType.Builder.of(
-                            ModBlockEntities::createAdvancedEnergyCell,
+                            EnergyCellBlockEntity::new,
                             ModBlocks.ADVANCED_ENERGY_CELL.get()
                     ).build(null)
             );
@@ -52,12 +58,4 @@ public class ModBlockEntities {
                             ModBlocks.ENERGY_CABLE.get()
                     ).build(null)
             );
-
-    private static EnergyCellBlockEntity createBasicEnergyCell(BlockPos pos, BlockState state) {
-        return new EnergyCellBlockEntity(BASIC_ENERGY_CELL.get(), pos, state, 1_000_000, 2_000, false);
-    }
-
-    private static EnergyCellBlockEntity createAdvancedEnergyCell(BlockPos pos, BlockState state) {
-        return new EnergyCellBlockEntity(ADVANCED_ENERGY_CELL.get(), pos, state, 8_000_000, 10_000, true);
-    }
 }

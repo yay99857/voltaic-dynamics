@@ -34,6 +34,9 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.THERMOELECTRIC_GENERATOR.get());
                         output.accept(ModBlocks.COMBUSTION_GENERATOR.get());
 
+                        // Machines
+                        output.accept(ModBlocks.ELECTRIC_FURNACE.get());
+
                         // Energy Storage & Distribution
                         output.accept(ModBlocks.BASIC_ENERGY_CELL.get());
                         output.accept(ModBlocks.ADVANCED_ENERGY_CELL.get());

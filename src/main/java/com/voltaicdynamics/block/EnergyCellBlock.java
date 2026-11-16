@@ -1,8 +1,8 @@
 package com.voltaicdynamics.block;
 
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.voltaicdynamics.blockentity.EnergyCellBlockEntity;
-import com.voltaicdynamics.blockentity.ModBlockEntities;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -26,16 +26,20 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class EnergyCellBlock extends BaseEntityBlock {
-    public static final MapCodec<EnergyCellBlock> CODEC = simpleCodec(EnergyCellBlock::new);
-    private final boolean isAdvanced;
+    public static final MapCodec<EnergyCellBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            EnergyCellTier.CODEC.fieldOf("tier").forGetter(EnergyCellBlock::getTier),
+            propertiesCodec()
+    ).apply(instance, (tier, properties) -> new EnergyCellBlock(properties, tier)));
 
-    public EnergyCellBlock(BlockBehaviour.Properties properties, boolean isAdvanced) {
+    private final EnergyCellTier tier;
+
+    public EnergyCellBlock(BlockBehaviour.Properties properties, EnergyCellTier tier) {
         super(properties);
-        this.isAdvanced = isAdvanced;
+        this.tier = tier;
     }
 
-    public EnergyCellBlock(BlockBehaviour.Properties properties) {
-        this(properties, false);
+    public EnergyCellTier getTier() {
+        return tier;
     }
 
     @Override
@@ -51,53 +55,52 @@ public class EnergyCellBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        if (isAdvanced) {
-            return new EnergyCellBlockEntity(ModBlockEntities.ADVANCED_ENERGY_CELL.get(), pos, state, 8_000_000, 10_000, true);
-        } else {
-            return new EnergyCellBlockEntity(ModBlockEntities.BASIC_ENERGY_CELL.get(), pos, state, 1_000_000, 2_000, false);
-        }
+        return new EnergyCellBlockEntity(pos, state);
     }
 
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        BlockEntityType<EnergyCellBlockEntity> targetType = isAdvanced
-                ? ModBlockEntities.ADVANCED_ENERGY_CELL.get()
-                : ModBlockEntities.BASIC_ENERGY_CELL.get();
-
-        return createTickerHelper(blockEntityType, targetType, EnergyCellBlockEntity::tick);
+        if (level.isClientSide) return null;
+        return createTickerHelper(blockEntityType, EnergyCellBlockEntity.typeFor(tier), EnergyCellBlockEntity::tick);
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof EnergyCellBlockEntity cell && player instanceof ServerPlayer serverPlayer) {
-                serverPlayer.openMenu(cell, buf -> buf.writeBlockPos(pos));
-            }
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof EnergyCellBlockEntity cell
+                && player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.openMenu(cell, buf -> buf.writeBlockPos(pos));
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override
-    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock())) {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof EnergyCellBlockEntity cell) {
-                cell.drops();
-            }
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof EnergyCellBlockEntity cell) {
+            cell.drops();
         }
         super.onRemove(state, level, pos, newState, isMoving);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        if (isAdvanced) {
-            tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.advanced_energy_cell.desc1").withStyle(ChatFormatting.GOLD));
-            tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.advanced_energy_cell.desc2").withStyle(ChatFormatting.GRAY));
-        } else {
-            tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.basic_energy_cell.desc1").withStyle(ChatFormatting.AQUA));
-            tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.basic_energy_cell.desc2").withStyle(ChatFormatting.GRAY));
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof EnergyCellBlockEntity cell) {
+            return cell.getComparatorSignal();
         }
+        return 0;
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(Component.translatable("tooltip.voltaicdynamics.energy_cell.capacity",
+                String.format("%,d", tier.capacity())).withStyle(tier.color()));
+        tooltip.add(Component.translatable("tooltip.voltaicdynamics.energy_cell.transfer",
+                String.format("%,d", tier.transfer())).withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable("tooltip.voltaicdynamics.energy_cell.keeps").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

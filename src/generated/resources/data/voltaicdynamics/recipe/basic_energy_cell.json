@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": {
+      "tag": "c:ingots/copper"
+    },
+    "I": {
+      "tag": "c:ingots/voltaic"
+    },
+    "P": {
+      "item": "voltaicdynamics:pocket_capacitor"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "pattern": [
+    "ICI",
+    "RPR",
+    "ICI"
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:basic_energy_cell"
+  }
+}

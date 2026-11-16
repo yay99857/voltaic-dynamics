@@ -15,6 +15,12 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+// Datagen output is part of the mod's resources.
+sourceSets.main.resources {
+    srcDir 'src/generated/resources'
+    exclude '.cache/'
+}
+
 neoForge {
     version = project.neo_version
 
@@ -27,6 +33,18 @@ neoForge {
             server()
             programArgument '--nogui'
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        // ./gradlew runGameTestServer : runs every @GameTest and exits (non-zero on failure)
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        // ./gradlew runData : regenerates tags, loot tables and recipes into src/generated/resources
+        data {
+            data()
+            programArguments.addAll '--mod', project.mod_id, '--all',
+                    '--output', file('src/generated/resources/').getAbsolutePath(),
+                    '--existing', file('src/main/resources/').getAbsolutePath()
         }
     }
 
@@ -47,4 +65,23 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+// Fills the ${...} placeholders in neoforge.mods.toml from gradle.properties, so versions live in one place.
+var modMetadata = [
+        mod_id               : mod_id,
+        mod_name             : mod_name,
+        mod_version          : mod_version,
+        mod_license          : mod_license,
+        mod_authors          : mod_authors,
+        mod_description      : mod_description,
+        minecraft_version_range: minecraft_version_range,
+        neo_version_range    : neo_version_range,
+        loader_version_range : loader_version_range,
+]
+processResources {
+    inputs.properties modMetadata
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand modMetadata
+    }
 }

@@ -1,0 +1,7 @@
+// 1.21.1	2026-11-15T00:31:31.192263663	Loot Tables
+d82ad758cd63a7d3a985e9eecdda836f58460db9 data/voltaicdynamics/loot_table/blocks/advanced_energy_cell.json
+c15011d593f18a403d09445d52c4ed2159644ed2 data/voltaicdynamics/loot_table/blocks/basic_energy_cell.json
+56886516460b4d2282f940a423e7e705fdf28b3f data/voltaicdynamics/loot_table/blocks/combustion_generator.json
+3dfd21bddfa48820de4d98d19cae18916c3c1bb8 data/voltaicdynamics/loot_table/blocks/electric_furnace.json
+bbe7e49f1855eb3835c2946eeda0ce60014a59b7 data/voltaicdynamics/loot_table/blocks/energy_cable.json
+6eafd5e2a8272ab9f717ff5c2e5cdc9a9deee8fd data/voltaicdynamics/loot_table/blocks/thermoelectric_generator.json

@@ -1,5 +1,6 @@
 package com.voltaicdynamics.menu;
 
+import com.voltaicdynamics.block.EnergyCellTier;
 import com.voltaicdynamics.blockentity.EnergyCellBlockEntity;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -16,7 +17,7 @@ public class EnergyCellMenu extends AbstractContainerMenu {
     private final ContainerData data;
 
     public EnergyCellMenu(int containerId, Inventory inv, RegistryFriendlyByteBuf extraData) {
-        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(6));
+        this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()), new SimpleContainerData(7));
     }
 
     public EnergyCellMenu(int containerId, Inventory inv, BlockEntity entity, ContainerData data) {
@@ -27,9 +28,9 @@ public class EnergyCellMenu extends AbstractContainerMenu {
         this.data = data;
 
         // Slot 0: Charge Slot (x: 101, y: 25)
-        this.addSlot(new SlotItemHandler(this.blockEntity.getItemHandler(null), 0, 101, 25));
+        this.addSlot(new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 0, 101, 25));
         // Slot 1: Discharge Slot (x: 101, y: 51)
-        this.addSlot(new SlotItemHandler(this.blockEntity.getItemHandler(null), 1, 101, 51));
+        this.addSlot(new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 1, 101, 51));
 
         // Player Inventory
         addPlayerInventory(inv);
@@ -41,19 +42,19 @@ public class EnergyCellMenu extends AbstractContainerMenu {
     }
 
     public int getEnergy() {
-        return (data.get(1) << 16) | (data.get(0) & 0xFFFF);
+        return ((data.get(1) & 0xFFFF) << 16) | (data.get(0) & 0xFFFF);
     }
 
     public int getCapacity() {
-        return (data.get(3) << 16) | (data.get(2) & 0xFFFF);
+        return ((data.get(3) & 0xFFFF) << 16) | (data.get(2) & 0xFFFF);
     }
 
     public int getMaxTransfer() {
-        return data.get(4);
+        return ((data.get(5) & 0xFFFF) << 16) | (data.get(4) & 0xFFFF);
     }
 
     public boolean isAdvanced() {
-        return data.get(5) == 1;
+        return data.get(6) == EnergyCellTier.ADVANCED.ordinal();
     }
 
     public int getEnergyScaled(int pixels) {

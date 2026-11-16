@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_conductive_alloy": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ingots/conductive_alloy"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "voltaicdynamics:electric_furnace"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_conductive_alloy"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "voltaicdynamics:electric_furnace"
+    ]
+  }
+}

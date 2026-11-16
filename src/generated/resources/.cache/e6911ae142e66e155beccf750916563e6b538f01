@@ -1,0 +1,7 @@
+// 1.21.1	2026-11-15T00:31:31.193936993	Tags for minecraft:item mod id voltaicdynamics
+11fb945ec9bbc09176e4bda3fc45041320d4312f data/c/tags/item/dusts.json
+9068bd091207263f7c1b971dd8f45d78d551f9ca data/c/tags/item/dusts/conductive_alloy.json
+501dad5d6f40c16e5901b5605921e14b8e19aab9 data/c/tags/item/dusts/voltaic.json
+dc73758d91fe386549a426b40b1a74ac87a9008c data/c/tags/item/ingots.json
+4c6b6517142cfa4904307c6acd451f9486868d80 data/c/tags/item/ingots/conductive_alloy.json
+ca4ed64328dcd9f2d57f9d04b9ea76acb497aff2 data/c/tags/item/ingots/voltaic.json

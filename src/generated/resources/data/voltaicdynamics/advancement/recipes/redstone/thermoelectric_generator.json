@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "voltaicdynamics:thermoelectric_generator"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_thermopile_core": {
+      "conditions": {
+        "items": [
+          {
+            "items": "voltaicdynamics:thermopile_core"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_thermopile_core"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "voltaicdynamics:thermoelectric_generator"
+    ]
+  }
+}

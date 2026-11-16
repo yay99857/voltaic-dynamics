@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "tag": "c:ingots/copper"
+    },
+    "I": {
+      "tag": "c:ingots/voltaic"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "pattern": [
+    " C ",
+    "RIR",
+    " C "
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:thermopile_core"
+  }
+}

@@ -1,26 +1,24 @@
 modLoader="javafml"
-loaderVersion="[4,)"
-license="MIT"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
 
 [[mods]]
-modId="voltaicdynamics"
-version="1.0.0"
-displayName="Voltaic Dynamics"
-authors="Des1re, Antigravity"
-description='''
-Next-generation tech mod featuring thermoelectric generation, combustion dynamos, portable capacitors, and seamless FE energy integration with Mekanism, AE2, and Powah in All The Mods 11.
-'''
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+description='''${mod_description}'''
 
-[[dependencies.voltaicdynamics]]
+[[dependencies.${mod_id}]]
     modId="neoforge"
     type="required"
-    versionRange="[21.1.0,)"
+    versionRange="${neo_version_range}"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.voltaicdynamics]]
+[[dependencies.${mod_id}]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21.1, 1.22)"
+    versionRange="${minecraft_version_range}"
     ordering="NONE"
     side="BOTH"

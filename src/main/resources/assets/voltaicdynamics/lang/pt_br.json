@@ -1,0 +1,41 @@
+{
+  "itemGroup.voltaicdynamics": "Voltaic Dynamics",
+
+  "item.voltaicdynamics.voltaic_ingot": "Lingote Voltaico",
+  "item.voltaicdynamics.conductive_alloy": "Liga Condutora",
+  "item.voltaicdynamics.voltaic_dust": "Pó Voltaico",
+  "item.voltaicdynamics.conductive_dust": "Pó Condutor",
+  "item.voltaicdynamics.thermopile_core": "Núcleo de Termopilha",
+  "item.voltaicdynamics.pocket_capacitor": "Capacitor de Bolso",
+
+  "block.voltaicdynamics.thermoelectric_generator": "Gerador Termoelétrico",
+  "block.voltaicdynamics.combustion_generator": "Gerador a Combustão",
+  "block.voltaicdynamics.electric_furnace": "Fornalha Elétrica",
+  "block.voltaicdynamics.basic_energy_cell": "Célula de Energia Básica",
+  "block.voltaicdynamics.advanced_energy_cell": "Célula de Energia Avançada",
+  "block.voltaicdynamics.energy_cable": "Cabo de Energia",
+
+  "tooltip.voltaicdynamics.energy": "%s / %s FE",
+  "tooltip.voltaicdynamics.pocket_capacitor.desc": "Carrega os itens na sua mão e a armadura que você veste.",
+  "tooltip.voltaicdynamics.thermoelectric.desc1": "Gera FE passivo pelo gradiente térmico (efeito Seebeck).",
+  "tooltip.voltaicdynamics.thermoelectric.desc2": "Coloque ao lado de blocos quentes (lava, magma, fogo) e frios (gelo, neve, água).",
+  "tooltip.voltaicdynamics.thermoelectric.desc3": "As fontes de calor e frio se gastam aos poucos: a lava esfria, o gelo derrete.",
+  "tooltip.voltaicdynamics.combustion.desc1": "Queima combustível sólido para gerar %s FE/t.",
+  "tooltip.voltaicdynamics.combustion.desc2": "Clique com o botão direito para abrir o painel.",
+  "tooltip.voltaicdynamics.electric_furnace.desc1": "Funde qualquer receita de fornalha usando %s FE/t.",
+  "tooltip.voltaicdynamics.electric_furnace.desc2": "%s s por item.",
+
+  "tooltip.voltaicdynamics.energy_cell.capacity": "Armazena até %s FE.",
+  "tooltip.voltaicdynamics.energy_cell.transfer": "Transferência: %s FE/t. Alimenta máquinas e cabos, nunca outras baterias.",
+  "tooltip.voltaicdynamics.energy_cell.keeps": "Mantém a carga ao ser quebrada. O comparador lê a carga.",
+
+  "tooltip.voltaicdynamics.energy_cable.desc1": "Transfere até %s FE/t por conexão.",
+  "tooltip.voltaicdynamics.energy_cable.desc2": "Conecta em qualquer bloco Forge Energy: Mekanism, Powah, AE2 e outros.",
+
+  "chat.voltaicdynamics.thermoelectric.status": "Termoelétrico: +%d FE/t | Buffer: %s / %s FE",
+
+  "tooltip.voltaicdynamics.gui.energy": "⚡ %s / %s FE",
+  "tooltip.voltaicdynamics.gui.rate": "⚡ Geração: +%d FE/t",
+  "tooltip.voltaicdynamics.gui.usage": "⚡ Consumo: %d FE/t",
+  "tooltip.voltaicdynamics.gui.io_rate": "⚡ Transferência máx.: %s FE/t"
+}

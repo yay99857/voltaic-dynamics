@@ -1,10 +1,15 @@
 package com.voltaicdynamics.blockentity;
 
+import com.voltaicdynamics.ModDataComponents;
+import com.voltaicdynamics.block.EnergyCellBlock;
+import com.voltaicdynamics.block.EnergyCellTier;
+import com.voltaicdynamics.energy.NeighborEnergyCache;
 import com.voltaicdynamics.energy.VoltaicEnergyStorage;
 import com.voltaicdynamics.menu.EnergyCellMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Containers;
@@ -26,11 +31,13 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class EnergyCellBlockEntity extends BlockEntity implements MenuProvider {
-    private final int capacity;
-    private final int maxTransfer;
-    private final boolean isAdvanced;
+    public static final int SLOT_CHARGE = 0;
+    public static final int SLOT_DISCHARGE = 1;
 
+    private final EnergyCellTier tier;
     private final VoltaicEnergyStorage energyStorage;
+    private final NeighborEnergyCache neighbors = new NeighborEnergyCache(this);
+
     private final ItemStackHandler itemHandler = new ItemStackHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -41,99 +48,125 @@ public class EnergyCellBlockEntity extends BlockEntity implements MenuProvider {
         public boolean isItemValid(int slot, ItemStack stack) {
             IEnergyStorage itemEnergy = stack.getCapability(Capabilities.EnergyStorage.ITEM);
             if (itemEnergy == null) return false;
-            if (slot == 0) return itemEnergy.canReceive(); // Charge slot
-            if (slot == 1) return itemEnergy.canExtract(); // Discharge slot
-            return false;
+            return slot == SLOT_CHARGE ? itemEnergy.canReceive() : itemEnergy.canExtract();
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return 1;
+        }
+    };
+
+    /** What pipes and hoppers see: insert into either slot, but only take items out once they are done. */
+    private final IItemHandler automationHandler = new IItemHandler() {
+        @Override
+        public int getSlots() {
+            return itemHandler.getSlots();
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return itemHandler.getStackInSlot(slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            return itemHandler.insertItem(slot, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            ItemStack stack = itemHandler.getStackInSlot(slot);
+            IEnergyStorage itemEnergy = stack.getCapability(Capabilities.EnergyStorage.ITEM);
+            boolean done = itemEnergy == null
+                    || (slot == SLOT_CHARGE ? itemEnergy.getEnergyStored() >= itemEnergy.getMaxEnergyStored()
+                    : itemEnergy.getEnergyStored() <= 0);
+            return done ? itemHandler.extractItem(slot, amount, simulate) : ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return itemHandler.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return itemHandler.isItemValid(slot, stack);
         }
     };
 
     protected final ContainerData dataAccess = new ContainerData() {
         @Override
         public int get(int index) {
+            int energy = energyStorage.getEnergyStored();
+            int capacity = energyStorage.getMaxEnergyStored();
             return switch (index) {
-                case 0 -> energyStorage.getEnergyStored() & 0xFFFF;
-                case 1 -> (energyStorage.getEnergyStored() >> 16) & 0xFFFF;
+                case 0 -> energy & 0xFFFF;
+                case 1 -> (energy >>> 16) & 0xFFFF;
                 case 2 -> capacity & 0xFFFF;
-                case 3 -> (capacity >> 16) & 0xFFFF;
-                case 4 -> maxTransfer;
-                case 5 -> isAdvanced ? 1 : 0;
+                case 3 -> (capacity >>> 16) & 0xFFFF;
+                case 4 -> tier.transfer() & 0xFFFF;
+                case 5 -> (tier.transfer() >>> 16) & 0xFFFF;
+                case 6 -> tier.ordinal();
                 default -> 0;
             };
         }
 
         @Override
         public void set(int index, int value) {
-            if (index == 0) {
-                int high = (energyStorage.getEnergyStored() >> 16) & 0xFFFF;
-                energyStorage.setEnergy((high << 16) | (value & 0xFFFF));
-            } else if (index == 1) {
-                int low = energyStorage.getEnergyStored() & 0xFFFF;
-                energyStorage.setEnergy(((value & 0xFFFF) << 16) | low);
-            }
         }
 
         @Override
         public int getCount() {
-            return 6;
+            return 7;
         }
     };
 
-    public EnergyCellBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState, int capacity, int maxTransfer, boolean isAdvanced) {
-        super(type, pos, blockState);
-        this.capacity = capacity;
-        this.maxTransfer = maxTransfer;
-        this.isAdvanced = isAdvanced;
-        this.energyStorage = new VoltaicEnergyStorage(capacity, maxTransfer, maxTransfer, 0, this::setChanged);
+    public EnergyCellBlockEntity(BlockPos pos, BlockState blockState) {
+        super(typeFor(tierOf(blockState)), pos, blockState);
+        this.tier = tierOf(blockState);
+        this.energyStorage = new VoltaicEnergyStorage(tier.capacity(), tier.transfer(), tier.transfer(), this::setChanged);
+    }
+
+    private static EnergyCellTier tierOf(BlockState state) {
+        return state.getBlock() instanceof EnergyCellBlock cell ? cell.getTier() : EnergyCellTier.BASIC;
+    }
+
+    public static BlockEntityType<EnergyCellBlockEntity> typeFor(EnergyCellTier tier) {
+        return tier == EnergyCellTier.ADVANCED
+                ? ModBlockEntities.ADVANCED_ENERGY_CELL.get()
+                : ModBlockEntities.BASIC_ENERGY_CELL.get();
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, EnergyCellBlockEntity entity) {
-        if (level == null || level.isClientSide) return;
+        int transfer = entity.tier.transfer();
 
-        // Slot 0: Charge Item in slot
-        ItemStack chargeStack = entity.itemHandler.getStackInSlot(0);
+        ItemStack chargeStack = entity.itemHandler.getStackInSlot(SLOT_CHARGE);
         if (!chargeStack.isEmpty() && entity.energyStorage.getEnergyStored() > 0) {
             IEnergyStorage itemEnergy = chargeStack.getCapability(Capabilities.EnergyStorage.ITEM);
             if (itemEnergy != null && itemEnergy.canReceive()) {
-                int toSend = Math.min(entity.energyStorage.getEnergyStored(), entity.maxTransfer);
-                int accepted = itemEnergy.receiveEnergy(toSend, false);
-                if (accepted > 0) {
-                    entity.energyStorage.extractEnergy(accepted, false);
-                }
+                int accepted = itemEnergy.receiveEnergy(Math.min(entity.energyStorage.getEnergyStored(), transfer), false);
+                if (accepted > 0) entity.energyStorage.consumeEnergy(accepted);
             }
         }
 
-        // Slot 1: Discharge Item in slot into Cell
-        ItemStack dischargeStack = entity.itemHandler.getStackInSlot(1);
-        if (!dischargeStack.isEmpty() && entity.energyStorage.getEnergyStored() < entity.capacity) {
+        ItemStack dischargeStack = entity.itemHandler.getStackInSlot(SLOT_DISCHARGE);
+        if (!dischargeStack.isEmpty() && entity.energyStorage.getSpace() > 0) {
             IEnergyStorage itemEnergy = dischargeStack.getCapability(Capabilities.EnergyStorage.ITEM);
             if (itemEnergy != null && itemEnergy.canExtract()) {
-                int maxCanReceive = Math.min(entity.capacity - entity.energyStorage.getEnergyStored(), entity.maxTransfer);
-                int extracted = itemEnergy.extractEnergy(maxCanReceive, false);
-                if (extracted > 0) {
-                    entity.energyStorage.generateEnergy(extracted);
-                }
+                int extracted = itemEnergy.extractEnergy(Math.min(entity.energyStorage.getSpace(), transfer), false);
+                if (extracted > 0) entity.energyStorage.generateEnergy(extracted);
             }
         }
 
-        // Auto-Push to adjacent blocks and cables
-        entity.pushEnergyToNeighbors(level, pos);
+        // Only into blocks that cannot give energy back: machines and cables, never other batteries.
+        entity.neighbors.push(entity.energyStorage, transfer, true);
     }
 
-    private void pushEnergyToNeighbors(Level level, BlockPos pos) {
-        if (this.energyStorage.getEnergyStored() <= 0) return;
-
-        for (Direction direction : Direction.values()) {
-            BlockPos targetPos = pos.relative(direction);
-            IEnergyStorage target = level.getCapability(Capabilities.EnergyStorage.BLOCK, targetPos, direction.getOpposite());
-            if (target != null && target.canReceive()) {
-                int toSend = Math.min(this.energyStorage.getEnergyStored(), this.maxTransfer);
-                int accepted = target.receiveEnergy(toSend, false);
-                if (accepted > 0) {
-                    this.energyStorage.extractEnergy(accepted, false);
-                }
-                if (this.energyStorage.getEnergyStored() <= 0) break;
-            }
-        }
+    public int getComparatorSignal() {
+        int energy = energyStorage.getEnergyStored();
+        if (energy <= 0) return 0;
+        return 1 + (int) ((long) energy * 14 / Math.max(1, energyStorage.getMaxEnergyStored()));
     }
 
     public void drops() {
@@ -146,56 +179,70 @@ public class EnergyCellBlockEntity extends BlockEntity implements MenuProvider {
         }
     }
 
-    public IEnergyStorage getEnergyStorage(Direction side) {
-        return this.energyStorage;
+    public IEnergyStorage getEnergyStorage(@Nullable Direction side) {
+        return energyStorage;
     }
 
-    public IItemHandler getItemHandler(Direction side) {
-        return this.itemHandler;
+    public IItemHandler getItemHandler(@Nullable Direction side) {
+        return automationHandler;
+    }
+
+    /** Unrestricted handler for the GUI slots. */
+    public IItemHandler getMenuItemHandler() {
+        return itemHandler;
     }
 
     public int getEnergyStored() {
-        return this.energyStorage.getEnergyStored();
+        return energyStorage.getEnergyStored();
     }
 
-    public int getCapacity() {
-        return this.capacity;
-    }
-
-    public int getMaxTransfer() {
-        return this.maxTransfer;
-    }
-
-    public boolean isAdvanced() {
-        return this.isAdvanced;
+    public EnergyCellTier getTier() {
+        return tier;
     }
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable(isAdvanced ? "block.voltaicdynamics.advanced_energy_cell" : "block.voltaicdynamics.basic_energy_cell");
+        return getBlockState().getBlock().getName();
     }
 
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new EnergyCellMenu(containerId, playerInventory, this, this.dataAccess);
+        return new EnergyCellMenu(containerId, playerInventory, this, dataAccess);
+    }
+
+    // Stored energy travels with the item when the cell is broken and placed again.
+    @Override
+    protected void applyImplicitComponents(DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        energyStorage.setEnergy(input.getOrDefault(ModDataComponents.ENERGY.get(), 0));
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        if (energyStorage.getEnergyStored() > 0) {
+            builder.set(ModDataComponents.ENERGY.get(), energyStorage.getEnergyStored());
+        }
+    }
+
+    @Override
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        tag.remove("Energy");
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.put("Inventory", this.itemHandler.serializeNBT(registries));
-        tag.put("Energy", this.energyStorage.serializeNBT(registries));
+        tag.put("Inventory", itemHandler.serializeNBT(registries));
+        tag.put("Energy", energyStorage.serializeNBT(registries));
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        if (tag.contains("Inventory")) {
-            this.itemHandler.deserializeNBT(registries, tag.getCompound("Inventory"));
-        }
-        if (tag.contains("Energy")) {
-            this.energyStorage.deserializeNBT(registries, tag.getCompound("Energy"));
-        }
+        if (tag.contains("Inventory")) itemHandler.deserializeNBT(registries, tag.getCompound("Inventory"));
+        if (tag.contains("Energy")) energyStorage.deserializeNBT(registries, tag.getCompound("Energy"));
     }
 }

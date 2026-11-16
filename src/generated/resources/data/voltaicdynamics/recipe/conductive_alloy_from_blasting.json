@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "cookingtime": 100,
+  "experience": 0.8,
+  "ingredient": {
+    "tag": "c:dusts/conductive_alloy"
+  },
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:conductive_alloy"
+  }
+}

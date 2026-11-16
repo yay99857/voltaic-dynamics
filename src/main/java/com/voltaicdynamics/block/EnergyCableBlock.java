@@ -1,12 +1,14 @@
 package com.voltaicdynamics.block;
 
 import com.mojang.serialization.MapCodec;
+import com.voltaicdynamics.VoltaicConfig;
 import com.voltaicdynamics.blockentity.EnergyCableBlockEntity;
-import com.voltaicdynamics.blockentity.ModBlockEntities;
+import com.voltaicdynamics.energy.CableNetworkManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -18,8 +20,6 @@ import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -51,6 +51,20 @@ public class EnergyCableBlock extends BaseEntityBlock {
     private static final VoxelShape EAST_SHAPE = Block.box(11.0, 5.0, 5.0, 16.0, 11.0, 11.0);
     private static final VoxelShape DOWN_SHAPE = Block.box(5.0, 0.0, 5.0, 11.0, 5.0, 11.0);
     private static final VoxelShape UP_SHAPE = Block.box(5.0, 11.0, 5.0, 11.0, 16.0, 11.0);
+
+    // Indexed by a bitmask of connected directions (Direction.ordinal()), built once.
+    private static final VoxelShape[] SHAPES = new VoxelShape[64];
+
+    static {
+        VoxelShape[] arms = {DOWN_SHAPE, UP_SHAPE, NORTH_SHAPE, SOUTH_SHAPE, WEST_SHAPE, EAST_SHAPE};
+        for (int mask = 0; mask < 64; mask++) {
+            VoxelShape shape = CORE_SHAPE;
+            for (int i = 0; i < 6; i++) {
+                if ((mask & (1 << i)) != 0) shape = Shapes.or(shape, arms[i]);
+            }
+            SHAPES[mask] = shape.optimize();
+        }
+    }
 
     public EnergyCableBlock(BlockBehaviour.Properties properties) {
         super(properties);
@@ -84,10 +98,12 @@ public class EnergyCableBlock extends BaseEntityBlock {
         return new EnergyCableBlockEntity(pos, state);
     }
 
-    @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return createTickerHelper(blockEntityType, ModBlockEntities.ENERGY_CABLE.get(), EnergyCableBlockEntity::tick);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (level instanceof ServerLevel serverLevel) {
+            CableNetworkManager.get(serverLevel).onNeighborChanged(pos, neighborPos);
+        }
     }
 
     public static boolean isConnected(BlockState state, Direction direction) {
@@ -148,19 +164,17 @@ public class EnergyCableBlock extends BaseEntityBlock {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        VoxelShape shape = CORE_SHAPE;
-        if (state.getValue(NORTH)) shape = Shapes.or(shape, NORTH_SHAPE);
-        if (state.getValue(SOUTH)) shape = Shapes.or(shape, SOUTH_SHAPE);
-        if (state.getValue(EAST)) shape = Shapes.or(shape, EAST_SHAPE);
-        if (state.getValue(WEST)) shape = Shapes.or(shape, WEST_SHAPE);
-        if (state.getValue(UP)) shape = Shapes.or(shape, UP_SHAPE);
-        if (state.getValue(DOWN)) shape = Shapes.or(shape, DOWN_SHAPE);
-        return shape;
+        int mask = 0;
+        for (Direction direction : Direction.values()) {
+            if (isConnected(state, direction)) mask |= 1 << direction.ordinal();
+        }
+        return SHAPES[mask];
     }
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.energy_cable.desc1").withStyle(ChatFormatting.AQUA));
+        tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.energy_cable.desc1",
+                String.format("%,d", VoltaicConfig.get(VoltaicConfig.CABLE_TRANSFER))).withStyle(ChatFormatting.AQUA));
         tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.energy_cable.desc2").withStyle(ChatFormatting.GRAY));
     }
 }

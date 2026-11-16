@@ -14,5 +14,6 @@ public class ClientModEvents {
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.COMBUSTION_GENERATOR_MENU.get(), CombustionGeneratorScreen::new);
         event.register(ModMenus.ENERGY_CELL_MENU.get(), EnergyCellScreen::new);
+        event.register(ModMenus.ELECTRIC_FURNACE_MENU.get(), ElectricFurnaceScreen::new);
     }
 }
