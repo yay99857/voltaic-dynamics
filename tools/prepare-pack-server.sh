@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copies a Bubie Pack server pack (mods, config, kubejs) into runs/pack-server for ./gradlew runPackServer.
+# Copies a Bubie Pack server pack (mods, config, kubejs) into runs/pack-server for ./gradlew runPackServer,
+# and the same into runs/pack-client for ./gradlew runPackClient.
 # Mods the dev run already loads from Gradle (JEI, EMI, Jade, Mekanism, Mekanism Generators) and any
 # Voltaic Dynamics jar are left out, so nothing is loaded twice. Integrated Dynamics and its addons are left out
 # too: a dev run always registers every mod's game tests, and theirs reference Refined Storage, which the pack
@@ -21,6 +22,13 @@ for jar in "$src"/mods/*.jar; do
     jei-*|emi-*|Jade-*|Mekanism-1*|MekanismGenerators-*|voltaicdynamics-*|integrated*) skipped=$((skipped + 1)) ;;
     *) cp "$jar" "$dst/mods/" ;;
   esac
+done
+# The test client (./gradlew runPackClient) gets the same mods and configs, so it can join the server.
+mkdir -p runs/pack-client
+rm -rf runs/pack-client/mods runs/pack-client/config runs/pack-client/defaultconfigs runs/pack-client/kubejs
+cp -r "$dst/mods" runs/pack-client/
+for dir in config defaultconfigs kubejs; do
+  [ -d "$dst/$dir" ] && cp -r "$dst/$dir" runs/pack-client/
 done
 echo "Server pack: $src"
 echo "Copied $(ls "$dst/mods" | wc -l) mods into $dst/mods (skipped $skipped: already in the dev run, or Integrated Dynamics)."

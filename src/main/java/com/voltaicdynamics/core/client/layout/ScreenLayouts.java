@@ -14,7 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Loads every {@code assets/<namespace>/screens/*.json} into a {@link ScreenLayout}, on startup and on every
+ * Loads every {@code assets/voltaicdynamics/screens/*.json} into a {@link ScreenLayout} (other namespaces' screens
+ * folders belong to other mods, such as AE2, and are skipped), on startup and on every
  * resource reload (F3+T), so a screen can be rearranged without recompiling. A file that fails to parse is
  * logged and skipped; its screen then keeps the slots where the menu put them.
  */
@@ -35,6 +36,8 @@ public final class ScreenLayouts extends SimpleJsonResourceReloadListener {
     protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager manager, ProfilerFiller profiler) {
         Map<ResourceLocation, ScreenLayout> loaded = new HashMap<>();
         files.forEach((id, json) -> {
+            // Other mods use assets/<their namespace>/screens too (AE2 does, in its own format): only ours.
+            if (!id.getNamespace().equals(VoltaicDynamics.MOD_ID)) return;
             try {
                 loaded.put(id, ScreenLayout.parse(id, GsonHelper.convertToJsonObject(json, id.toString())));
             } catch (RuntimeException e) {

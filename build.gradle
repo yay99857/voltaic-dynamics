@@ -47,6 +47,17 @@ neoForge {
             // Dev runs register game tests, which loads other mods' test classes; some reference optional mods the
             // pack lacks and crash. Only ours are registered here; a real server never loads any.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            jvmArgument '-Xmx3G'
+        }
+        // ./gradlew runPackClient : a client with the same mods, to join runPackServer at localhost.
+        packClient {
+            client()
+            gameDirectory = project.file('runs/pack-client')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            jvmArgument '-Xmx4G'
+            // Dev runs enable Java assertions; Jade then asserts that every plugin (Pipez's included) has its
+            // config translations and crashes the menu. Players never run with assertions.
+            jvmArgument '-da'
         }
         // ./gradlew runGameTestServer : runs every @GameTest and exits (non-zero on failure)
         gameTestServer {
