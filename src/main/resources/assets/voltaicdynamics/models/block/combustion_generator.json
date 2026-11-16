@@ -4,6 +4,6 @@
     "top": "voltaicdynamics:block/machine_top",
     "bottom": "voltaicdynamics:block/machine_bottom",
     "front": "voltaicdynamics:block/combustion_front",
-    "side": "voltaicdynamics:block/machine_side"
+    "side": "voltaicdynamics:block/combustion_generator_side"
   }
 }

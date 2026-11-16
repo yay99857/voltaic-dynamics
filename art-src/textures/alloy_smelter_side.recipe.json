@@ -1,0 +1,20 @@
+{
+ "name": "alloy_smelter_side",
+ "description": "Lateral do alloy_smelter: machine_side com as barras na cor da m\u00e1quina (gen_machine_sides.py).",
+ "steps": [
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#a9592a",
+    "to": "#9c8418"
+   }
+  },
+  {
+   "id": "color.replaceAll",
+   "params": {
+    "from": "#d6864a",
+    "to": "#e8cf3a"
+   }
+  }
+ ]
+}
