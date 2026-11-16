@@ -49,9 +49,12 @@ de FE. Feito para o Bubie Pack e equilibrado para conviver com a Thermal e o Mek
 ---
 
 ## Publishing checklist (not part of the page)
+CurseForge project id: **1809423** (created 2026-11-16, unlisted, MIT, Energy / Energy, Fluid, and Item Transport;
+awaiting moderation). Manage it at https://authors.curseforge.com/#/projects/1809423.
+
 1. `./gradlew build` and `./gradlew runGameTestServer` (all tests pass).
 2. `tools/prepare-pack-server.sh && ./gradlew runPackServer`: the server reaches "Done" with the whole Bubie Pack.
 3. Bump `mod_version` in `gradle.properties` and the changelog in `README.md`.
 4. Upload `build/libs/voltaicdynamics-<version>.jar` (CurseForge / Modrinth), loader NeoForge, game version 1.21.1,
    environment client + server, license MIT. Logo: `src/main/resources/voltaicdynamics_logo.png`.
-5. Add the jar to Bubie Pack's `pack/manifest.json` once the project has a CurseForge id.
+5. Add the jar to Bubie Pack's `pack/manifest.json` (projectID 1809423, fileID of the uploaded jar).
