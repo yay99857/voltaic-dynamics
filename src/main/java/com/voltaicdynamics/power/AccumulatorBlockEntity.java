@@ -1,5 +1,8 @@
 package com.voltaicdynamics.power;
 
+import com.voltaicdynamics.core.energy.EnergyBuffer;
+import com.voltaicdynamics.core.energy.RecentInputFaces;
+
 import com.voltaicdynamics.core.blockentity.VoltaicBlockEntity;
 import com.voltaicdynamics.core.ModDataComponents;
 import com.voltaicdynamics.core.energy.VoltaicEnergyStorage;
@@ -34,7 +37,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
-public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuProvider, SideConfigurable {
+public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuProvider, SideConfigurable, EnergyBuffer {
     public static final int SLOT_CHARGE = 0;
     public static final int SLOT_DISCHARGE = 1;
 
@@ -46,6 +49,7 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
             .add(TransferType.ITEM, List.of(IoMode.BOTH, IoMode.INPUT, IoMode.OUTPUT, IoMode.NONE), IoMode.BOTH, false, false)
             .build();
     private SidedHandlers sided;
+    private final RecentInputFaces inputFaces = new RecentInputFaces(this);
 
     private final ItemStackHandler itemHandler = new ItemStackHandler(2) {
         @Override
@@ -141,9 +145,10 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
             }
         }
 
-        // Only into blocks that cannot give energy back: machines and cables, never other batteries.
+        // Into machines and cables (ours or other mods'), never into another Accumulator, and not back into a
+        // face that is charging it right now (another mod's cable network).
         if (entity.sideConfig.eject(TransferType.ENERGY)) {
-            SideConfigHelper.ejectEnergy(entity, entity.neighbors, entity.energyStorage, transfer, true);
+            SideConfigHelper.ejectEnergy(entity, entity.neighbors, entity.energyStorage, transfer, true, entity.inputFaces);
         }
     }
 
@@ -170,7 +175,7 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
 
     @Nullable
     public IEnergyStorage getEnergyStorage(@Nullable Direction side) {
-        return sided().energy(side);
+        return inputFaces.wrap(side, sided().energy(side));
     }
 
     @Nullable

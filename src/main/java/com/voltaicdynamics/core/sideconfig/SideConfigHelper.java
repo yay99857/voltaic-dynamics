@@ -1,5 +1,8 @@
 package com.voltaicdynamics.core.sideconfig;
 
+import com.voltaicdynamics.core.energy.EnergyBuffer;
+import com.voltaicdynamics.core.energy.RecentInputFaces;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -71,6 +74,12 @@ public final class SideConfigHelper {
         }
 
         @Nullable
+        public BlockEntity blockEntity(Direction dir) {
+            Level level = owner.getLevel();
+            return level == null ? null : level.getBlockEntity(owner.getBlockPos().relative(dir));
+        }
+
+        @Nullable
         public IEnergyStorage energy(Direction dir) {
             if (!(owner.getLevel() instanceof ServerLevel level)) return null;
             int i = dir.ordinal();
@@ -128,10 +137,18 @@ public final class SideConfigHelper {
     /**
      * Pushes energy out of output faces.
      *
-     * @param consumersOnly skips neighbours that can also give energy back (other batteries).
+     * @param skipBuffers skips neighbouring {@link EnergyBuffer}s (other Accumulators), so batteries do not feed
+     *                    each other. It does not look at {@code canExtract()}: other mods' cables report it too
+     *                    (Mekanism's Universal Cable does), and they must still be fed.
      */
     public static int ejectEnergy(SideConfigurable machine, Neighbors neighbors, IEnergyStorage source, int maxTotal,
-                                  boolean consumersOnly) {
+                                  boolean skipBuffers) {
+        return ejectEnergy(machine, neighbors, source, maxTotal, skipBuffers, null);
+    }
+
+    /** As above; {@code inputFaces}, when given, keeps faces that just received energy from being pushed into. */
+    public static int ejectEnergy(SideConfigurable machine, Neighbors neighbors, IEnergyStorage source, int maxTotal,
+                                  boolean skipBuffers, @Nullable RecentInputFaces inputFaces) {
         int budget = source.extractEnergy(maxTotal, true);
         if (budget <= 0) return 0;
         int moved = 0;
@@ -139,7 +156,8 @@ public final class SideConfigHelper {
             if (!machine.getSideConfig().mode(TransferType.ENERGY, dir, machine.getFacing()).canOutput()) continue;
             IEnergyStorage target = neighbors.energy(dir);
             if (target == null || target == source || !target.canReceive()) continue;
-            if (consumersOnly && target.canExtract()) continue;
+            if (inputFaces != null && inputFaces.receivedRecently(dir)) continue;
+            if (skipBuffers && neighbors.blockEntity(dir) instanceof EnergyBuffer) continue;
             int accepted = target.receiveEnergy(budget - moved, false);
             if (accepted > 0) {
                 source.extractEnergy(accepted, false);
