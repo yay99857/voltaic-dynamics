@@ -1,3 +1,5 @@
+<p align="center"><img src="src/main/resources/voltaicdynamics_logo.png" width="128" alt="Voltaic Dynamics"></p>
+
 # ⚡ Voltaic Dynamics
 
 Energy and technology mod for **Minecraft 1.21.1 (NeoForge)**, built for **Bubie Pack** (and any 1.21.1 NeoForge pack). Everything speaks Forge Energy (FE), so it works with **Mekanism**, **Applied Energistics 2**, **Powah**, **Extreme Reactors** and any other FE mod.
@@ -172,6 +174,7 @@ the published figures differ between versions, so these are ballpark targets, al
 ./gradlew runClient          # dev client
 ./gradlew runData            # regenerate tags, loot tables and recipes (src/generated/resources)
 ./gradlew runGameTestServer  # run the in-world tests; exits non-zero if one fails
+tools/prepare-pack-server.sh && ./gradlew runPackServer  # dedicated server with the whole Bubie Pack, to catch conflicts
 ```
 
 * **Code is split into modules** under `src/main/java/com/voltaicdynamics`, each with its own registries, capabilities and creative-tab entries in a `Voltaic<Module>` class. Modules depend only on `core`, so any of them can become its own mod later:
