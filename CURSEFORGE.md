@@ -52,6 +52,7 @@ de FE. Feito para o Bubie Pack e equilibrado para conviver com a Thermal e o Mek
 CurseForge project id: **1809423** (created 2026-11-16, unlisted, MIT, Energy / Energy, Fluid, and Item Transport;
 awaiting moderation). Manage it at https://authors.curseforge.com/#/projects/1809423.
 First file: "Voltaic Dynamics 1.5.0", fileID **9642198** (Release; 1.21.1, NeoForge, Java 21, client + server).
+1.6.0: fileID **9658155** (sent 2026-11-17).
 
 1. `./gradlew build` and `./gradlew runGameTestServer` (all tests pass).
 2. `tools/prepare-pack-server.sh && ./gradlew runPackServer`: the server reaches "Done" with the whole Bubie Pack.
