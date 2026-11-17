@@ -35,8 +35,8 @@ import net.neoforged.neoforge.common.conditions.TagEmptyCondition;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Voltaic ingots and galvanic alloy come only from smelting their dust, so the dust step
- * matters and no recipe shares its ingredients with another.
+ * Voltaic ingots come from smelting their dust, like any metal. Galvanic Alloy is an alloy like Mekanism's:
+ * it has no dust and is made only in the Alloy Smelter, the mod's infuser, so it never comes out of a furnace.
  */
 public class ModRecipeProvider extends RecipeProvider {
     public ModRecipeProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookup) {
@@ -60,16 +60,9 @@ public class ModRecipeProvider extends RecipeProvider {
                 .requires(Tags.Items.DUSTS_REDSTONE)
                 .unlockedBy("has_copper_ingot", has(Tags.Items.INGOTS_COPPER))
                 .save(output, id("voltaic_dust_from_ingots"));
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, VoltaicCore.GALVANIC_DUST.get(), 2)
-                .requires(ModTags.INGOTS_VOLTAIC)
-                .requires(Tags.Items.INGOTS_GOLD)
-                .requires(Tags.Items.DUSTS_REDSTONE)
-                .unlockedBy("has_voltaic_ingot", has(ModTags.INGOTS_VOLTAIC))
-                .save(output);
 
         // Dust -> ingot
         cook(output, ModTags.DUSTS_VOLTAIC, VoltaicCore.VOLTAIC_INGOT.get(), 0.7F, "voltaic_ingot");
-        cook(output, ModTags.DUSTS_GALVANIC_ALLOY, VoltaicCore.GALVANIC_ALLOY.get(), 0.8F, "galvanic_alloy");
         cook(output, ModTags.DUSTS_IRON, Items.IRON_INGOT, 0.7F, "iron_ingot_from_dust");
         cook(output, ModTags.DUSTS_COPPER, Items.COPPER_INGOT, 0.7F, "copper_ingot_from_dust");
         cook(output, ModTags.DUSTS_GOLD, Items.GOLD_INGOT, 1.0F, "gold_ingot_from_dust");
@@ -253,9 +246,6 @@ public class ModRecipeProvider extends RecipeProvider {
                 SizedIngredient.of(ModTags.DUSTS_GOLD, 1),
                 SizedIngredient.of(Tags.Items.DUSTS_REDSTONE, 1)),
                 new ItemStack(VoltaicCore.GALVANIC_ALLOY.get(), 3), 100, 0.8F);
-        alloy(output, "galvanic_alloy_from_galvanic_dust", List.of(
-                SizedIngredient.of(ModTags.DUSTS_GALVANIC_ALLOY, 2)),
-                new ItemStack(VoltaicCore.GALVANIC_ALLOY.get(), 3), 60, 0.5F);
     }
 
     /**
@@ -268,8 +258,6 @@ public class ModRecipeProvider extends RecipeProvider {
         metal(output, "gold", Tags.Items.ORES_GOLD, Tags.Items.RAW_MATERIALS_GOLD, Tags.Items.INGOTS_GOLD, VoltaicCore.GOLD_DUST.get());
         crush(output, "voltaic_dust_from_ingot", SizedIngredient.of(ModTags.INGOTS_VOLTAIC, 1),
                 new ItemStack(VoltaicCore.VOLTAIC_DUST.get()), 0F, 80, 0F);
-        crush(output, "galvanic_dust_from_alloy", SizedIngredient.of(ModTags.ALLOYS_GALVANIC, 1),
-                new ItemStack(VoltaicCore.GALVANIC_DUST.get()), 0F, 80, 0F);
         // Stone down to sand, like a pulverizer should.
         crush(output, "gravel_from_cobblestone", SizedIngredient.of(Tags.Items.COBBLESTONES_NORMAL, 1),
                 new ItemStack(Items.GRAVEL), 0F, 60, 0F);

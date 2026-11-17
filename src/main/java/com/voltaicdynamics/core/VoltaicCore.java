@@ -31,7 +31,6 @@ public final class VoltaicCore {
 
     // Dusts (for ore processing, crushing and blending)
     public static final DeferredItem<Item> VOLTAIC_DUST = ITEMS.registerSimpleItem("voltaic_dust");
-    public static final DeferredItem<Item> GALVANIC_DUST = ITEMS.registerSimpleItem("galvanic_dust");
     /** Made by the Pulverizer (in c:dusts/*, so packs can unify them with other mods' dusts); smelt into ingots. */
     public static final DeferredItem<Item> IRON_DUST = ITEMS.registerSimpleItem("iron_dust");
     public static final DeferredItem<Item> COPPER_DUST = ITEMS.registerSimpleItem("copper_dust");
@@ -52,7 +51,6 @@ public final class VoltaicCore {
                         output.accept(VOLTAIC_INGOT.get());
                         output.accept(GALVANIC_ALLOY.get());
                         output.accept(VOLTAIC_DUST.get());
-                        output.accept(GALVANIC_DUST.get());
                         output.accept(IRON_DUST.get());
                         output.accept(COPPER_DUST.get());
                         output.accept(GOLD_DUST.get());
@@ -71,7 +69,6 @@ public final class VoltaicCore {
 
         // 1.2.0 renamed Conductive Alloy so it no longer shares a name or tags with Ender IO.
         ITEMS.addAlias(VoltaicDynamics.id("conductive_alloy"), VoltaicDynamics.id("galvanic_alloy"));
-        ITEMS.addAlias(VoltaicDynamics.id("conductive_dust"), VoltaicDynamics.id("galvanic_dust"));
     }
 
     /** The Basic Accumulator lives in the power module, so the icon is looked up by id instead of imported. */

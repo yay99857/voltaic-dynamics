@@ -85,7 +85,6 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
   | 2 Voltaic Dust | 3 Voltaic Ingot | 3 s |
   | Voltaic Ingot + Gold Ingot + Redstone | 2 Galvanic Alloy | 6 s |
   | Voltaic Dust + Gold Dust + Redstone | 3 Galvanic Alloy | 5 s |
-  | 2 Galvanic Dust | 3 Galvanic Alloy | 3 s |
 * Crafted from iron, copper, a furnace, a Voltaic Ingot and redstone. It needs **no Galvanic Alloy**, the thing it makes.
 * Pipes never put the same item in two input slots, so a stream of iron cannot block the recipe.
 * JEI and EMI category with the "+" transfer, Jade progress. `timeMultiplier` in the config speeds every recipe up or down.
@@ -98,7 +97,7 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
   | Iron / Copper / Gold **ore** (`c:ores/*`) | 2 dust | 6 s |
   | Raw Iron / Copper / Gold (`c:raw_materials/*`) | 1 dust, **50%** chance of a second | 5 s |
   | Iron / Copper / Gold Ingot | 1 dust | 4 s |
-  | Voltaic Ingot / Galvanic Alloy | Voltaic / Galvanic Dust | 4 s |
+  | Voltaic Ingot | Voltaic Dust | 4 s |
   | Cobblestone → Gravel, Gravel → Sand, 2 Gravel → Flint | | 3-4 s |
 * Adds **Iron, Copper and Gold Dust** (`c:dusts/iron`, `c:dusts/copper`, `c:dusts/gold`, so packs can unify them with other
   mods' dusts); they smelt or blast back into ingots.
@@ -138,10 +137,11 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 * **Voltaic Ingot:** in the Alloy Smelter from ingots or dusts (above), or by hand: `Iron Dust + Copper Dust + Redstone` → 2 Voltaic Dust
   (dusts from the Pulverizer), smelted or blasted into ingots. To get started before any machine, `Iron Ingot + Copper Ingot + Redstone`
   → 1 Voltaic Dust.
-* **Galvanic Alloy:** in the Alloy Smelter, or by hand: `Voltaic Ingot + Gold Ingot + Redstone` → 2 Galvanic Dust, smelted or blasted.
+* **Galvanic Alloy:** only in the **Alloy Smelter** (`Voltaic Ingot + Gold Ingot + Redstone`, or the dusts). Like Mekanism's alloys,
+  which come from the Metallurgic Infuser, it has no dust and never comes out of a furnace.
   Tier component of the Advanced Accumulator and the Electric Furnace (an alloy like Mekanism's, not an ingot).
 * Recipes accept any mod's iron, copper, gold and redstone through the common `c:` tags.
-* Tags: `c:ingots/voltaic`, `c:dusts/voltaic`, `c:dusts/galvanic_alloy`, `c:dusts/iron`, `c:dusts/copper`, `c:dusts/gold`
+* Tags: `c:ingots/voltaic`, `c:dusts/voltaic`, `c:dusts/iron`, `c:dusts/copper`, `c:dusts/gold`
   (inside `c:ingots` and `c:dusts`) and
   `voltaicdynamics:alloys/galvanic`. The alloy keeps its own tag so it never stands in for another mod's alloy.
 * **Thermopile Core:** component for the Thermoelectric Generator.
@@ -190,13 +190,18 @@ tools/prepare-pack-server.sh && ./gradlew runPackServer  # dedicated server with
 
   `client/ClientModEvents`, `compat`, `datagen` and `gametest` still cover every module.
 * **Data is generated:** tags, loot tables and recipes come from `src/main/java/com/voltaicdynamics/datagen`. Edit the providers and run `runData`; don't hand-edit `src/generated`.
-* **Game tests** live in `gametest/`, one class per module (40 tests): `CoreGameTests` (mining tags, deferred saves, menu sync, side configuration and auto-eject), `PowerGameTests` (cells keeping energy, no battery ping-pong, cable delivery), `GeneratorGameTests` (lava bucket, fuel extraction, burn time, Thermoelectric and Fluid Generators), `GadgetGameTests` (Voltaic Wrench: turning, picking up, cable arms), `MachineGameTests` (Electric Furnace, recipe cache, recipe set, Alloy Smelter, Pulverizer, dust smelting, upgrades) `LogisticsGameTests` (item and fluid cables, Fluid Tank) and `CompatGameTests` (other mods' blocks: Accumulator and Combustion Generator on Mekanism's Universal Cable, Fluid Cable pulling from and Fluid Tank ejecting into a Mekanism Fluid Tank, vanilla hoppers feeding and emptying the Electric Furnace). Shared helpers are in `GameTestSupport`.
+* **Game tests** live in `gametest/`, one class per module (41 tests): `CoreGameTests` (mining tags, deferred saves, menu sync, side configuration and auto-eject), `PowerGameTests` (cells keeping energy, no battery ping-pong, cable delivery), `GeneratorGameTests` (lava bucket, fuel extraction, burn time, Thermoelectric and Fluid Generators), `GadgetGameTests` (Voltaic Wrench: turning, picking up, cable arms), `MachineGameTests` (Electric Furnace, recipe cache, recipe set, Galvanic Alloy only from the Alloy Smelter, Alloy Smelter, Pulverizer, dust smelting, upgrades) `LogisticsGameTests` (item and fluid cables, Fluid Tank) and `CompatGameTests` (other mods' blocks: Accumulator and Combustion Generator on Mekanism's Universal Cable, Fluid Cable pulling from and Fluid Tank ejecting into a Mekanism Fluid Tank, vanilla hoppers feeding and emptying the Electric Furnace). Shared helpers are in `GameTestSupport`.
 * **Art sources** for the machine fronts, GUIs, tank and cable textures are in `art-src/textures/*.pontilha` (Pontilha).
 * Versions live in `gradle.properties`; `neoforge.mods.toml` is filled from it at build time.
 
 ---
 
 ## 📜 Changelog
+
+### 1.6.0
+* Changed: Galvanic Alloy is made only in the Alloy Smelter, like Mekanism's alloys come from the Metallurgic Infuser.
+  Galvanic Dust is gone, with its hand recipe, its furnace and blast furnace recipes, its Pulverizer recipe and the
+  `c:dusts/galvanic_alloy` tag. Dusts smelt into ingots; alloys are made in a machine. Galvanic Dust left in a world disappears.
 
 ### 1.5.0
 * New: Pulverizer and the `voltaicdynamics:crushing` recipe type (bonus chance; JEI, EMI, Jade). Ores give 2 dusts, raw metals 1 plus a 50% chance of a second.

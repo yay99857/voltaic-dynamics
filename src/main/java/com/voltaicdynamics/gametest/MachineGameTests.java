@@ -77,6 +77,21 @@ public class MachineGameTests {
         });
     }
 
+    /** Galvanic Alloy is an alloy, not an ingot: only the Alloy Smelter makes it; no crafting, furnace or crushing recipe. */
+    @GameTest(template = EMPTY)
+    public static void galvanicAlloyOnlyFromTheAlloySmelter(GameTestHelper helper) {
+        var registries = helper.getLevel().registryAccess();
+        for (var holder : helper.getLevel().getRecipeManager().getRecipes()) {
+            var recipe = holder.value();
+            if (!recipe.getResultItem(registries).is(VoltaicCore.GALVANIC_ALLOY.get())) continue;
+            helper.assertTrue(recipe.getType() == com.voltaicdynamics.machines.recipe.ModRecipes.ALLOYING.get(),
+                    holder.id() + " makes Galvanic Alloy outside the Alloy Smelter");
+        }
+        helper.assertTrue(net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(
+                VoltaicDynamics.id("galvanic_dust")).isEmpty(), "Galvanic Dust still exists");
+        helper.succeed();
+    }
+
     /** No shapeless shortcuts to ingots or alloy; Voltaic Dust from dusts, and from ingots to get started. */
     @GameTest(template = EMPTY)
     public static void noDuplicateAlloyRecipes(GameTestHelper helper) {

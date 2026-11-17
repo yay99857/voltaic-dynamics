@@ -1,7 +1,6 @@
-// 1.21.1	2026-11-15T23:58:42.013771268	Tags for minecraft:item mod id voltaicdynamics
-52c54df06bd5b72c9733b672ebd1a16046930211 data/c/tags/item/dusts.json
+// 1.21.1	2026-11-16T21:16:01.591739539	Tags for minecraft:item mod id voltaicdynamics
+cea8bb5f4f25897d1e0c696a96baf5d6ec2df0af data/c/tags/item/dusts.json
 467960ff0278cca4d01cfb645df89e0ea1f2fed3 data/c/tags/item/dusts/copper.json
-8e0da0f0fe295a74b0a29ddf64e75409416958df data/c/tags/item/dusts/galvanic_alloy.json
 592f0253b390115912c7ed0d1ccf96c482c7dd3f data/c/tags/item/dusts/gold.json
 f07f349b1fbb203606d4767e29ea644120db996b data/c/tags/item/dusts/iron.json
 501dad5d6f40c16e5901b5605921e14b8e19aab9 data/c/tags/item/dusts/voltaic.json

@@ -15,7 +15,6 @@ public final class ModTags {
     public static final TagKey<Item> DUSTS_IRON = common("dusts/iron");
     public static final TagKey<Item> DUSTS_COPPER = common("dusts/copper");
     public static final TagKey<Item> DUSTS_GOLD = common("dusts/gold");
-    public static final TagKey<Item> DUSTS_GALVANIC_ALLOY = common("dusts/galvanic_alloy");
 
     private ModTags() {
     }

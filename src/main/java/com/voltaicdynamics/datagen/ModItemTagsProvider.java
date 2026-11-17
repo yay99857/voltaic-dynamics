@@ -24,14 +24,13 @@ public class ModItemTagsProvider extends ItemTagsProvider {
         tag(ModTags.INGOTS_VOLTAIC).add(VoltaicCore.VOLTAIC_INGOT.get());
         tag(ModTags.ALLOYS_GALVANIC).add(VoltaicCore.GALVANIC_ALLOY.get());
         tag(ModTags.DUSTS_VOLTAIC).add(VoltaicCore.VOLTAIC_DUST.get());
-        tag(ModTags.DUSTS_GALVANIC_ALLOY).add(VoltaicCore.GALVANIC_DUST.get());
 
         tag(Tags.Items.TOOLS_WRENCH).add(VoltaicGadgets.VOLTAIC_WRENCH.get());
         tag(Tags.Items.INGOTS).addTag(ModTags.INGOTS_VOLTAIC);
         tag(ModTags.DUSTS_IRON).add(VoltaicCore.IRON_DUST.get());
         tag(ModTags.DUSTS_COPPER).add(VoltaicCore.COPPER_DUST.get());
         tag(ModTags.DUSTS_GOLD).add(VoltaicCore.GOLD_DUST.get());
-        tag(Tags.Items.DUSTS).addTag(ModTags.DUSTS_VOLTAIC).addTag(ModTags.DUSTS_GALVANIC_ALLOY)
+        tag(Tags.Items.DUSTS).addTag(ModTags.DUSTS_VOLTAIC)
                 .addTag(ModTags.DUSTS_IRON).addTag(ModTags.DUSTS_COPPER).addTag(ModTags.DUSTS_GOLD);
     }
 }
