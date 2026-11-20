@@ -198,6 +198,9 @@ tools/prepare-pack-server.sh && ./gradlew runPackServer  # dedicated server with
 
 ## 📜 Changelog
 
+### 1.6.1
+- Spanish translation (es_es and the Latin American locales).
+
 ### 1.6.0
 * Changed: Galvanic Alloy is made only in the Alloy Smelter, like Mekanism's alloys come from the Metallurgic Infuser.
   Galvanic Dust is gone, with its hand recipe, its furnace and blast furnace recipes, its Pulverizer recipe and the
