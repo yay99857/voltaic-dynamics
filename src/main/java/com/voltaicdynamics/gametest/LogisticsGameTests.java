@@ -49,6 +49,23 @@ public class LogisticsGameTests {
     }
 
     /** Chest -> pulling connector -> item cables -> chest. */
+    /** The everyday order: the cable is already there and the chest is placed next to it. */
+    @GameTest(template = EMPTY, timeoutTicks = 20)
+    public static void itemCableConnectsToAChestPlacedLater(GameTestHelper helper) {
+        BlockPos cable = new BlockPos(2, 1, 2), chest = new BlockPos(3, 1, 2), furnace = new BlockPos(2, 1, 3);
+        helper.setBlock(cable, VoltaicLogistics.ITEM_CABLE.get());
+        connectCables(helper, cable);
+        helper.assertTrue(LogisticsCableBlock.connection(helper.getBlockState(cable), Direction.EAST) == ConnectionType.NONE,
+                "nothing to the east yet");
+        helper.setBlock(chest, Blocks.CHEST);
+        helper.setBlock(furnace, Blocks.FURNACE);
+        helper.assertTrue(LogisticsCableBlock.connection(helper.getBlockState(cable), Direction.EAST) == ConnectionType.BLOCK,
+                "the arm reaches the chest placed after the cable");
+        helper.assertTrue(LogisticsCableBlock.connection(helper.getBlockState(cable), Direction.SOUTH) == ConnectionType.BLOCK,
+                "and the furnace");
+        helper.succeed();
+    }
+
     @GameTest(template = EMPTY, timeoutTicks = 200)
     public static void itemCableMovesItems(GameTestHelper helper) {
         BlockPos source = new BlockPos(1, 1, 2);
