@@ -10,7 +10,7 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import com.voltaicdynamics.core.menu.FixedSlot;
 
 public class AccumulatorMenu extends MachineMenu {
     public final AccumulatorBlockEntity blockEntity;
@@ -35,8 +35,8 @@ public class AccumulatorMenu extends MachineMenu {
         this.maxTransfer = syncInt(() -> cell.getTier().transfer());
         this.tier = syncInt(() -> cell.getTier().ordinal());
 
-        addMachineSlot("charge", new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 0, 0, 0));
-        addMachineSlot("discharge", new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 1, 0, 0));
+        addMachineSlot("charge", new FixedSlot(this.blockEntity.getMenuItemHandler(), 0, 0, 0));
+        addMachineSlot("discharge", new FixedSlot(this.blockEntity.getMenuItemHandler(), 1, 0, 0));
 
         addPlayerInventory(inv);
     }

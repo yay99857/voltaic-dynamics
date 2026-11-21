@@ -10,7 +10,7 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import com.voltaicdynamics.core.menu.FixedSlot;
 
 public class CombustionGeneratorMenu extends MachineMenu {
     public final CombustionGeneratorBlockEntity blockEntity;
@@ -39,7 +39,7 @@ public class CombustionGeneratorMenu extends MachineMenu {
         this.maxBurnTime = syncInt(generator::getMaxBurnTime);
         this.rate = syncInt(generator::getCurrentRate);
 
-        addMachineSlot("fuel", new SlotItemHandler(this.blockEntity.getMenuItemHandler(), 0, 0, 0));
+        addMachineSlot("fuel", new FixedSlot(this.blockEntity.getMenuItemHandler(), 0, 0, 0));
 
         addPlayerInventory(inv);
     }

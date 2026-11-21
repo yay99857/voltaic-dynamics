@@ -11,7 +11,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import com.voltaicdynamics.core.menu.FixedSlot;
 
 /** Fluid Generator GUI: fuel container slots, the fuel gauge and the energy gauge. */
 public class FluidGeneratorMenu extends MachineMenu {
@@ -37,8 +37,8 @@ public class FluidGeneratorMenu extends MachineMenu {
         this.amount = syncInt(() -> generator.getTank().getFluidAmount());
         this.tankCapacity = syncInt(() -> generator.getTank().getCapacity());
         this.rate = syncInt(generator::getCurrentRate);
-        addMachineSlot("in", new SlotItemHandler(generator.getMenuItemHandler(), FluidGeneratorBlockEntity.SLOT_IN, 0, 0));
-        addMachineSlot("out", new SlotItemHandler(generator.getMenuItemHandler(), FluidGeneratorBlockEntity.SLOT_OUT, 0, 0) {
+        addMachineSlot("in", new FixedSlot(generator.getMenuItemHandler(), FluidGeneratorBlockEntity.SLOT_IN, 0, 0));
+        addMachineSlot("out", new FixedSlot(generator.getMenuItemHandler(), FluidGeneratorBlockEntity.SLOT_OUT, 0, 0) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;

@@ -9,7 +9,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import com.voltaicdynamics.core.menu.FixedSlot;
 
 /** Menu of a {@link ProcessingMachineBlockEntity}: input slots, one output slot, then the player inventory. */
 public abstract class ProcessingMenu extends MachineMenu {
@@ -37,9 +37,9 @@ public abstract class ProcessingMenu extends MachineMenu {
 
         int inputs = blockEntity.getInputSlots();
         for (int i = 0; i < inputs; i++) {
-            addMachineSlot("input_" + i, new SlotItemHandler(blockEntity.getMenuItemHandler(), i, 0, 0));
+            addMachineSlot("input_" + i, new FixedSlot(blockEntity.getMenuItemHandler(), i, 0, 0));
         }
-        addMachineSlot("output", new SlotItemHandler(blockEntity.getMenuItemHandler(), blockEntity.outputSlot(), 0, 0) {
+        addMachineSlot("output", new FixedSlot(blockEntity.getMenuItemHandler(), blockEntity.outputSlot(), 0, 0) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
@@ -56,7 +56,7 @@ public abstract class ProcessingMenu extends MachineMenu {
 
         addPlayerInventory(inv);
         for (int i = 0; i < ProcessingMachineBlockEntity.UPGRADE_SLOTS; i++) {
-            addMachineSlot("upgrade_" + i, new SlotItemHandler(blockEntity.getUpgradeHandler(), i, 0, 0));
+            addMachineSlot("upgrade_" + i, new FixedSlot(blockEntity.getUpgradeHandler(), i, 0, 0));
         }
     }
 

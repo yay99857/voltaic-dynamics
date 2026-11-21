@@ -10,7 +10,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import com.voltaicdynamics.core.menu.FixedSlot;
 
 public class FluidTankMenu extends MachineMenu {
     public final FluidTankBlockEntity blockEntity;
@@ -27,8 +27,8 @@ public class FluidTankMenu extends MachineMenu {
         FluidTankBlockEntity tank = this.blockEntity;
         this.amount = syncInt(() -> tank.getTank().getFluidAmount());
         this.capacity = syncInt(() -> tank.getTank().getCapacity());
-        addMachineSlot("in", new SlotItemHandler(blockEntity.getMenuItemHandler(), FluidTankBlockEntity.SLOT_IN, 0, 0));
-        addMachineSlot("out", new SlotItemHandler(blockEntity.getMenuItemHandler(), FluidTankBlockEntity.SLOT_OUT, 0, 0) {
+        addMachineSlot("in", new FixedSlot(blockEntity.getMenuItemHandler(), FluidTankBlockEntity.SLOT_IN, 0, 0));
+        addMachineSlot("out", new FixedSlot(blockEntity.getMenuItemHandler(), FluidTankBlockEntity.SLOT_OUT, 0, 0) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 return false;
