@@ -11,6 +11,15 @@
       "entries": [
         {
           "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "minecraft:copy_components",
+              "include": [
+                "voltaicdynamics:machine_tier"
+              ],
+              "source": "block_entity"
+            }
+          ],
           "name": "voltaicdynamics:pulverizer"
         }
       ],

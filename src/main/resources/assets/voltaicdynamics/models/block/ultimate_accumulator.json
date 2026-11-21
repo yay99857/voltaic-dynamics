@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "voltaicdynamics:block/ultimate_accumulator_top",
+    "side": "voltaicdynamics:block/ultimate_accumulator_side"
+  }
+}

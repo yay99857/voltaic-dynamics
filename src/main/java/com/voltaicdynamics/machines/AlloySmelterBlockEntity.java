@@ -75,11 +75,16 @@ public class AlloySmelterBlockEntity extends ProcessingMachineBlockEntity {
         AlloyingRecipe recipe = holder.value();
         int[] slots = recipe.match(input);
         if (slots == null) return null;
-        return new Craft(recipe.assemble(input, level.registryAccess()), scaledTime(recipe.time()), recipe.experience(), () -> {
+        int available = Integer.MAX_VALUE;
+        for (int i = 0; i < slots.length; i++) {
+            available = Math.min(available,
+                    itemHandler.getStackInSlot(slots[i]).getCount() / Math.max(1, recipe.ingredients().get(i).count()));
+        }
+        return new Craft(recipe.assemble(input, level.registryAccess()), scaledTime(recipe.time()), recipe.experience(), times -> {
             for (int i = 0; i < slots.length; i++) {
-                itemHandler.extractItem(slots[i], recipe.ingredients().get(i).count(), false);
+                itemHandler.extractItem(slots[i], recipe.ingredients().get(i).count() * times, false);
             }
-        });
+        }, available == Integer.MAX_VALUE ? 1 : available);
     }
 
     @Override

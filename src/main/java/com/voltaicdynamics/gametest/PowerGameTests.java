@@ -122,4 +122,23 @@ public class PowerGameTests {
             helper.assertTrue(cell.getEnergyStored() > 0, "cell has not been charged yet");
         });
     }
+
+    /** A cable glows while energy flows through its network and dims a moment after it stops (a full furnace). */
+    @GameTest(template = EMPTY, timeoutTicks = 200)
+    public static void cableGlowsWhileEnergyFlows(GameTestHelper helper) {
+        BlockPos cable = new BlockPos(2, 1, 2);
+        helper.setBlock(cable, VoltaicPower.VOLTAIC_CABLE.get());
+        helper.setBlock(cable.west(), VoltaicPower.CREATIVE_ACCUMULATOR.get());
+        helper.setBlock(cable.east(), VoltaicMachines.ELECTRIC_FURNACE.get());
+        boolean[] litOnce = {false};
+        helper.onEachTick(() -> {
+            if (helper.getBlockState(cable).getValue(com.voltaicdynamics.power.VoltaicCableBlock.POWERED)) litOnce[0] = true;
+        });
+        // The furnace (nothing to smelt) fills up in about 20 ticks; then nothing flows and the cable goes dark.
+        helper.runAfterDelay(60, () -> helper.succeedWhen(() -> {
+            helper.assertTrue(litOnce[0], "the cable glowed while the furnace filled up");
+            helper.assertTrue(!helper.getBlockState(cable).getValue(com.voltaicdynamics.power.VoltaicCableBlock.POWERED),
+                    "the cable is dark once nothing flows");
+        }));
+    }
 }

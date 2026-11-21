@@ -1,5 +1,6 @@
 package com.voltaicdynamics.machines;
 
+import com.voltaicdynamics.core.ModDataComponents;
 import com.voltaicdynamics.core.blockentity.VoltaicBlockEntity;
 import com.voltaicdynamics.core.energy.VoltaicEnergyStorage;
 import com.voltaicdynamics.core.sideconfig.IoMode;
@@ -12,6 +13,7 @@ import com.voltaicdynamics.core.sideconfig.TransferType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
@@ -34,11 +36,13 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.IntConsumer;
 
 /**
  * Shared logic of the FE machines that turn input slots into one output slot (Electric Furnace, Alloy Smelter,
  * Pulverizer): energy buffer, progress that pauses without power, XP, comparator, side configuration, auto-eject
- * and two upgrade slots ({@link UpgradeItem}: speed and efficiency).
+ * and two upgrade slots ({@link UpgradeItem}: speed and efficiency). Its {@link MachineTier} sets how many items one
+ * operation processes at once.
  */
 public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity implements MenuProvider, SideConfigurable {
     public static final int MAX_INPUT = 1_000;
@@ -60,6 +64,9 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     protected int maxProgress = 0;
     private float storedExperience = 0.0F;
     private boolean active = false;
+    private MachineTier tier = MachineTier.BASIC;
+    /** Items the running operation processes at once (1 when idle). */
+    private int batch = 1;
 
     // Recipe lookup cache: findCraft runs only when the inputs (item, count, components) or the recipe set change,
     // so idle or steadily working machines skip the recipe search every tick. The inputs are compared against a
@@ -72,16 +79,18 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
 
     /**
      * One operation the machine can run with what is in its input slots right now. {@code bonusChance} (0..1) is
-     * the chance of one extra result item; the output slot must have room for it before the operation starts.
+     * the chance of one extra result item per item made; the output slot must have room for it before the operation
+     * starts. {@code available} is how many times the inputs hold the recipe, and {@code consume} takes that many sets.
      */
-    public record Craft(ItemStack result, int ticks, float experience, Runnable consume, float bonusChance) {
-        public Craft(ItemStack result, int ticks, float experience, Runnable consume) {
-            this(result, ticks, experience, consume, 0F);
+    public record Craft(ItemStack result, int ticks, float experience, IntConsumer consume, float bonusChance, int available) {
+        public Craft(ItemStack result, int ticks, float experience, IntConsumer consume, int available) {
+            this(result, ticks, experience, consume, 0F, available);
         }
 
-        /** The most the operation can put in the output slot. */
-        ItemStack maxResult() {
-            return bonusChance > 0 ? result.copyWithCount(result.getCount() + 1) : result;
+        /** The most {@code times} operations at once can put in the output slot. */
+        ItemStack maxResult(int times) {
+            int count = result.getCount() * times + (bonusChance > 0 ? times : 0);
+            return result.copyWithCount(count);
         }
     }
 
@@ -184,7 +193,23 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
         return Math.min(count, UpgradeItem.MAX_PER_TYPE);
     }
 
-    /** FE/t with the installed upgrades: speed multiplies it, efficiency cuts it. */
+    public MachineTier getTier() {
+        return tier;
+    }
+
+    /** Sets the tier (a Tier Installer); everything else stays. */
+    public void setTier(MachineTier tier) {
+        this.tier = tier;
+        saveChanges();
+        if (level != null) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
+    }
+
+    /** FE/t while working: the upgraded FE/t times the items being processed at once. */
+    public int activeEnergyPerTick() {
+        return currentEnergyPerTick() * batch;
+    }
+
+    /** FE/t with the installed upgrades, for one item: speed multiplies it, efficiency cuts it. */
     public int currentEnergyPerTick() {
         double factor = UpgradeItem.speedFactor(upgrades(UpgradeItem.Type.SPEED))
                 * UpgradeItem.energyFactor(upgrades(UpgradeItem.Type.EFFICIENCY));
@@ -248,6 +273,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     private boolean work(Level level) {
         Craft craft = currentCraft(level);
         if (craft == null || craft.result().isEmpty()) {
+            batch = 1;
             if (progress != 0) {
                 progress = 0;
                 saveChanges();
@@ -256,17 +282,23 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
             return false;
         }
         maxProgress = upgradedTicks(craft.ticks());
-        if (!canOutput(craft.maxResult())) return false;
+        // As many at once as the tier allows, the inputs hold and the output slot has room for.
+        int times = Math.min(tier.parallel(), Math.max(1, craft.available()));
+        while (times > 0 && !canOutput(craft.maxResult(times))) times--;
+        if (times <= 0) return false;
+        batch = times;
 
         // Without enough energy the machine pauses and keeps its progress.
-        if (!energyStorage.consumeEnergy(currentEnergyPerTick())) return false;
+        if (!energyStorage.consumeEnergy(currentEnergyPerTick() * times)) return false;
 
         progress++;
         if (progress >= maxProgress) {
             progress = 0;
-            craft.consume().run();
-            ItemStack made = craft.result().copy();
-            if (craft.bonusChance() > 0 && level.random.nextFloat() < craft.bonusChance()) made.grow(1);
+            craft.consume().accept(times);
+            ItemStack made = craft.result().copyWithCount(craft.result().getCount() * times);
+            if (craft.bonusChance() > 0) {
+                for (int i = 0; i < times; i++) if (level.random.nextFloat() < craft.bonusChance()) made.grow(1);
+            }
             ItemStack output = itemHandler.getStackInSlot(outputSlot());
             if (output.isEmpty()) {
                 itemHandler.setStackInSlot(outputSlot(), made);
@@ -274,7 +306,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
                 output.grow(made.getCount());
                 itemHandler.setStackInSlot(outputSlot(), output);
             }
-            storedExperience += craft.experience();
+            storedExperience += craft.experience() * times;
         }
         saveChanges();
         return true;
@@ -381,6 +413,40 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
         tag.putFloat("Experience", storedExperience);
         tag.put("SideConfig", sideConfig.save());
         tag.put("Upgrades", upgradeHandler.serializeNBT(registries));
+        if (tier != MachineTier.BASIC) tag.putString("Tier", tier.getSerializedName());
+    }
+
+    // The tier travels with the item when the machine is broken.
+    @Override
+    protected void applyImplicitComponents(DataComponentInput input) {
+        super.applyImplicitComponents(input);
+        tier = input.getOrDefault(ModDataComponents.MACHINE_TIER.get(), MachineTier.BASIC);
+    }
+
+    @Override
+    protected void collectImplicitComponents(DataComponentMap.Builder builder) {
+        super.collectImplicitComponents(builder);
+        if (tier != MachineTier.BASIC) builder.set(ModDataComponents.MACHINE_TIER.get(), tier);
+    }
+
+    @Override
+    public void removeComponentsFromTag(CompoundTag tag) {
+        super.removeComponentsFromTag(tag);
+        tag.remove("Tier");
+    }
+
+    /** Clients get the tier for the GUI badge and Jade. */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        if (tier != MachineTier.BASIC) tag.putString("Tier", tier.getSerializedName());
+        return tag;
+    }
+
+    @Nullable
+    @Override
+    public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getUpdatePacket() {
+        return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
     }
 
     @Override
@@ -392,6 +458,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
         storedExperience = tag.getFloat("Experience");
         if (tag.contains("SideConfig")) sideConfig.load(tag.getCompound("SideConfig"));
         if (tag.contains("Upgrades")) upgradeHandler.deserializeNBT(registries, tag.getCompound("Upgrades"));
+        tier = tag.contains("Tier") ? MachineTier.byName(tag.getString("Tier")) : MachineTier.BASIC;
         sided.invalidate();
     }
 }

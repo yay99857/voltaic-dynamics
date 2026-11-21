@@ -1,6 +1,8 @@
 package com.voltaicdynamics.logistics;
 
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -25,11 +27,21 @@ import net.neoforged.neoforge.fluids.FluidUtil;
 import org.jetbrains.annotations.Nullable;
 
 public class FluidTankBlock extends BaseEntityBlock {
-    public static final MapCodec<FluidTankBlock> CODEC = simpleCodec(FluidTankBlock::new);
+    public static final MapCodec<FluidTankBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
+            FluidTankTier.CODEC.fieldOf("tier").forGetter(FluidTankBlock::getTier),
+            propertiesCodec()
+    ).apply(instance, (tier, properties) -> new FluidTankBlock(properties, tier)));
     private static final VoxelShape SHAPE = Block.box(1, 0, 1, 15, 16, 15);
 
-    public FluidTankBlock(BlockBehaviour.Properties properties) {
+    private final FluidTankTier tier;
+
+    public FluidTankBlock(BlockBehaviour.Properties properties, FluidTankTier tier) {
         super(properties);
+        this.tier = tier;
+    }
+
+    public FluidTankTier getTier() {
+        return tier;
     }
 
     @Override
@@ -75,6 +87,13 @@ public class FluidTankBlock extends BaseEntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        // Sneak + empty hand clears a Creative tank.
+        if (tier.isCreative() && player.isShiftKeyDown()) {
+            if (!level.isClientSide && level.getBlockEntity(pos) instanceof FluidTankBlockEntity tank && tank.clearCreative()) {
+                player.displayClientMessage(Component.translatable("message.voltaicdynamics.creative_tank_cleared"), true);
+            }
+            return InteractionResult.sidedSuccess(level.isClientSide);
+        }
         if (!level.isClientSide && level.getBlockEntity(pos) instanceof FluidTankBlockEntity tank
                 && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(tank, buf -> buf.writeBlockPos(pos));

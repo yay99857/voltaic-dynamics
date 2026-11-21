@@ -5,6 +5,8 @@ import com.voltaicdynamics.VoltaicConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
@@ -37,6 +39,12 @@ public final class CableNetwork {
     private final List<Acceptor> acceptors = new ArrayList<>();
     private final Map<BlockPos, List<Acceptor>> acceptorsByPos = new HashMap<>();
     private boolean valid = true;
+    /** Ticks the cables keep glowing after the last energy went through, so a pulsing source does not flicker. */
+    private static final int GLOW_HOLD = 20;
+    private long lastFlow = Long.MIN_VALUE / 2;
+    /** Whether the cables were last set glowing; null until the first {@link #updateGlow()} syncs them. */
+    @Nullable
+    private Boolean lit;
 
     CableNetwork(ServerLevel level, Set<BlockPos> cables) {
         this.level = level;
@@ -127,6 +135,7 @@ public final class CableNetwork {
         if (!fromStorage && sent < amount) {
             sent += distribute(storages, amount - sent, simulate, time);
         }
+        if (sent > 0 && !simulate) lastFlow = time;
         return sent;
     }
 
@@ -173,6 +182,26 @@ public final class CableNetwork {
             if (available <= 0) continue;
             int sent = route(acceptor.pos, false, available, false);
             if (sent > 0) storage.extractEnergy(sent, false);
+        }
+    }
+
+    /**
+     * Lights the cables while energy flows and dims them {@link #GLOW_HOLD} ticks after it stops. Only changes the
+     * block state when the network switches, and only tells clients (no neighbour or shape updates, so the network
+     * is not rebuilt). The first call after a rebuild brings every cable to the same state.
+     */
+    void updateGlow() {
+        if (!valid) return;
+        boolean flowing = level.getGameTime() - lastFlow <= GLOW_HOLD;
+        if (lit != null && lit == flowing) return;
+        lit = flowing;
+        for (BlockPos pos : cables) {
+            if (!level.isLoaded(pos)) continue;
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() instanceof VoltaicCableBlock && state.getValue(VoltaicCableBlock.POWERED) != flowing) {
+                level.setBlock(pos, state.setValue(VoltaicCableBlock.POWERED, flowing),
+                        Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+            }
         }
     }
 

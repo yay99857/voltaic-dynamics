@@ -160,6 +160,29 @@ public class ModRecipeProvider extends RecipeProvider {
                 .define('Q', Tags.Items.GEMS_QUARTZ)
                 .unlockedBy("has_galvanic_alloy", has(ModTags.ALLOYS_GALVANIC))
                 .save(output);
+        // Tier Installers: raise a machine one tier in place (how many items it processes at once).
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.ADVANCED_TIER_INSTALLER.get())
+                .pattern("GAG").pattern("ARA").pattern("GAG")
+                .define('G', Tags.Items.INGOTS_GOLD)
+                .define('A', ModTags.ALLOYS_GALVANIC)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .unlockedBy("has_galvanic_alloy", has(ModTags.ALLOYS_GALVANIC))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.ELITE_TIER_INSTALLER.get())
+                .pattern("DAD").pattern("ARA").pattern("DAD")
+                .define('D', Tags.Items.GEMS_DIAMOND)
+                .define('A', ModTags.ALLOYS_GALVANIC)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .unlockedBy("has_advanced_tier_installer", has(VoltaicMachines.ADVANCED_TIER_INSTALLER.get()))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.ULTIMATE_TIER_INSTALLER.get())
+                .pattern("DND").pattern("ARA").pattern("DAD")
+                .define('D', Tags.Items.GEMS_DIAMOND)
+                .define('N', Tags.Items.INGOTS_NETHERITE)
+                .define('A', ModTags.ALLOYS_GALVANIC)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .unlockedBy("has_elite_tier_installer", has(VoltaicMachines.ELITE_TIER_INSTALLER.get()))
+                .save(output);
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.EFFICIENCY_UPGRADE.get())
                 .pattern(" L ").pattern("LAL").pattern(" G ")
                 .define('L', Tags.Items.GEMS_LAPIS)
@@ -178,6 +201,28 @@ public class ModRecipeProvider extends RecipeProvider {
                 .define('G', Tags.Items.GLASS_BLOCKS)
                 .define('B', Items.BUCKET)
                 .unlockedBy("has_bucket", has(Items.BUCKET))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicLogistics.ADVANCED_FLUID_TANK.get())
+                .pattern("AGA").pattern("GTG").pattern("AGA")
+                .define('A', ModTags.ALLOYS_GALVANIC)
+                .define('G', Tags.Items.GLASS_BLOCKS)
+                .define('T', VoltaicLogistics.FLUID_TANK.get())
+                .unlockedBy("has_fluid_tank", has(VoltaicLogistics.FLUID_TANK.get()))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicLogistics.ELITE_FLUID_TANK.get())
+                .pattern("DGD").pattern("GTG").pattern("DGD")
+                .define('D', Tags.Items.GEMS_DIAMOND)
+                .define('G', Tags.Items.GLASS_BLOCKS)
+                .define('T', VoltaicLogistics.ADVANCED_FLUID_TANK.get())
+                .unlockedBy("has_advanced_fluid_tank", has(VoltaicLogistics.ADVANCED_FLUID_TANK.get()))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicLogistics.ULTIMATE_FLUID_TANK.get())
+                .pattern("OGO").pattern("GTG").pattern("ONO")
+                .define('O', Tags.Items.OBSIDIANS)
+                .define('G', Tags.Items.GLASS_BLOCKS)
+                .define('N', Tags.Items.INGOTS_NETHERITE)
+                .define('T', VoltaicLogistics.ELITE_FLUID_TANK.get())
+                .unlockedBy("has_elite_fluid_tank", has(VoltaicLogistics.ELITE_FLUID_TANK.get()))
                 .save(output);
         ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicLogistics.ITEM_CABLE.get(), 8)
                 .pattern("IGI").pattern("VHV").pattern("IGI")
@@ -212,6 +257,23 @@ public class ModRecipeProvider extends RecipeProvider {
                 .define('R', Tags.Items.DUSTS_REDSTONE)
                 .define('B', VoltaicPower.BASIC_ACCUMULATOR.get())
                 .unlockedBy("has_basic_accumulator", has(VoltaicPower.BASIC_ACCUMULATOR.get()))
+                .save(output);
+        // Higher tiers: each one takes the one below. Creative blocks have no recipe.
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicPower.ELITE_ACCUMULATOR.get())
+                .pattern("DAD").pattern("RBR").pattern("DAD")
+                .define('D', Tags.Items.GEMS_DIAMOND)
+                .define('A', ModTags.ALLOYS_GALVANIC)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .define('B', VoltaicPower.ADVANCED_ACCUMULATOR.get())
+                .unlockedBy("has_advanced_accumulator", has(VoltaicPower.ADVANCED_ACCUMULATOR.get()))
+                .save(output);
+        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicPower.ULTIMATE_ACCUMULATOR.get())
+                .pattern("ANA").pattern("RBR").pattern("ANA")
+                .define('N', Tags.Items.INGOTS_NETHERITE)
+                .define('A', ModTags.ALLOYS_GALVANIC)
+                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .define('B', VoltaicPower.ELITE_ACCUMULATOR.get())
+                .unlockedBy("has_elite_accumulator", has(VoltaicPower.ELITE_ACCUMULATOR.get()))
                 .save(output);
         ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicPower.VOLTAIC_CABLE.get(), 8)
                 .pattern("III").pattern("RRR").pattern("III")

@@ -1,5 +1,6 @@
 package com.voltaicdynamics.power;
 
+import com.voltaicdynamics.core.energy.CreativeEnergyStorage;
 import com.voltaicdynamics.core.energy.EnergyBuffer;
 import com.voltaicdynamics.core.energy.RecentInputFaces;
 
@@ -111,7 +112,9 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
     public AccumulatorBlockEntity(BlockPos pos, BlockState blockState) {
         super(typeFor(tierOf(blockState)), pos, blockState);
         this.tier = tierOf(blockState);
-        this.energyStorage = new VoltaicEnergyStorage(tier.capacity(), tier.transfer(), tier.transfer(), this::saveChanges);
+        this.energyStorage = tier.isCreative()
+                ? new CreativeEnergyStorage(tier.transfer())
+                : new VoltaicEnergyStorage(tier.capacity(), tier.transfer(), tier.transfer(), this::saveChanges);
     }
 
     private static AccumulatorTier tierOf(BlockState state) {
@@ -119,9 +122,13 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
     }
 
     public static BlockEntityType<AccumulatorBlockEntity> typeFor(AccumulatorTier tier) {
-        return tier == AccumulatorTier.ADVANCED
-                ? VoltaicPower.ADVANCED_ACCUMULATOR_BE.get()
-                : VoltaicPower.BASIC_ACCUMULATOR_BE.get();
+        return switch (tier) {
+            case BASIC -> VoltaicPower.BASIC_ACCUMULATOR_BE.get();
+            case ADVANCED -> VoltaicPower.ADVANCED_ACCUMULATOR_BE.get();
+            case ELITE -> VoltaicPower.ELITE_ACCUMULATOR_BE.get();
+            case ULTIMATE -> VoltaicPower.ULTIMATE_ACCUMULATOR_BE.get();
+            case CREATIVE -> VoltaicPower.CREATIVE_ACCUMULATOR_BE.get();
+        };
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, AccumulatorBlockEntity entity) {
@@ -145,10 +152,11 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
             }
         }
 
-        // Into machines and cables (ours or other mods'), never into another Accumulator, and not back into a
-        // face that is charging it right now (another mod's cable network).
+        // Into machines and cables (ours or other mods'), never into another Accumulator (except from a Creative one,
+        // which fills them), and not back into a face that is charging it right now (another mod's cable network).
         if (entity.sideConfig.eject(TransferType.ENERGY)) {
-            SideConfigHelper.ejectEnergy(entity, entity.neighbors, entity.energyStorage, transfer, true, entity.inputFaces);
+            SideConfigHelper.ejectEnergy(entity, entity.neighbors, entity.energyStorage, transfer, !entity.tier.isCreative(),
+                    entity.inputFaces);
         }
     }
 
@@ -242,7 +250,7 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
-        if (energyStorage.getEnergyStored() > 0) {
+        if (energyStorage.getEnergyStored() > 0 && !tier.isCreative()) {
             builder.set(ModDataComponents.ENERGY.get(), energyStorage.getEnergyStored());
         }
     }

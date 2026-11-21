@@ -43,7 +43,9 @@ public class FluidTankScreen extends MachineScreen<FluidTankMenu> {
             lines.add(fluid.isEmpty() || menu.getAmount() == 0
                     ? Component.translatable("tooltip.voltaicdynamics.fluid_tank.empty")
                     : fluid.getHoverName().copy().withStyle(ChatFormatting.AQUA));
-            lines.add(Component.translatable("tooltip.voltaicdynamics.gui.fluid",
+            lines.add(menu.isCreative()
+                    ? Component.translatable("tooltip.voltaicdynamics.gui.fluid_infinite").withStyle(ChatFormatting.GRAY)
+                    : Component.translatable("tooltip.voltaicdynamics.gui.fluid",
                     String.format("%,d", menu.getAmount()), String.format("%,d", menu.getCapacity())).withStyle(ChatFormatting.GRAY));
             g.renderComponentTooltip(font, lines, x, y);
         }

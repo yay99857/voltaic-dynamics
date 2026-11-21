@@ -1,31 +1,138 @@
 {
   "multipart": [
     {
-      "apply": { "model": "voltaicdynamics:block/voltaic_cable_core" }
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_core"
+      },
+      "when": {
+        "powered": "false"
+      }
     },
     {
-      "when": { "north": "true" },
-      "apply": { "model": "voltaicdynamics:block/voltaic_cable_side" }
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_core_lit"
+      },
+      "when": {
+        "powered": "true"
+      }
     },
     {
-      "when": { "south": "true" },
-      "apply": { "model": "voltaicdynamics:block/voltaic_cable_side", "y": 180 }
+      "when": {
+        "north": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side"
+      }
     },
     {
-      "when": { "west": "true" },
-      "apply": { "model": "voltaicdynamics:block/voltaic_cable_side", "y": 270 }
+      "when": {
+        "north": "true",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side_lit"
+      }
     },
     {
-      "when": { "east": "true" },
-      "apply": { "model": "voltaicdynamics:block/voltaic_cable_side", "y": 90 }
+      "when": {
+        "south": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side",
+        "y": 180
+      }
     },
     {
-      "when": { "down": "true" },
-      "apply": { "model": "voltaicdynamics:block/voltaic_cable_side", "x": 90 }
+      "when": {
+        "south": "true",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side_lit",
+        "y": 180
+      }
     },
     {
-      "when": { "up": "true" },
-      "apply": { "model": "voltaicdynamics:block/voltaic_cable_side", "x": 270 }
+      "when": {
+        "west": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "true",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side_lit",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "east": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "true",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side_lit",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side_lit",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "voltaicdynamics:block/voltaic_cable_side_lit",
+        "x": 270
+      }
     }
   ]
 }

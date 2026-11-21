@@ -14,7 +14,8 @@ import com.voltaicdynamics.logistics.LogisticsCableBlock;
 import com.voltaicdynamics.logistics.LogisticsCableBlockEntity;
 import com.voltaicdynamics.logistics.LogisticsNetwork;
 import com.voltaicdynamics.logistics.LogisticsNetworkManager;
-import com.voltaicdynamics.logistics.VoltaicLogistics;
+import com.voltaicdynamics.machines.MachineTier;
+import com.voltaicdynamics.machines.TierInstallerItem;
 import com.voltaicdynamics.machines.ProcessingMachineBlock;
 import com.voltaicdynamics.machines.ProcessingMachineBlockEntity;
 import com.voltaicdynamics.power.VoltaicCableBlockEntity;
@@ -88,6 +89,7 @@ public class VoltaicJadePlugin implements IWailaPlugin {
                 case ProcessingMachineBlockEntity machine -> {
                     data.putInt("Progress", machine.getProgress());
                     data.putInt("Total", machine.getMaxProgress());
+                    data.putInt("Tier", machine.getTier().ordinal());
                 }
                 case LogisticsCableBlockEntity cable -> {
                     if (accessor.getLevel() instanceof ServerLevel level
@@ -112,6 +114,11 @@ public class VoltaicJadePlugin implements IWailaPlugin {
         public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
             CompoundTag data = accessor.getServerData();
             if (data.contains("Progress")) {
+                MachineTier tier = MachineTier.byOrdinal(data.getInt("Tier"));
+                if (tier != MachineTier.BASIC) {
+                    tooltip.add(Component.translatable("jade.voltaicdynamics.tier", TierInstallerItem.tierName(tier), tier.parallel())
+                            .withStyle(tier.color()));
+                }
                 int total = Math.max(1, data.getInt("Total"));
                 int percent = data.getInt("Progress") * 100 / total;
                 if (percent > 0) {
@@ -144,7 +151,7 @@ public class VoltaicJadePlugin implements IWailaPlugin {
         @Override
         public IElement getIcon(BlockAccessor accessor, IPluginConfig config, IElement currentIcon) {
             if (!(accessor.getBlockEntity() instanceof FluidTankBlockEntity tank)) return currentIcon;
-            ItemStack stack = new ItemStack(VoltaicLogistics.FLUID_TANK.get());
+            ItemStack stack = new ItemStack(tank.getBlockState().getBlock());
             if (!tank.getFluid().isEmpty()) {
                 stack.set(ModDataComponents.FLUID.get(), SimpleFluidContent.copyOf(tank.getFluid()));
             }

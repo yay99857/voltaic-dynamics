@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "tag": "voltaicdynamics:alloys/galvanic"
+    },
+    "G": {
+      "tag": "c:glass_blocks"
+    },
+    "T": {
+      "item": "voltaicdynamics:fluid_tank"
+    }
+  },
+  "pattern": [
+    "AGA",
+    "GTG",
+    "AGA"
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:advanced_fluid_tank"
+  }
+}

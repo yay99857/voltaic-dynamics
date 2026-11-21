@@ -29,16 +29,19 @@ public class ModBlockLootProvider extends BlockLootSubProvider {
     protected void generate() {
         dropSelf(VoltaicGenerators.THERMOELECTRIC_GENERATOR.get());
         dropSelf(VoltaicGenerators.COMBUSTION_GENERATOR.get());
-        dropSelf(VoltaicMachines.ELECTRIC_FURNACE.get());
+        add(VoltaicMachines.ELECTRIC_FURNACE.get(), block -> keeping(block, ModDataComponents.MACHINE_TIER.get()));
         dropSelf(VoltaicPower.VOLTAIC_CABLE.get());
-        dropSelf(VoltaicMachines.ALLOY_SMELTER.get());
-        dropSelf(VoltaicMachines.PULVERIZER.get());
+        add(VoltaicMachines.ALLOY_SMELTER.get(), block -> keeping(block, ModDataComponents.MACHINE_TIER.get()));
+        add(VoltaicMachines.PULVERIZER.get(), block -> keeping(block, ModDataComponents.MACHINE_TIER.get()));
         dropSelf(VoltaicGenerators.FLUID_GENERATOR.get());
         dropSelf(VoltaicLogistics.ITEM_CABLE.get());
         dropSelf(VoltaicLogistics.FLUID_CABLE.get());
-        add(VoltaicLogistics.FLUID_TANK.get(), block -> keeping(block, ModDataComponents.FLUID.get()));
+        for (var tank : VoltaicLogistics.tanks()) add(tank.get(), block -> keeping(block, ModDataComponents.FLUID.get()));
         add(VoltaicPower.BASIC_ACCUMULATOR.get(), this::cellKeepingEnergy);
         add(VoltaicPower.ADVANCED_ACCUMULATOR.get(), this::cellKeepingEnergy);
+        add(VoltaicPower.ELITE_ACCUMULATOR.get(), this::cellKeepingEnergy);
+        add(VoltaicPower.ULTIMATE_ACCUMULATOR.get(), this::cellKeepingEnergy);
+        dropSelf(VoltaicPower.CREATIVE_ACCUMULATOR.get());
     }
 
     /** The dropped cell carries the energy it had stored. */

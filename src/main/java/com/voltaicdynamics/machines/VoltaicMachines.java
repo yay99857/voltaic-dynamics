@@ -48,6 +48,14 @@ public final class VoltaicMachines {
     public static final DeferredItem<UpgradeItem> EFFICIENCY_UPGRADE = ITEMS.register("efficiency_upgrade",
             () -> new UpgradeItem(UpgradeItem.Type.EFFICIENCY, new Item.Properties()));
 
+    // Tier Installers: raise a machine one tier in place
+    public static final DeferredItem<TierInstallerItem> ADVANCED_TIER_INSTALLER = ITEMS.register("advanced_tier_installer",
+            () -> new TierInstallerItem(MachineTier.ADVANCED, new Item.Properties()));
+    public static final DeferredItem<TierInstallerItem> ELITE_TIER_INSTALLER = ITEMS.register("elite_tier_installer",
+            () -> new TierInstallerItem(MachineTier.ELITE, new Item.Properties()));
+    public static final DeferredItem<TierInstallerItem> ULTIMATE_TIER_INSTALLER = ITEMS.register("ultimate_tier_installer",
+            () -> new TierInstallerItem(MachineTier.ULTIMATE, new Item.Properties().fireResistant()));
+
     // Block entities
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricFurnaceBlockEntity>> ELECTRIC_FURNACE_BE =
             BLOCK_ENTITIES.register("electric_furnace", () ->
@@ -112,6 +120,9 @@ public final class VoltaicMachines {
             event.accept(PULVERIZER.get());
             event.accept(SPEED_UPGRADE.get());
             event.accept(EFFICIENCY_UPGRADE.get());
+            event.accept(ADVANCED_TIER_INSTALLER.get());
+            event.accept(ELITE_TIER_INSTALLER.get());
+            event.accept(ULTIMATE_TIER_INSTALLER.get());
         }
     }
 }

@@ -24,6 +24,13 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+import com.voltaicdynamics.core.ModDataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+
+import java.util.List;
 
 import java.util.function.Supplier;
 
@@ -66,6 +73,17 @@ public abstract class ProcessingMachineBlock extends BaseEntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide || type != blockEntityType().get()) return null;
         return (lvl, pos, st, be) -> ProcessingMachineBlockEntity.tick(lvl, pos, st, (ProcessingMachineBlockEntity) be);
+    }
+
+    /** A machine item raised with a Tier Installer says so. */
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        MachineTier tier = stack.get(ModDataComponents.MACHINE_TIER.get());
+        if (tier != null && tier != MachineTier.BASIC) {
+            tooltip.add(Component.translatable("jade.voltaicdynamics.tier", TierInstallerItem.tierName(tier), tier.parallel())
+                    .withStyle(tier.color()));
+        }
+        super.appendHoverText(stack, context, tooltip, flag);
     }
 
     @Override

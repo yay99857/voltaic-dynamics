@@ -53,8 +53,14 @@ public class AccumulatorMenu extends MachineMenu {
         return maxTransfer.get();
     }
 
+    public AccumulatorTier getTier() {
+        AccumulatorTier[] tiers = AccumulatorTier.values();
+        return tiers[Math.floorMod(tier.get(), tiers.length)];
+    }
+
+    /** Advanced and above use the gold gauge. */
     public boolean isAdvanced() {
-        return tier.get() == AccumulatorTier.ADVANCED.ordinal();
+        return getTier().ordinal() >= AccumulatorTier.ADVANCED.ordinal();
     }
 
     public int getEnergyScaled(int pixels) {

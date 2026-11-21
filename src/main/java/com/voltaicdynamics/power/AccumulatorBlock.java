@@ -96,6 +96,11 @@ public class AccumulatorBlock extends BaseEntityBlock {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+        if (tier.isCreative()) {
+            tooltip.add(Component.translatable("tooltip.voltaicdynamics.accumulator.creative",
+                    String.format("%,d", tier.transfer())).withStyle(tier.color()));
+            return;
+        }
         tooltip.add(Component.translatable("tooltip.voltaicdynamics.accumulator.capacity",
                 String.format("%,d", tier.capacity())).withStyle(tier.color()));
         tooltip.add(Component.translatable("tooltip.voltaicdynamics.accumulator.transfer",

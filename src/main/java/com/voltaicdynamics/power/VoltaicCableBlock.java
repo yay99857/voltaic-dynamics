@@ -41,6 +41,8 @@ public class VoltaicCableBlock extends BaseEntityBlock {
     public static final BooleanProperty WEST = BlockStateProperties.WEST;
     public static final BooleanProperty UP = BlockStateProperties.UP;
     public static final BooleanProperty DOWN = BlockStateProperties.DOWN;
+    /** Energy is flowing through the network: the blue channel glows (set by {@link CableNetwork}). */
+    public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
 
     // Voxel shapes (center core + 6 directional arms)
     private static final VoxelShape CORE_SHAPE = Block.box(5.0, 5.0, 5.0, 11.0, 11.0, 11.0);
@@ -73,7 +75,8 @@ public class VoltaicCableBlock extends BaseEntityBlock {
                 .setValue(EAST, false)
                 .setValue(WEST, false)
                 .setValue(UP, false)
-                .setValue(DOWN, false));
+                .setValue(DOWN, false)
+                .setValue(POWERED, false));
     }
 
     @Override
@@ -83,7 +86,7 @@ public class VoltaicCableBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(NORTH, SOUTH, EAST, WEST, UP, DOWN);
+        builder.add(NORTH, SOUTH, EAST, WEST, UP, DOWN, POWERED);
     }
 
     @Override

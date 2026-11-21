@@ -69,7 +69,7 @@ public class ElectricFurnaceBlockEntity extends ProcessingMachineBlockEntity {
         if (recipe.isEmpty()) return null;
         ItemStack result = recipe.get().value().assemble(new SingleRecipeInput(input), level.registryAccess());
         return new Craft(result, ticksPerItem(), recipe.get().value().getExperience(),
-                () -> itemHandler.extractItem(SLOT_INPUT, 1, false));
+                times -> itemHandler.extractItem(SLOT_INPUT, times, false), input.getCount());
     }
 
     @Override

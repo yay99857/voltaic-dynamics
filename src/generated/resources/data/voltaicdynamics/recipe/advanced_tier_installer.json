@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "tag": "voltaicdynamics:alloys/galvanic"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "R": {
+      "tag": "c:storage_blocks/redstone"
+    }
+  },
+  "pattern": [
+    "GAG",
+    "ARA",
+    "GAG"
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:advanced_tier_installer"
+  }
+}

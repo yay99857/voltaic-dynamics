@@ -1,0 +1,56 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "voltaicdynamics:item/advanced_fluid_tank"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "voltaicdynamics:fill": 0.0001
+      },
+      "model": "voltaicdynamics:item/advanced_fluid_tank_1"
+    },
+    {
+      "predicate": {
+        "voltaicdynamics:fill": 0.1251
+      },
+      "model": "voltaicdynamics:item/advanced_fluid_tank_2"
+    },
+    {
+      "predicate": {
+        "voltaicdynamics:fill": 0.2501
+      },
+      "model": "voltaicdynamics:item/advanced_fluid_tank_3"
+    },
+    {
+      "predicate": {
+        "voltaicdynamics:fill": 0.3751
+      },
+      "model": "voltaicdynamics:item/advanced_fluid_tank_4"
+    },
+    {
+      "predicate": {
+        "voltaicdynamics:fill": 0.5001
+      },
+      "model": "voltaicdynamics:item/advanced_fluid_tank_5"
+    },
+    {
+      "predicate": {
+        "voltaicdynamics:fill": 0.6251
+      },
+      "model": "voltaicdynamics:item/advanced_fluid_tank_6"
+    },
+    {
+      "predicate": {
+        "voltaicdynamics:fill": 0.7501
+      },
+      "model": "voltaicdynamics:item/advanced_fluid_tank_7"
+    },
+    {
+      "predicate": {
+        "voltaicdynamics:fill": 0.8751
+      },
+      "model": "voltaicdynamics:item/advanced_fluid_tank_8"
+    }
+  ]
+}

@@ -8,6 +8,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -24,6 +26,8 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.List;
 
 /** Voltaic Logistics: lag-free item and fluid cables, and the Fluid Tank. Depends only on Voltaic Core. */
 public final class VoltaicLogistics {
@@ -44,7 +48,28 @@ public final class VoltaicLogistics {
 
     public static final DeferredBlock<FluidTankBlock> FLUID_TANK = BLOCKS.register(
             "fluid_tank",
-            () -> new FluidTankBlock(VoltaicDynamics.machineProperties(2.5F, 6.0F).noOcclusion()));
+            () -> new FluidTankBlock(VoltaicDynamics.machineProperties(2.5F, 6.0F).noOcclusion(), FluidTankTier.BASIC));
+
+    public static final DeferredBlock<FluidTankBlock> ADVANCED_FLUID_TANK = BLOCKS.register(
+            "advanced_fluid_tank",
+            () -> new FluidTankBlock(VoltaicDynamics.machineProperties(3.0F, 8.0F).noOcclusion(), FluidTankTier.ADVANCED));
+
+    public static final DeferredBlock<FluidTankBlock> ELITE_FLUID_TANK = BLOCKS.register(
+            "elite_fluid_tank",
+            () -> new FluidTankBlock(VoltaicDynamics.machineProperties(3.5F, 12.0F).noOcclusion(), FluidTankTier.ELITE));
+
+    public static final DeferredBlock<FluidTankBlock> ULTIMATE_FLUID_TANK = BLOCKS.register(
+            "ultimate_fluid_tank",
+            () -> new FluidTankBlock(VoltaicDynamics.machineProperties(4.0F, 15.0F).noOcclusion(), FluidTankTier.ULTIMATE));
+
+    public static final DeferredBlock<FluidTankBlock> CREATIVE_FLUID_TANK = BLOCKS.register(
+            "creative_fluid_tank",
+            () -> new FluidTankBlock(VoltaicDynamics.machineProperties(4.0F, 3_600_000.0F).noOcclusion(), FluidTankTier.CREATIVE));
+
+    /** Every tank block, basic first. */
+    public static List<DeferredBlock<FluidTankBlock>> tanks() {
+        return List.of(FLUID_TANK, ADVANCED_FLUID_TANK, ELITE_FLUID_TANK, ULTIMATE_FLUID_TANK, CREATIVE_FLUID_TANK);
+    }
 
     // Block entities
     /** Shared by item and fluid cables; the block tells them apart. */
@@ -54,7 +79,8 @@ public final class VoltaicLogistics {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluidTankBlockEntity>> FLUID_TANK_BE =
             BLOCK_ENTITIES.register("fluid_tank", () ->
-                    BlockEntityType.Builder.of(FluidTankBlockEntity::new, FLUID_TANK.get()).build(null));
+                    BlockEntityType.Builder.of(FluidTankBlockEntity::new, tanks().stream().map(DeferredBlock::get)
+                            .toArray(Block[]::new)).build(null));
 
     // Menus
     public static final DeferredHolder<MenuType<?>, MenuType<FluidTankMenu>> FLUID_TANK_MENU =
@@ -71,7 +97,12 @@ public final class VoltaicLogistics {
     }
 
     public static void register(IEventBus modEventBus) {
-        ITEMS.registerItem("fluid_tank", props -> new FluidTankItem(FLUID_TANK.get(), props), new Item.Properties().stacksTo(1));
+        for (DeferredBlock<FluidTankBlock> tank : tanks()) {
+            Item.Properties props = new Item.Properties().stacksTo(1);
+            if (tank == ULTIMATE_FLUID_TANK) props.fireResistant();
+            if (tank == CREATIVE_FLUID_TANK) props.rarity(Rarity.EPIC);
+            ITEMS.registerItem(tank.getId().getPath(), p -> new FluidTankItem(tank.get(), p), props);
+        }
         ITEMS.registerSimpleBlockItem(ITEM_CABLE);
         ITEMS.registerSimpleBlockItem(FLUID_CABLE);
 
@@ -108,14 +139,16 @@ public final class VoltaicLogistics {
                 (be, side) -> be.getFluidHandler(side));
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, FLUID_TANK_BE.get(),
                 (be, side) -> be.getItemHandler(side));
+        // The Creative tank item has no item handler: a held infinite tank would be a free fluid source anywhere.
         event.registerItem(Capabilities.FluidHandler.ITEM,
-                (stack, context) -> new FluidHandlerItemStack(ModDataComponents.FLUID, stack, FluidTankBlockEntity.capacity()),
-                FLUID_TANK.asItem());
+                (stack, context) -> new FluidHandlerItemStack(ModDataComponents.FLUID, stack,
+                        ((FluidTankItem) stack.getItem()).getTier().capacity()),
+                FLUID_TANK.asItem(), ADVANCED_FLUID_TANK.asItem(), ELITE_FLUID_TANK.asItem(), ULTIMATE_FLUID_TANK.asItem());
     }
 
     private static void addToCreativeTab(BuildCreativeModeTabContentsEvent event) {
         if (VoltaicCore.VOLTAIC_TAB.is(event.getTabKey())) {
-            event.accept(FLUID_TANK.get());
+            for (DeferredBlock<FluidTankBlock> tank : tanks()) event.accept(tank.get());
             event.accept(ITEM_CABLE.get());
             event.accept(FLUID_CABLE.get());
         }

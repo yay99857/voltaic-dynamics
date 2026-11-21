@@ -86,6 +86,7 @@ public final class CableNetworkManager {
         if (networks.isEmpty()) return;
         for (CableNetwork network : List.copyOf(networks)) {
             network.tick();
+            network.updateGlow();
         }
     }
 

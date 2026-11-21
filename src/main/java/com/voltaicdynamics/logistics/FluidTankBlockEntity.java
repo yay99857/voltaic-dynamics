@@ -51,6 +51,7 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
     public static final int SLOT_OUT = 1;
     private static final int SYNC_INTERVAL = 4;
 
+    private final FluidTankTier tier;
     private final FluidTank tank;
     private final ItemStackHandler itemHandler = new ItemStackHandler(2) {
         @Override
@@ -105,18 +106,35 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
 
     public FluidTankBlockEntity(BlockPos pos, BlockState state) {
         super(VoltaicLogistics.FLUID_TANK_BE.get(), pos, state);
-        this.tank = new FluidTank(capacity()) {
+        this.tier = state.getBlock() instanceof FluidTankBlock block ? block.getTier() : FluidTankTier.BASIC;
+        this.tank = tier.isCreative() ? new CreativeFluidTank(this::tankChanged) : new FluidTank(tier.capacity()) {
             @Override
             protected void onContentsChanged() {
-                saveChanges();
-                needsSync = true;
+                tankChanged();
             }
         };
         this.sided = new SidedHandlers(this, automationHandler, tank, null);
     }
 
+    /** Capacity of the basic tank in mB. */
     public static int capacity() {
-        return VoltaicConfig.get(VoltaicConfig.TANK_CAPACITY);
+        return FluidTankTier.BASIC.capacity();
+    }
+
+    private void tankChanged() {
+        saveChanges();
+        needsSync = true;
+    }
+
+    public FluidTankTier getTier() {
+        return tier;
+    }
+
+    /** Empties a Creative tank so it can take another fluid; other tanks keep their fluid. */
+    public boolean clearCreative() {
+        if (!(tank instanceof CreativeFluidTank creative) || creative.isEmpty()) return false;
+        creative.clear();
+        return true;
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, FluidTankBlockEntity tank) {
@@ -221,7 +239,7 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("block.voltaicdynamics.fluid_tank");
+        return getBlockState().getBlock().getName();
     }
 
     @Nullable

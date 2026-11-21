@@ -52,6 +52,12 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 |---|---|---|
 | Basic | 1,000,000 FE | 2,000 FE/t |
 | Advanced | 8,000,000 FE | 10,000 FE/t |
+| Elite (new) | 32,000,000 FE | 32,000 FE/t |
+| Ultimate (new) | 128,000,000 FE | 128,000 FE/t |
+| Creative (new) | infinite | 1,000,000 FE/t |
+
+* **Creative Accumulator** (creative tab only): never runs out, swallows what it receives and, unlike the others, also
+  fills other batteries. Handy for testing builds.
 
 * **Keep their charge when broken**: the item shows a charge bar and restores the energy when placed again. Charged cells can also be charged or emptied in another cell's slots.
 * Charge slot and discharge slot for items. Pipes only take items out once they are full (charge slot) or empty (discharge slot).
@@ -111,8 +117,18 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 * Two upgrade slots on the Electric Furnace, Alloy Smelter and Pulverizer; up to 4 of each type count. Shift-click puts
   them in the right slots, pipes never touch them, and they drop when the machine is broken.
 
+### 7d. 🏭 Machine tiers (new in 1.7.0)
+* **Tier Installers** (Advanced, Elite, Ultimate) raise an Electric Furnace, Alloy Smelter or Pulverizer one tier in
+  place, keeping its items, energy, upgrades and side setup: it then processes **2, 4 or 8 items at once** (like
+  Mekanism's factories). FE/t rises by the same factor, so each item costs the same energy; Speed and Efficiency
+  Upgrades still work on top.
+* The machine keeps its tier when broken; the GUI shows a ×N badge and Jade shows the tier.
+
 ### 8. 🛢️ Fluid Tank (new)
-* **32,000 mB** of one fluid (configurable). Keeps the fluid when broken; the item shows it and works as a fluid container.
+* **32,000 mB** of one fluid (configurable); Advanced, Elite and Ultimate tanks hold **64,000 / 128,000 / 256,000 mB**
+  (like Mekanism's). Keeps the fluid when broken; the item shows it and works as a fluid container.
+* **Creative Fluid Tank** (creative tab only): the first fluid it gets fills it forever; it gives that fluid without
+  running down and swallows more of it. Sneak + right-click with an empty hand to clear it.
 * Right-click with a bucket, or put containers in the GUI's top slot (filled ones are emptied, empty ones are filled).
 * The fluid level shows through the glass; comparator reads the fill.
 
@@ -162,7 +178,9 @@ the published figures differ between versions, so these are ballpark targets, al
 | Passive | Thermoelectric: up to 100 FE/t, wears its blocks | Mekanism Heat Generator: ≈ 45 FE/t burning |
 | Smelting | Electric Furnace: 2,000 FE/item, 2x vanilla speed | coal smelts 8 items in a vanilla furnace, 16 here |
 | Crushing | Pulverizer: 2,000-2,400 FE/op, ore → 2 dust | Thermal Pulverizer, Mekanism Enrichment Chamber: 2x per ore |
-| Storage | Accumulators: 1M / 8M FE, 2k / 10k FE/t | Thermal Energy Cell: 1M RF base |
+| Storage | Accumulators: 1M / 8M / 32M / 128M FE, 2k / 10k / 32k / 128k FE/t | Mekanism Energy Cubes: 1.6M / 6.4M / 25.6M / 102.4M FE; Powah Energy Cells: 1M to 2B FE |
+| Fluids | Fluid Tanks: 32k / 64k / 128k / 256k mB | Mekanism Fluid Tanks: the same |
+| Parallel | Machine tiers: 1 / 2 / 4 / 8 items at once | Mekanism Factories: 3 / 5 / 7 / 9 |
 
 **Changed in 1.5.0:** the Combustion Generator used to run each fuel for its full furnace burn time, which made a coal worth
 64,000 FE and a lava bucket 800,000 FE, several times Thermal's dynamos. It now runs half the burn time (configurable).
@@ -190,13 +208,20 @@ tools/prepare-pack-server.sh && ./gradlew runPackServer  # dedicated server with
 
   `client/ClientModEvents`, `compat`, `datagen` and `gametest` still cover every module.
 * **Data is generated:** tags, loot tables and recipes come from `src/main/java/com/voltaicdynamics/datagen`. Edit the providers and run `runData`; don't hand-edit `src/generated`.
-* **Game tests** live in `gametest/`, one class per module (41 tests): `CoreGameTests` (mining tags, deferred saves, menu sync, side configuration and auto-eject), `PowerGameTests` (cells keeping energy, no battery ping-pong, cable delivery), `GeneratorGameTests` (lava bucket, fuel extraction, burn time, Thermoelectric and Fluid Generators), `GadgetGameTests` (Voltaic Wrench: turning, picking up, cable arms), `MachineGameTests` (Electric Furnace, recipe cache, recipe set, Galvanic Alloy only from the Alloy Smelter, Alloy Smelter, Pulverizer, dust smelting, upgrades) `LogisticsGameTests` (item and fluid cables, Fluid Tank) and `CompatGameTests` (other mods' blocks: Accumulator and Combustion Generator on Mekanism's Universal Cable, Fluid Cable pulling from and Fluid Tank ejecting into a Mekanism Fluid Tank, vanilla hoppers feeding and emptying the Electric Furnace). Shared helpers are in `GameTestSupport`.
+* **Game tests** live in `gametest/`, one class per module (48 tests): `CoreGameTests` (mining tags, deferred saves, menu sync, side configuration and auto-eject), `PowerGameTests` (cells keeping energy, no battery ping-pong, cable delivery), `GeneratorGameTests` (lava bucket, fuel extraction, burn time, Thermoelectric and Fluid Generators), `GadgetGameTests` (Voltaic Wrench: turning, picking up, cable arms), `MachineGameTests` (Electric Furnace, recipe cache, recipe set, Galvanic Alloy only from the Alloy Smelter, Alloy Smelter, Pulverizer, dust smelting, upgrades) `LogisticsGameTests` (item and fluid cables, Fluid Tank), `TierGameTests` (Elite, Ultimate and Creative blocks, tank tiers, machine tiers and installers) and `CompatGameTests` (other mods' blocks: Accumulator and Combustion Generator on Mekanism's Universal Cable, Fluid Cable pulling from and Fluid Tank ejecting into a Mekanism Fluid Tank, vanilla hoppers feeding and emptying the Electric Furnace). Shared helpers are in `GameTestSupport`.
 * **Art sources** for the machine fronts, GUIs, tank and cable textures are in `art-src/textures/*.pontilha` (Pontilha).
 * Versions live in `gradle.properties`; `neoforge.mods.toml` is filled from it at build time.
 
 ---
 
 ## 📜 Changelog
+
+### 1.7.0
+- New: Elite (32M FE) and Ultimate (128M FE) Accumulators, and a Creative Accumulator that never runs out.
+- New: Advanced, Elite and Ultimate Fluid Tanks (64k / 128k / 256k mB) and a Creative Fluid Tank.
+- New: Tier Installers raise the Electric Furnace, Alloy Smelter and Pulverizer in place to process 2, 4 or 8 items at once, at the same energy per item.
+- New: Voltaic Cables glow while energy flows through them.
+- Balanced against Mekanism and Powah (see Balance); every value is in the server config.
 
 ### 1.6.2
 - Inventory sorting mods (Inventory Tweaks) leave the machine slots alone: they no longer mix inputs and upgrades or swap the accumulator's charge and discharge batteries.

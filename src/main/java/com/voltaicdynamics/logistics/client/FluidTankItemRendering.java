@@ -5,6 +5,7 @@ import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.ModDataComponents;
 import com.voltaicdynamics.core.client.FluidRenderHelper;
 import com.voltaicdynamics.logistics.FluidTankBlockEntity;
+import com.voltaicdynamics.logistics.FluidTankItem;
 import com.voltaicdynamics.logistics.VoltaicLogistics;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -31,17 +32,20 @@ public final class FluidTankItemRendering {
 
     /** Call from client setup (on the main thread). */
     public static void registerFillProperty() {
-        ItemProperties.register(VoltaicLogistics.FLUID_TANK.asItem(), VoltaicDynamics.id("fill"),
-                (stack, level, entity, seed) -> {
-                    SimpleFluidContent fluid = stack.getOrDefault(ModDataComponents.FLUID.get(), SimpleFluidContent.EMPTY);
-                    if (fluid.isEmpty()) return 0F;
-                    return Math.min(1F, fluid.getAmount() / (float) FluidTankBlockEntity.capacity());
-                });
+        for (var tank : VoltaicLogistics.tanks()) {
+            ItemProperties.register(tank.asItem(), VoltaicDynamics.id("fill"),
+                    (stack, level, entity, seed) -> {
+                        SimpleFluidContent fluid = stack.getOrDefault(ModDataComponents.FLUID.get(), SimpleFluidContent.EMPTY);
+                        if (fluid.isEmpty()) return 0F;
+                        int capacity = stack.getItem() instanceof FluidTankItem item ? item.getTier().capacity() : FluidTankBlockEntity.capacity();
+                        return Math.min(1F, fluid.getAmount() / (float) capacity);
+                    });
+        }
     }
 
     public static void registerColors(RegisterColorHandlersEvent.Item event) {
         event.register((stack, tintIndex) -> tintIndex == FLUID_LAYER ? fluidColor(stack) : -1,
-                VoltaicLogistics.FLUID_TANK.asItem());
+                VoltaicLogistics.tanks().stream().map(tank -> tank.asItem()).toArray(net.minecraft.world.level.ItemLike[]::new));
     }
 
     private static int fluidColor(ItemStack stack) {

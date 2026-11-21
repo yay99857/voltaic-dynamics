@@ -26,14 +26,18 @@ public class AccumulatorItem extends BlockItem {
         return cell.getTier().transfer();
     }
 
+    public AccumulatorTier getTier() {
+        return cell.getTier();
+    }
+
     @Override
     public boolean isBarVisible(ItemStack stack) {
-        return EnergyBarHelper.getEnergy(stack) > 0;
+        return getTier().isCreative() || EnergyBarHelper.getEnergy(stack) > 0;
     }
 
     @Override
     public int getBarWidth(ItemStack stack) {
-        return EnergyBarHelper.barWidth(stack, getCapacity());
+        return getTier().isCreative() ? 13 : EnergyBarHelper.barWidth(stack, getCapacity());
     }
 
     @Override
@@ -43,7 +47,7 @@ public class AccumulatorItem extends BlockItem {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        EnergyBarHelper.addTooltip(stack, getCapacity(), tooltip, cell.getTier().color());
+        if (!getTier().isCreative()) EnergyBarHelper.addTooltip(stack, getCapacity(), tooltip, cell.getTier().color());
         super.appendHoverText(stack, context, tooltip, flag);
     }
 }

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "A": {
+      "tag": "voltaicdynamics:alloys/galvanic"
+    },
+    "B": {
+      "item": "voltaicdynamics:elite_accumulator"
+    },
+    "N": {
+      "tag": "c:ingots/netherite"
+    },
+    "R": {
+      "tag": "c:storage_blocks/redstone"
+    }
+  },
+  "pattern": [
+    "ANA",
+    "RBR",
+    "ANA"
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:ultimate_accumulator"
+  }
+}

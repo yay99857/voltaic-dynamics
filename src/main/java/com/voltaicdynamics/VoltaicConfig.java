@@ -41,6 +41,15 @@ public final class VoltaicConfig {
     public static final ModConfigSpec.IntValue BASIC_CELL_TRANSFER;
     public static final ModConfigSpec.IntValue ADVANCED_CELL_CAPACITY;
     public static final ModConfigSpec.IntValue ADVANCED_CELL_TRANSFER;
+    public static final ModConfigSpec.IntValue ELITE_CELL_CAPACITY;
+    public static final ModConfigSpec.IntValue ELITE_CELL_TRANSFER;
+    public static final ModConfigSpec.IntValue ULTIMATE_CELL_CAPACITY;
+    public static final ModConfigSpec.IntValue ULTIMATE_CELL_TRANSFER;
+    public static final ModConfigSpec.IntValue CREATIVE_CELL_TRANSFER;
+
+    public static final ModConfigSpec.IntValue ADVANCED_MACHINE_PARALLEL;
+    public static final ModConfigSpec.IntValue ELITE_MACHINE_PARALLEL;
+    public static final ModConfigSpec.IntValue ULTIMATE_MACHINE_PARALLEL;
 
     public static final ModConfigSpec.IntValue CABLE_TRANSFER;
 
@@ -108,7 +117,8 @@ public final class VoltaicConfig {
         b.pop();
 
         b.push("fluid_tank");
-        TANK_CAPACITY = b.comment("Capacity in mB (1 bucket = 1,000 mB).")
+        TANK_CAPACITY = b.comment("Capacity of the basic Fluid Tank in mB (1 bucket = 1,000 mB).",
+                        "Advanced, Elite and Ultimate tanks hold 2, 4 and 8 times as much.")
                 .defineInRange("capacity", 32_000, 1_000, Integer.MAX_VALUE);
         TANK_EJECT_RATE = b.comment("mB/t pushed out of output faces when auto-eject is on.")
                 .defineInRange("ejectRate", 1_000, 1, Integer.MAX_VALUE);
@@ -131,6 +141,19 @@ public final class VoltaicConfig {
         BASIC_CELL_TRANSFER = b.defineInRange("basicTransfer", 2_000, 1, Integer.MAX_VALUE);
         ADVANCED_CELL_CAPACITY = b.defineInRange("advancedCapacity", 8_000_000, 1, Integer.MAX_VALUE);
         ADVANCED_CELL_TRANSFER = b.defineInRange("advancedTransfer", 10_000, 1, Integer.MAX_VALUE);
+        ELITE_CELL_CAPACITY = b.defineInRange("eliteCapacity", 32_000_000, 1, Integer.MAX_VALUE);
+        ELITE_CELL_TRANSFER = b.defineInRange("eliteTransfer", 32_000, 1, Integer.MAX_VALUE);
+        ULTIMATE_CELL_CAPACITY = b.defineInRange("ultimateCapacity", 128_000_000, 1, Integer.MAX_VALUE);
+        ULTIMATE_CELL_TRANSFER = b.defineInRange("ultimateTransfer", 128_000, 1, Integer.MAX_VALUE);
+        CREATIVE_CELL_TRANSFER = b.comment("FE/t the Creative Accumulator gives out of each face (it never runs out).")
+                .defineInRange("creativeTransfer", 1_000_000, 1, Integer.MAX_VALUE);
+        b.pop();
+
+        b.comment("Items an Electric Furnace, Alloy Smelter or Pulverizer processes at once after a Tier Installer.",
+                "FE/t rises by the same factor, so the energy per item stays the same.").push("machine_tiers");
+        ADVANCED_MACHINE_PARALLEL = b.defineInRange("advancedParallel", 2, 1, 64);
+        ELITE_MACHINE_PARALLEL = b.defineInRange("eliteParallel", 4, 1, 64);
+        ULTIMATE_MACHINE_PARALLEL = b.defineInRange("ultimateParallel", 8, 1, 64);
         b.pop();
 
         b.push("energy_cable");

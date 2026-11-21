@@ -67,7 +67,8 @@ public class PulverizerBlockEntity extends ProcessingMachineBlockEntity {
         CrushingRecipe recipe = holder.value();
         int count = recipe.ingredient().count();
         return new Craft(recipe.assemble(input, level.registryAccess()), scaledTime(recipe.time()), recipe.experience(),
-                () -> itemHandler.extractItem(SLOT_INPUT, count, false), recipe.bonusChance());
+                times -> itemHandler.extractItem(SLOT_INPUT, count * times, false), recipe.bonusChance(),
+                stack.getCount() / Math.max(1, count));
     }
 
     @Override

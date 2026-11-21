@@ -16,6 +16,7 @@ public class FluidTankMenu extends MachineMenu {
     public final FluidTankBlockEntity blockEntity;
     private final SyncedInt amount;
     private final SyncedInt capacity;
+    private final SyncedInt creative;
 
     public FluidTankMenu(int containerId, Inventory inv, RegistryFriendlyByteBuf extraData) {
         this(containerId, inv, inv.player.level().getBlockEntity(extraData.readBlockPos()));
@@ -27,6 +28,7 @@ public class FluidTankMenu extends MachineMenu {
         FluidTankBlockEntity tank = this.blockEntity;
         this.amount = syncInt(() -> tank.getTank().getFluidAmount());
         this.capacity = syncInt(() -> tank.getTank().getCapacity());
+        this.creative = syncInt(() -> tank.getTier().isCreative() ? 1 : 0);
         addMachineSlot("in", new FixedSlot(blockEntity.getMenuItemHandler(), FluidTankBlockEntity.SLOT_IN, 0, 0));
         addMachineSlot("out", new FixedSlot(blockEntity.getMenuItemHandler(), FluidTankBlockEntity.SLOT_OUT, 0, 0) {
             @Override
@@ -35,6 +37,10 @@ public class FluidTankMenu extends MachineMenu {
             }
         });
         addPlayerInventory(inv);
+    }
+
+    public boolean isCreative() {
+        return creative.get() == 1;
     }
 
     public int getAmount() {

@@ -3,11 +3,13 @@ package com.voltaicdynamics.power;
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.ModDataComponents;
 import com.voltaicdynamics.core.VoltaicCore;
+import com.voltaicdynamics.core.energy.CreativeEnergyStorage;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -42,6 +44,18 @@ public final class VoltaicPower {
             "advanced_accumulator",
             () -> new AccumulatorBlock(VoltaicDynamics.machineProperties(5.0F, 10.0F), AccumulatorTier.ADVANCED));
 
+    public static final DeferredBlock<AccumulatorBlock> ELITE_ACCUMULATOR = BLOCKS.register(
+            "elite_accumulator",
+            () -> new AccumulatorBlock(VoltaicDynamics.machineProperties(5.0F, 12.0F), AccumulatorTier.ELITE));
+
+    public static final DeferredBlock<AccumulatorBlock> ULTIMATE_ACCUMULATOR = BLOCKS.register(
+            "ultimate_accumulator",
+            () -> new AccumulatorBlock(VoltaicDynamics.machineProperties(5.0F, 15.0F), AccumulatorTier.ULTIMATE));
+
+    public static final DeferredBlock<AccumulatorBlock> CREATIVE_ACCUMULATOR = BLOCKS.register(
+            "creative_accumulator",
+            () -> new AccumulatorBlock(VoltaicDynamics.machineProperties(5.0F, 3_600_000.0F), AccumulatorTier.CREATIVE));
+
     public static final DeferredBlock<VoltaicCableBlock> VOLTAIC_CABLE = BLOCKS.register(
             "voltaic_cable",
             () -> new VoltaicCableBlock(BlockBehaviour.Properties.of()
@@ -58,6 +72,18 @@ public final class VoltaicPower {
             BLOCK_ENTITIES.register("advanced_accumulator", () ->
                     BlockEntityType.Builder.of(AccumulatorBlockEntity::new, ADVANCED_ACCUMULATOR.get()).build(null));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AccumulatorBlockEntity>> ELITE_ACCUMULATOR_BE =
+            BLOCK_ENTITIES.register("elite_accumulator", () ->
+                    BlockEntityType.Builder.of(AccumulatorBlockEntity::new, ELITE_ACCUMULATOR.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AccumulatorBlockEntity>> ULTIMATE_ACCUMULATOR_BE =
+            BLOCK_ENTITIES.register("ultimate_accumulator", () ->
+                    BlockEntityType.Builder.of(AccumulatorBlockEntity::new, ULTIMATE_ACCUMULATOR.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AccumulatorBlockEntity>> CREATIVE_ACCUMULATOR_BE =
+            BLOCK_ENTITIES.register("creative_accumulator", () ->
+                    BlockEntityType.Builder.of(AccumulatorBlockEntity::new, CREATIVE_ACCUMULATOR.get()).build(null));
+
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VoltaicCableBlockEntity>> VOLTAIC_CABLE_BE =
             BLOCK_ENTITIES.register("voltaic_cable", () ->
                     BlockEntityType.Builder.of(VoltaicCableBlockEntity::new, VOLTAIC_CABLE.get()).build(null));
@@ -72,6 +98,11 @@ public final class VoltaicPower {
     public static void register(IEventBus modEventBus) {
         ITEMS.registerItem("basic_accumulator", props -> new AccumulatorItem(BASIC_ACCUMULATOR.get(), props), new Item.Properties());
         ITEMS.registerItem("advanced_accumulator", props -> new AccumulatorItem(ADVANCED_ACCUMULATOR.get(), props), new Item.Properties());
+        ITEMS.registerItem("elite_accumulator", props -> new AccumulatorItem(ELITE_ACCUMULATOR.get(), props), new Item.Properties());
+        ITEMS.registerItem("ultimate_accumulator", props -> new AccumulatorItem(ULTIMATE_ACCUMULATOR.get(), props),
+                new Item.Properties().fireResistant());
+        ITEMS.registerItem("creative_accumulator", props -> new AccumulatorItem(CREATIVE_ACCUMULATOR.get(), props),
+                new Item.Properties().rarity(Rarity.EPIC));
         ITEMS.registerSimpleBlockItem(VOLTAIC_CABLE);
 
         BLOCKS.register(modEventBus);
@@ -112,14 +143,12 @@ public final class VoltaicPower {
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BASIC_ACCUMULATOR_BE.get(),
-                (be, side) -> be.getEnergyStorage(side));
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, BASIC_ACCUMULATOR_BE.get(),
-                (be, side) -> be.getItemHandler(side));
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ADVANCED_ACCUMULATOR_BE.get(),
-                (be, side) -> be.getEnergyStorage(side));
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ADVANCED_ACCUMULATOR_BE.get(),
-                (be, side) -> be.getItemHandler(side));
+        for (AccumulatorTier tier : AccumulatorTier.values()) {
+            event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, AccumulatorBlockEntity.typeFor(tier),
+                    (be, side) -> be.getEnergyStorage(side));
+            event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, AccumulatorBlockEntity.typeFor(tier),
+                    (be, side) -> be.getItemHandler(side));
+        }
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, VOLTAIC_CABLE_BE.get(),
                 (be, side) -> be.getEnergyStorage(side));
 
@@ -127,16 +156,21 @@ public final class VoltaicPower {
         event.registerItem(Capabilities.EnergyStorage.ITEM,
                 (stack, context) -> {
                     AccumulatorItem item = (AccumulatorItem) stack.getItem();
+                    if (item.getTier().isCreative()) return new CreativeEnergyStorage(item.getTransfer());
                     return new ComponentEnergyStorage(stack, ModDataComponents.ENERGY.get(),
                             item.getCapacity(), item.getTransfer());
                 },
-                BASIC_ACCUMULATOR.asItem(), ADVANCED_ACCUMULATOR.asItem());
+                BASIC_ACCUMULATOR.asItem(), ADVANCED_ACCUMULATOR.asItem(), ELITE_ACCUMULATOR.asItem(),
+                ULTIMATE_ACCUMULATOR.asItem(), CREATIVE_ACCUMULATOR.asItem());
     }
 
     private static void addToCreativeTab(BuildCreativeModeTabContentsEvent event) {
         if (VoltaicCore.VOLTAIC_TAB.is(event.getTabKey())) {
             event.accept(BASIC_ACCUMULATOR.get());
             event.accept(ADVANCED_ACCUMULATOR.get());
+            event.accept(ELITE_ACCUMULATOR.get());
+            event.accept(ULTIMATE_ACCUMULATOR.get());
+            event.accept(CREATIVE_ACCUMULATOR.get());
             event.accept(VOLTAIC_CABLE.get());
         }
     }

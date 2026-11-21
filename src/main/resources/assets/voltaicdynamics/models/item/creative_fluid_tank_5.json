@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "voltaicdynamics:item/creative_fluid_tank",
+    "layer1": "voltaicdynamics:item/fluid_tank_fluid_5"
+  }
+}

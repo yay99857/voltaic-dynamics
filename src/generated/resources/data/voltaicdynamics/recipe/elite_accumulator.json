@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "A": {
+      "tag": "voltaicdynamics:alloys/galvanic"
+    },
+    "B": {
+      "item": "voltaicdynamics:advanced_accumulator"
+    },
+    "D": {
+      "tag": "c:gems/diamond"
+    },
+    "R": {
+      "tag": "c:storage_blocks/redstone"
+    }
+  },
+  "pattern": [
+    "DAD",
+    "RBR",
+    "DAD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:elite_accumulator"
+  }
+}

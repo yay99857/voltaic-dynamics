@@ -26,6 +26,12 @@ public final class ModDataComponents {
                     .persistent(SimpleFluidContent.CODEC)
                     .networkSynchronized(SimpleFluidContent.STREAM_CODEC));
 
+    /** Tier of an Electric Furnace, Alloy Smelter or Pulverizer item (kept when the machine is broken). */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<com.voltaicdynamics.machines.MachineTier>> MACHINE_TIER =
+            COMPONENTS.registerComponentType("machine_tier", builder -> builder
+                    .persistent(com.voltaicdynamics.machines.MachineTier.CODEC)
+                    .networkSynchronized(com.voltaicdynamics.machines.MachineTier.STREAM_CODEC));
+
     private ModDataComponents() {
     }
 }

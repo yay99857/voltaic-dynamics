@@ -36,10 +36,12 @@ public class AccumulatorScreen extends MachineScreen<AccumulatorMenu> {
         super.renderTooltip(g, x, y);
         ScreenLayout.Widget gauge = widget(gauge());
         if (isHovering(gauge, x, y)) {
-            ChatFormatting color = menu.isAdvanced() ? ChatFormatting.GOLD : ChatFormatting.AQUA;
-            g.renderComponentTooltip(font, List.of(
-                    Component.translatable("tooltip.voltaicdynamics.gui.energy",
-                            String.format("%,d", menu.getEnergy()), String.format("%,d", menu.getCapacity())).withStyle(color),
+            ChatFormatting color = menu.getTier().color();
+            Component stored = menu.getTier().isCreative()
+                    ? Component.translatable("tooltip.voltaicdynamics.gui.energy_infinite").withStyle(color)
+                    : Component.translatable("tooltip.voltaicdynamics.gui.energy",
+                            String.format("%,d", menu.getEnergy()), String.format("%,d", menu.getCapacity())).withStyle(color);
+            g.renderComponentTooltip(font, List.of(stored,
                     Component.translatable("tooltip.voltaicdynamics.gui.io_rate",
                             String.format("%,d", menu.getMaxTransfer())).withStyle(ChatFormatting.GRAY)), x, y);
         }

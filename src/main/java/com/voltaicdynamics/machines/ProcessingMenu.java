@@ -20,6 +20,7 @@ public abstract class ProcessingMenu extends MachineMenu {
     private final SyncedInt progress;
     private final SyncedInt maxProgress;
     private final SyncedInt usage;
+    private final SyncedInt tier;
 
     /**
      * Slots: {@code input_0..n} and {@code output}, then the player inventory, then {@code upgrade_0..1} (after
@@ -33,7 +34,8 @@ public abstract class ProcessingMenu extends MachineMenu {
         this.capacity = syncInt(machine::getEnergyCapacity);
         this.progress = syncInt(machine::getProgress);
         this.maxProgress = syncInt(machine::getMaxProgress);
-        this.usage = syncInt(() -> machine.isActive() ? machine.currentEnergyPerTick() : 0);
+        this.usage = syncInt(() -> machine.isActive() ? machine.activeEnergyPerTick() : 0);
+        this.tier = syncInt(() -> machine.getTier().ordinal());
 
         int inputs = blockEntity.getInputSlots();
         for (int i = 0; i < inputs; i++) {
@@ -92,6 +94,10 @@ public abstract class ProcessingMenu extends MachineMenu {
     }
 
     /** FE/t used right now. */
+    public MachineTier getTier() {
+        return MachineTier.byOrdinal(tier.get());
+    }
+
     public int getUsage() {
         return usage.get();
     }

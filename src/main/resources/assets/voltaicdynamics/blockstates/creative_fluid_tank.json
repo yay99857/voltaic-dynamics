@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "voltaicdynamics:block/creative_fluid_tank"
+    }
+  }
+}

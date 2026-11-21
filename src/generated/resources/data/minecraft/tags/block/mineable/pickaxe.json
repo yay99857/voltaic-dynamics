@@ -5,11 +5,18 @@
     "voltaicdynamics:electric_furnace",
     "voltaicdynamics:basic_accumulator",
     "voltaicdynamics:advanced_accumulator",
+    "voltaicdynamics:elite_accumulator",
+    "voltaicdynamics:ultimate_accumulator",
+    "voltaicdynamics:creative_accumulator",
     "voltaicdynamics:voltaic_cable",
     "voltaicdynamics:alloy_smelter",
     "voltaicdynamics:pulverizer",
     "voltaicdynamics:fluid_generator",
     "voltaicdynamics:fluid_tank",
+    "voltaicdynamics:advanced_fluid_tank",
+    "voltaicdynamics:elite_fluid_tank",
+    "voltaicdynamics:ultimate_fluid_tank",
+    "voltaicdynamics:creative_fluid_tank",
     "voltaicdynamics:item_cable",
     "voltaicdynamics:fluid_cable"
   ]

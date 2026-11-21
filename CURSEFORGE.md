@@ -12,16 +12,17 @@ pointless.
 - **Thermoelectric Generator:** free power from heat next to cold (lava beside ice, packed ice, snow...), slowly wearing its blocks.
 - **Combustion Generator:** any furnace fuel, 40 FE/t.
 - **Fluid Generator:** lava or any fuel a pack adds to the `voltaicdynamics:fluid_fuels` data map, fed by pipes.
-- **Accumulators** (1M and 8M FE) that keep their charge when broken, and a **Pocket Accumulator** that charges what you hold and wear.
+- **Accumulators** from 1M to 128M FE (Basic, Advanced, Elite, Ultimate) that keep their charge when broken, a **Creative Accumulator**, and a **Pocket Accumulator** that charges what you hold and wear.
 
 ## ⚙️ Machines
 - **Electric Furnace**, **Alloy Smelter** (`voltaicdynamics:alloying`) and **Pulverizer** (`voltaicdynamics:crushing`, ores to 2 dusts).
 - **Speed and Efficiency Upgrades**, two slots per machine.
+- **Tier Installers** raise a machine in place to process 2, 4 or 8 items at once (like Mekanism's factories).
 - Mekanism-style **side configuration** with auto-eject on every face, comparator output, XP.
 
 ## 📦 Logistics
-- **Voltaic Cables** for energy, **Item and Fluid Cables** with pull / deliver / off connectors and no items in transit (no lag).
-- **Fluid Tank** that keeps its fluid when broken and shows it on its icon.
+- **Voltaic Cables** for energy (they glow while energy flows), **Item and Fluid Cables** with pull / deliver / off connectors and no items in transit (no lag).
+- **Fluid Tanks** from 32,000 to 256,000 mB that keep their fluid when broken and show it on their icon, and a **Creative Fluid Tank**.
 - **Voltaic Wrench:** turn machines, configure cable arms, pick blocks up with their contents (`c:tools/wrench`).
 
 ## 🧩 Compatibility
@@ -39,11 +40,12 @@ Tudo usa Forge Energy (FE), então funciona com Mekanism, Applied Energistics 2,
 de FE. Feito para o Bubie Pack e equilibrado para conviver com a Thermal e o Mekanism.
 
 - **Energia:** Gerador Termoelétrico (calor perto de frio), Gerador a Combustão (qualquer combustível de fornalha),
-  Gerador a Fluido (lava ou combustíveis do data map `voltaicdynamics:fluid_fuels`), Acumuladores de 1M e 8M FE e o
-  Acumulador de Bolso.
-- **Máquinas:** Fornalha Elétrica, Fundidora de Ligas e Pulverizador, com Melhorias de Velocidade e Eficiência e
-  configuração de lados no estilo do Mekanism.
-- **Logística:** Cabos Voltaicos, Cabos de Itens e de Fluidos sem itens em trânsito, Tanque de Fluidos e a Chave Voltaica.
+  Gerador a Fluido (lava ou combustíveis do data map `voltaicdynamics:fluid_fuels`), Acumuladores de 1M a 128M FE,
+  o Acumulador Criativo e o Acumulador de Bolso.
+- **Máquinas:** Fornalha Elétrica, Fundidora de Ligas e Pulverizador, com Melhorias de Velocidade e Eficiência,
+  Instaladores de Nível (2, 4 ou 8 itens ao mesmo tempo) e configuração de lados no estilo do Mekanism.
+- **Logística:** Cabos Voltaicos que brilham com energia, Cabos de Itens e de Fluidos sem itens em trânsito, Tanques de
+  Fluidos de 32.000 a 256.000 mB, o Tanque Criativo e a Chave Voltaica.
 - **Compatibilidade:** JEI, EMI, Jade, tags `c:`, receitas e combustíveis por datapack, telas em JSON.
 
 ---

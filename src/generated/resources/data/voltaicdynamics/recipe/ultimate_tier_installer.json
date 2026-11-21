@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "tag": "voltaicdynamics:alloys/galvanic"
+    },
+    "D": {
+      "tag": "c:gems/diamond"
+    },
+    "N": {
+      "tag": "c:ingots/netherite"
+    },
+    "R": {
+      "tag": "c:storage_blocks/redstone"
+    }
+  },
+  "pattern": [
+    "DND",
+    "ARA",
+    "DAD"
+  ],
+  "result": {
+    "count": 1,
+    "id": "voltaicdynamics:ultimate_tier_installer"
+  }
+}
