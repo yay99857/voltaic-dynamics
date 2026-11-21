@@ -198,6 +198,9 @@ tools/prepare-pack-server.sh && ./gradlew runPackServer  # dedicated server with
 
 ## 📜 Changelog
 
+### 1.6.2
+- Inventory sorting mods (Inventory Tweaks) leave the machine slots alone: they no longer mix inputs and upgrades or swap the accumulator's charge and discharge batteries.
+
 ### 1.6.1
 - Spanish translation (es_es and the Latin American locales).
 
