@@ -63,7 +63,7 @@
   "tooltip.voltaicdynamics.item_cable.desc1": "Cada conector puxando move %s.",
   "tooltip.voltaicdynamics.fluid_cable.desc1": "Cada conector puxando move %s mB/t.",
   "tooltip.voltaicdynamics.logistics_cable.desc2": "Agachado + botão direito num braço: entregar → puxar (laranja) → desligado.",
-  "tooltip.voltaicdynamics.logistics_cable.desc3": "Sem itens em trânsito e sem cabos com tick: sem lag.",
+  "tooltip.voltaicdynamics.logistics_cable.desc3": "Sem itens em trânsito e sem cabos com tick.",
   "tooltip.voltaicdynamics.gui.fluid": "%s / %s mB",
   "sideconfig.voltaicdynamics.title": "Configuração",
   "sideconfig.voltaicdynamics.hint": "Clique esquerdo: próximo · Direito: anterior",

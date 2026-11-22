@@ -137,7 +137,7 @@ Server owners can tune every rate and capacity in `world/serverconfig/voltaicdyn
 * **Right-click an arm with the Voltaic Wrench** (or any `c:tools/wrench`), or **sneak + right-click it with an empty hand**: *deliver* → *pull* (orange plate) → *off*. Off between two cables splits the network.
 * Pulling connectors move **16 items every 0.5 s** or **1,000 mB/t** into the delivering connectors, **round-robin**.
 * Machines and hoppers can also push straight into a connector (auto-eject works with cables).
-* **No lag by design:** no items in transit (nothing to tick, sync or render), cables never tick, one network tick per group,
+* **Built to stay cheap:** no items in transit (nothing to tick, sync or render), cables never tick, one network tick per group,
   cached capabilities, bounded slot scans and staggered item operations. All rates are in the server config.
 
 ### 10. 🧭 Side configuration (new, every machine with a GUI)
@@ -215,6 +215,9 @@ tools/prepare-pack-server.sh && ./gradlew runPackServer  # dedicated server with
 ---
 
 ## 📜 Changelog
+
+### 1.7.1
+- Each cable shows what it carries on its core: a bolt on Voltaic Cables (it lights up with the cable), a chest on Item Cables, a drop on Fluid Cables.
 
 ### 1.7.0
 - New: Elite (32M FE) and Ultimate (128M FE) Accumulators, and a Creative Accumulator that never runs out.

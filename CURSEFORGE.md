@@ -1,6 +1,6 @@
 # Voltaic Dynamics
 
-**Compact Forge Energy tech for NeoForge 1.21.1: generators, machines with upgrades, batteries and lag-free cables.**
+**Compact Forge Energy tech for NeoForge 1.21.1: generators, machines with upgrades, batteries and cables for energy, items and fluids.**
 
 *🇧🇷 Versão em português mais abaixo.*
 
@@ -21,7 +21,7 @@ pointless.
 - Mekanism-style **side configuration** with auto-eject on every face, comparator output, XP.
 
 ## 📦 Logistics
-- **Voltaic Cables** for energy (they glow while energy flows), **Item and Fluid Cables** with pull / deliver / off connectors and no items in transit (no lag).
+- **Voltaic Cables** for energy (they glow while energy flows), **Item and Fluid Cables** with pull / deliver / off connectors and no items in transit.
 - **Fluid Tanks** from 32,000 to 256,000 mB that keep their fluid when broken and show it on their icon, and a **Creative Fluid Tank**.
 - **Voltaic Wrench:** turn machines, configure cable arms, pick blocks up with their contents (`c:tools/wrench`).
 
@@ -34,7 +34,7 @@ pointless.
 
 ## 🇧🇷 Em português
 
-**Tecnologia com Forge Energy para NeoForge 1.21.1: geradores, máquinas com melhorias, baterias e cabos sem lag.**
+**Tecnologia com Forge Energy para NeoForge 1.21.1: geradores, máquinas com melhorias, baterias e cabos de energia, itens e fluidos.**
 
 Tudo usa Forge Energy (FE), então funciona com Mekanism, Applied Energistics 2, Powah, Extreme Reactors e qualquer mod
 de FE. Feito para o Bubie Pack e equilibrado para conviver com a Thermal e o Mekanism.

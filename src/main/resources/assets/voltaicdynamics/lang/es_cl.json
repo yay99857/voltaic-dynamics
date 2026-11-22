@@ -63,7 +63,7 @@
   "tooltip.voltaicdynamics.item_cable.desc1": "Cada conector que extrae mueve %s.",
   "tooltip.voltaicdynamics.fluid_cable.desc1": "Cada conector que extrae mueve %s mB/t.",
   "tooltip.voltaicdynamics.logistics_cable.desc2": "Agachado + clic derecho en un brazo: entregar → extraer (naranja) → apagado.",
-  "tooltip.voltaicdynamics.logistics_cable.desc3": "Sin objetos en tránsito ni cables que se actualicen cada tick: sin lag.",
+  "tooltip.voltaicdynamics.logistics_cable.desc3": "Sin objetos en tránsito ni cables que se actualicen cada tick.",
   "tooltip.voltaicdynamics.gui.fluid": "%s / %s mB",
   "sideconfig.voltaicdynamics.title": "Configuración",
   "sideconfig.voltaicdynamics.hint": "Clic izquierdo: siguiente · Clic derecho: anterior",

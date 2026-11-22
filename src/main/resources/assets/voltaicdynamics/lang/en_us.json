@@ -63,7 +63,7 @@
   "tooltip.voltaicdynamics.item_cable.desc1": "Each pulling connector moves %s.",
   "tooltip.voltaicdynamics.fluid_cable.desc1": "Each pulling connector moves %s mB/t.",
   "tooltip.voltaicdynamics.logistics_cable.desc2": "Sneak + right-click an arm: deliver → pull (orange) → off.",
-  "tooltip.voltaicdynamics.logistics_cable.desc3": "No items in transit, no ticking cables: lag-free.",
+  "tooltip.voltaicdynamics.logistics_cable.desc3": "No items in transit, no ticking cables.",
   "tooltip.voltaicdynamics.gui.fluid": "%s / %s mB",
   "sideconfig.voltaicdynamics.title": "Configuration",
   "sideconfig.voltaicdynamics.hint": "Left-click: next · Right-click: previous",
