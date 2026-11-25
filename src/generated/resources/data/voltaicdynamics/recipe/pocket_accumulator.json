@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "C": {
-      "tag": "c:ingots/copper"
-    },
-    "R": {
-      "tag": "c:dusts/redstone"
-    },
-    "V": {
-      "tag": "c:ingots/voltaic"
-    }
+    "C": "#c:ingots/copper",
+    "R": "#c:dusts/redstone",
+    "V": "#c:ingots/voltaic"
   },
   "pattern": [
     " R ",
@@ -18,7 +12,6 @@
     " R "
   ],
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:pocket_accumulator"
   }
 }

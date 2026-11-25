@@ -9,6 +9,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.crafting.RecipePropertySet;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.item.crafting.SmeltingRecipe;
@@ -50,15 +52,18 @@ public class ElectricFurnaceBlockEntity extends ProcessingMachineBlockEntity {
         if (cachedRecipe != null && cachedRecipe.value().matches(recipeInput, level)) {
             return Optional.of(cachedRecipe);
         }
+        if (!(level instanceof ServerLevel serverLevel)) return Optional.empty();
         Optional<RecipeHolder<SmeltingRecipe>> found =
-                level.getRecipeManager().getRecipeFor(RecipeType.SMELTING, recipeInput, level);
+                serverLevel.recipeAccess().getRecipeFor(RecipeType.SMELTING, recipeInput, level);
         found.ifPresent(recipe -> cachedRecipe = recipe);
         return found;
     }
 
     @Override
     protected boolean isValidInput(ItemStack stack) {
-        return findRecipe(stack).isPresent();
+        // The furnace input set reaches the client too, unlike the recipes.
+        return level != null && !stack.isEmpty()
+                && level.recipeAccess().propertySet(RecipePropertySet.FURNACE_INPUT).test(stack);
     }
 
     @Nullable
@@ -67,8 +72,8 @@ public class ElectricFurnaceBlockEntity extends ProcessingMachineBlockEntity {
         ItemStack input = itemHandler.getStackInSlot(SLOT_INPUT);
         Optional<RecipeHolder<SmeltingRecipe>> recipe = findRecipe(input);
         if (recipe.isEmpty()) return null;
-        ItemStack result = recipe.get().value().assemble(new SingleRecipeInput(input), level.registryAccess());
-        return new Craft(result, ticksPerItem(), recipe.get().value().getExperience(),
+        ItemStack result = recipe.get().value().assemble(new SingleRecipeInput(input));
+        return new Craft(result, ticksPerItem(), recipe.get().value().experience(),
                 times -> itemHandler.extractItem(SLOT_INPUT, times, false), input.getCount());
     }
 

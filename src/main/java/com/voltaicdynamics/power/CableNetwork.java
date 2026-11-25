@@ -1,5 +1,11 @@
 package com.voltaicdynamics.power;
 
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import com.voltaicdynamics.core.energy.EnergyBuffer;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import com.voltaicdynamics.core.transfer.Transfers;
 import com.voltaicdynamics.VoltaicConfig;
 
 import net.minecraft.core.BlockPos;
@@ -9,7 +15,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -42,6 +47,18 @@ public final class CableNetwork {
     /** Ticks the cables keep glowing after the last energy went through, so a pulsing source does not flicker. */
     private static final int GLOW_HOLD = 20;
     private long lastFlow = Long.MIN_VALUE / 2;
+    /** Rolls {@link #lastFlow} back when the insert that set it is aborted (a simulation). */
+    private final SnapshotJournal<Long> flowJournal = new SnapshotJournal<>() {
+        @Override
+        protected Long createSnapshot() {
+            return lastFlow;
+        }
+
+        @Override
+        protected void revertToSnapshot(Long snapshot) {
+            lastFlow = snapshot;
+        }
+    };
     /** Whether the cables were last set glowing; null until the first {@link #updateGlow()} syncs them. */
     @Nullable
     private Boolean lit;
@@ -54,7 +71,7 @@ public final class CableNetwork {
     void addAcceptor(BlockPos cablePos, Direction side) {
         BlockPos target = cablePos.relative(side);
         Acceptor acceptor = new Acceptor(target, BlockCapabilityCache.create(
-                Capabilities.EnergyStorage.BLOCK, level, target, side.getOpposite(), () -> valid, () -> {
+                Capabilities.Energy.BLOCK, level, target, side.getOpposite(), () -> valid, () -> {
                 }));
         acceptors.add(acceptor);
         acceptorsByPos.computeIfAbsent(target, p -> new ArrayList<>()).add(acceptor);
@@ -91,7 +108,7 @@ public final class CableNetwork {
     /**
      * Inserts energy through the face {@code side} of the cable at {@code cablePos}.
      */
-    public int insert(BlockPos cablePos, @Nullable Direction side, int amount, boolean simulate) {
+    public int insert(BlockPos cablePos, @Nullable Direction side, int amount, TransactionContext transaction) {
         if (!valid || amount <= 0) return 0;
         amount = Math.min(amount, transferLimit());
         BlockPos sourcePos = side == null ? null : cablePos.relative(side);
@@ -100,18 +117,27 @@ public final class CableNetwork {
             List<Acceptor> source = acceptorsByPos.get(sourcePos);
             if (source != null) {
                 for (Acceptor acceptor : source) {
-                    IEnergyStorage storage = acceptor.storage();
-                    if (storage != null && storage.canExtract() && storage.canReceive()) {
+                    EnergyHandler storage = acceptor.storage();
+                    if (storage != null && isStorage(acceptor, storage)) {
                         fromStorage = true;
                         break;
                     }
                 }
             }
         }
-        return route(sourcePos, fromStorage, amount, simulate);
+        return route(sourcePos, fromStorage, amount, transaction);
     }
 
-    private int route(@Nullable BlockPos sourcePos, boolean fromStorage, int amount, boolean simulate) {
+    /**
+     * Whether a neighbour stores energy (it can give and take), as opposed to a consumer or a generator. Our
+     * Accumulators always count, even empty or full; other blocks are judged by what they would do right now.
+     */
+    private boolean isStorage(Acceptor acceptor, EnergyHandler storage) {
+        if (level.getBlockEntity(acceptor.pos) instanceof EnergyBuffer) return true;
+        return Transfers.canExtractEnergy(storage) && Transfers.canInsertEnergy(storage);
+    }
+
+    private int route(@Nullable BlockPos sourcePos, boolean fromStorage, int amount, TransactionContext transaction) {
         List<Target> consumers = new ArrayList<>();
         List<Target> storages = new ArrayList<>();
         Set<BlockPos> seen = new HashSet<>();
@@ -120,27 +146,32 @@ public final class CableNetwork {
             if (acceptor.pos.equals(sourcePos)) continue;
             // A block touching several cables is one destination, not several.
             if (!seen.add(acceptor.pos)) continue;
-            IEnergyStorage storage = acceptor.storage();
-            if (storage == null || !storage.canReceive()) continue;
+            EnergyHandler storage = acceptor.storage();
+            if (storage == null) continue;
             int room = acceptor.room(time);
             if (room <= 0) continue;
+            boolean isStorage = isStorage(acceptor, storage);
+            if (!isStorage && !Transfers.canInsertEnergy(storage)) continue;
             Target target = new Target(acceptor, storage, room);
-            if (storage.canExtract()) {
+            if (isStorage) {
                 storages.add(target);
             } else {
                 consumers.add(target);
             }
         }
-        int sent = distribute(consumers, amount, simulate, time);
+        int sent = distribute(consumers, amount, transaction, time);
         if (!fromStorage && sent < amount) {
-            sent += distribute(storages, amount - sent, simulate, time);
+            sent += distribute(storages, amount - sent, transaction, time);
         }
-        if (sent > 0 && !simulate) lastFlow = time;
+        if (sent > 0) {
+            flowJournal.updateSnapshots(transaction);
+            lastFlow = time;
+        }
         return sent;
     }
 
     /** Splits {@code amount} evenly; a few rounds hand what one target refused to the others. */
-    private static int distribute(List<Target> targets, int amount, boolean simulate, long time) {
+    private static int distribute(List<Target> targets, int amount, TransactionContext transaction, long time) {
         if (targets.isEmpty() || amount <= 0) return 0;
         int remaining = amount;
         List<Target> active = new ArrayList<>(targets);
@@ -151,22 +182,15 @@ public final class CableNetwork {
                 if (remaining <= 0) break;
                 int want = Math.min(Math.min(share, remaining), target.room - target.given);
                 if (want <= 0) continue;
-                int got;
-                if (simulate) {
-                    got = Math.max(0, target.storage.receiveEnergy(target.given + want, true) - target.given);
-                } else {
-                    got = target.storage.receiveEnergy(want, false);
-                }
+                int got = target.storage.insert(want, transaction);
                 target.given += got;
                 remaining -= got;
                 if (got >= want && target.given < target.room) next.add(target);
             }
             active = next;
         }
-        if (!simulate) {
-            for (Target target : targets) {
-                if (target.given > 0) target.acceptor.record(time, target.given);
-            }
+        for (Target target : targets) {
+            if (target.given > 0) target.acceptor.record(time, target.given, transaction);
         }
         return amount - remaining;
     }
@@ -176,12 +200,14 @@ public final class CableNetwork {
         if (!valid) return;
         int limit = transferLimit();
         for (Acceptor acceptor : List.copyOf(acceptors)) {
-            IEnergyStorage storage = acceptor.storage();
-            if (storage == null || !storage.canExtract() || storage.canReceive()) continue;
-            int available = storage.extractEnergy(limit, true);
+            EnergyHandler storage = acceptor.storage();
+            if (storage == null || isStorage(acceptor, storage) || Transfers.canInsertEnergy(storage)) continue;
+            int available = Transfers.extractEnergy(storage, limit, true);
             if (available <= 0) continue;
-            int sent = route(acceptor.pos, false, available, false);
-            if (sent > 0) storage.extractEnergy(sent, false);
+            try (Transaction tx = Transaction.openRoot()) {
+                int sent = route(acceptor.pos, false, available, tx);
+                if (sent > 0 && storage.extract(sent, tx) == sent) tx.commit();
+            }
         }
     }
 
@@ -207,17 +233,29 @@ public final class CableNetwork {
 
     private final class Acceptor {
         final BlockPos pos;
-        final BlockCapabilityCache<IEnergyStorage, Direction> cache;
+        final BlockCapabilityCache<EnergyHandler, Direction> cache;
         long tick = -1;
         int receivedThisTick;
+        private final SnapshotJournal<long[]> journal = new SnapshotJournal<>() {
+            @Override
+            protected long[] createSnapshot() {
+                return new long[]{tick, receivedThisTick};
+            }
 
-        Acceptor(BlockPos pos, BlockCapabilityCache<IEnergyStorage, Direction> cache) {
+            @Override
+            protected void revertToSnapshot(long[] snapshot) {
+                tick = snapshot[0];
+                receivedThisTick = (int) snapshot[1];
+            }
+        };
+
+        Acceptor(BlockPos pos, BlockCapabilityCache<EnergyHandler, Direction> cache) {
             this.pos = pos;
             this.cache = cache;
         }
 
         @Nullable
-        IEnergyStorage storage() {
+        EnergyHandler storage() {
             // An invalidated network's caches may refuse queries; it has been replaced anyway.
             return valid ? cache.getCapability() : null;
         }
@@ -226,7 +264,8 @@ public final class CableNetwork {
             return transferLimit() - (tick == time ? receivedThisTick : 0);
         }
 
-        void record(long time, int amount) {
+        void record(long time, int amount, TransactionContext transaction) {
+            journal.updateSnapshots(transaction);
             if (tick != time) {
                 tick = time;
                 receivedThisTick = 0;
@@ -237,11 +276,11 @@ public final class CableNetwork {
 
     private static final class Target {
         final Acceptor acceptor;
-        final IEnergyStorage storage;
+        final EnergyHandler storage;
         final int room;
         int given;
 
-        Target(Acceptor acceptor, IEnergyStorage storage, int room) {
+        Target(Acceptor acceptor, EnergyHandler storage, int room) {
             this.acceptor = acceptor;
             this.storage = storage;
             this.room = room;

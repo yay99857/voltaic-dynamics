@@ -2,21 +2,11 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "B": {
-      "item": "minecraft:bucket"
-    },
-    "C": {
-      "tag": "c:ingots/copper"
-    },
-    "G": {
-      "tag": "c:ingots/voltaic"
-    },
-    "I": {
-      "tag": "c:ingots/iron"
-    },
-    "T": {
-      "item": "voltaicdynamics:thermopile_core"
-    }
+    "B": "minecraft:bucket",
+    "C": "#c:ingots/copper",
+    "G": "#c:ingots/voltaic",
+    "I": "#c:ingots/iron",
+    "T": "voltaicdynamics:thermopile_core"
   },
   "pattern": [
     "ICI",
@@ -24,7 +14,6 @@
     "IBI"
   ],
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:thermoelectric_generator"
   }
 }

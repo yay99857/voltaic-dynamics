@@ -1,5 +1,7 @@
 package com.voltaicdynamics;
 
+import com.voltaicdynamics.gametest.VoltaicGameTests;
+import net.neoforged.neoforge.gametest.GameTestHooks;
 import com.voltaicdynamics.client.ClientModEvents;
 import com.voltaicdynamics.core.VoltaicCore;
 import com.voltaicdynamics.gadgets.VoltaicGadgets;
@@ -8,7 +10,7 @@ import com.voltaicdynamics.logistics.VoltaicLogistics;
 import com.voltaicdynamics.machines.VoltaicMachines;
 import com.voltaicdynamics.power.VoltaicPower;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
@@ -39,7 +41,7 @@ public class VoltaicDynamics {
     public VoltaicDynamics(IEventBus modEventBus, ModContainer modContainer) {
         LOGGER.info("Initializing Voltaic Dynamics");
 
-        modContainer.registerConfig(ModConfig.Type.SERVER, VoltaicConfig.SPEC);
+        modContainer.registerConfig(ModConfig.Type.SYNCED, VoltaicConfig.SPEC);
 
         // The order here is also the order of the creative tab.
         VoltaicCore.register(modEventBus);
@@ -48,10 +50,13 @@ public class VoltaicDynamics {
         VoltaicMachines.register(modEventBus);
         VoltaicPower.register(modEventBus);
         VoltaicLogistics.register(modEventBus);
+
+        // Dev and CI only (runGameTestServer, runClient): players never load the test classes.
+        if (GameTestHooks.isGametestEnabled()) VoltaicGameTests.register(modEventBus);
     }
 
-    public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 
     /** Machine blocks need a pickaxe (see the mineable/pickaxe tag), otherwise they drop nothing. */

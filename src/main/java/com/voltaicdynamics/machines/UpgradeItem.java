@@ -1,5 +1,7 @@
 package com.voltaicdynamics.machines;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -48,9 +50,9 @@ public class UpgradeItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         String key = "tooltip.voltaicdynamics." + (type == Type.SPEED ? "speed_upgrade" : "efficiency_upgrade");
-        tooltip.add(Component.translatable(key).withStyle(ChatFormatting.AQUA));
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.upgrade.where", MAX_PER_TYPE).withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Component.translatable(key).withStyle(ChatFormatting.AQUA));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.upgrade.where", MAX_PER_TYPE).withStyle(ChatFormatting.GRAY));
     }
 }

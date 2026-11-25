@@ -8,7 +8,7 @@ version="${mod_version}"
 displayName="${mod_name}"
 authors="${mod_authors}"
 description='''${mod_description}'''
-logoFile="voltaicdynamics_logo.png"
+iconFile="voltaicdynamics_logo.png"
 logoBlur=false
 
 [[dependencies.${mod_id}]]

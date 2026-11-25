@@ -1,16 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
-    "A": {
-      "tag": "voltaicdynamics:alloys/galvanic"
-    },
-    "D": {
-      "tag": "c:gems/diamond"
-    },
-    "R": {
-      "tag": "c:storage_blocks/redstone"
-    }
+    "A": "#voltaicdynamics:alloys/galvanic",
+    "D": "#c:gems/diamond",
+    "R": "#c:storage_blocks/redstone"
   },
   "pattern": [
     "DAD",
@@ -18,7 +11,6 @@
     "DAD"
   ],
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:elite_tier_installer"
   }
 }

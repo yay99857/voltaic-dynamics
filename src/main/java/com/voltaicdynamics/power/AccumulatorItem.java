@@ -1,16 +1,18 @@
 package com.voltaicdynamics.power;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
 import com.voltaicdynamics.core.item.EnergyBarHelper;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.BlockItem;
+import com.voltaicdynamics.core.item.VoltaicBlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 
 import java.util.List;
 
 /** Accumulator as an item: shows the charge it carries after being broken. */
-public class AccumulatorItem extends BlockItem {
+public class AccumulatorItem extends VoltaicBlockItem {
     private final AccumulatorBlock cell;
 
     public AccumulatorItem(AccumulatorBlock block, Properties properties) {
@@ -46,8 +48,8 @@ public class AccumulatorItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         if (!getTier().isCreative()) EnergyBarHelper.addTooltip(stack, getCapacity(), tooltip, cell.getTier().color());
-        super.appendHoverText(stack, context, tooltip, flag);
+        super.appendHoverText(stack, context, display, tooltip, flag);
     }
 }

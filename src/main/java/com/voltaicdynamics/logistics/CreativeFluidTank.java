@@ -1,13 +1,18 @@
 package com.voltaicdynamics.logistics;
 
+import com.voltaicdynamics.core.transfer.VoltaicFluidTank;
+
+import net.minecraft.world.level.storage.ValueInput;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 /**
  * The Creative Fluid Tank's storage. The first fluid it gets sets what it holds; from then on it is always full, gives
  * that fluid without running down, swallows more of it and refuses other fluids until it is cleared.
  */
-public class CreativeFluidTank extends FluidTank {
+public class CreativeFluidTank extends VoltaicFluidTank {
     private final Runnable onChanged;
 
     public CreativeFluidTank(Runnable onChanged) {
@@ -16,34 +21,36 @@ public class CreativeFluidTank extends FluidTank {
     }
 
     @Override
-    public int fill(FluidStack resource, FluidAction action) {
-        if (resource.isEmpty() || !isFluidValid(resource)) return 0;
-        if (fluid.isEmpty()) {
-            if (action.execute()) {
-                fluid = resource.copyWithAmount(capacity);
-                onContentsChanged();
-            }
-            return resource.getAmount();
+    public int insert(int index, FluidResource resource, int amount, TransactionContext transaction) {
+        TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
+        if (isEmpty()) {
+            // Taking the first fluid goes through the journal, so a simulation leaves the tank empty.
+            super.insert(index, resource, capacity, transaction);
+            return amount;
         }
-        return FluidStack.isSameFluidSameComponents(fluid, resource) ? resource.getAmount() : 0;
+        return resource.matches(getFluid()) ? amount : 0;
     }
 
     @Override
-    public FluidStack drain(FluidStack resource, FluidAction action) {
-        if (resource.isEmpty() || !FluidStack.isSameFluidSameComponents(fluid, resource)) return FluidStack.EMPTY;
-        return drain(resource.getAmount(), action);
+    public int extract(int index, FluidResource resource, int amount, TransactionContext transaction) {
+        TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
+        return !isEmpty() && resource.matches(getFluid()) ? amount : 0;
     }
 
     @Override
-    public FluidStack drain(int maxDrain, FluidAction action) {
-        if (fluid.isEmpty() || maxDrain <= 0) return FluidStack.EMPTY;
-        return fluid.copyWithAmount(maxDrain);
+    public long getCapacityAsLong(int index, FluidResource resource) {
+        return Integer.MAX_VALUE;
     }
 
     @Override
     public void setFluid(FluidStack stack) {
         super.setFluid(stack.isEmpty() ? FluidStack.EMPTY : stack.copyWithAmount(capacity));
-        onContentsChanged();
+    }
+
+    @Override
+    public void load(ValueInput input, String key) {
+        super.load(input, key);
+        if (!isEmpty()) stacks.set(0, getFluid().copyWithAmount(capacity));
     }
 
     /** Empties it, so it can take another fluid. */

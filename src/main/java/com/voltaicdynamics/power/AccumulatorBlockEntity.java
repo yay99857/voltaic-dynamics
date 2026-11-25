@@ -1,5 +1,16 @@
 package com.voltaicdynamics.power;
 
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandlerUtil;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import com.voltaicdynamics.core.transfer.Transfers;
+import com.voltaicdynamics.core.transfer.VoltaicItemHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import com.voltaicdynamics.core.energy.CreativeEnergyStorage;
 import com.voltaicdynamics.core.energy.EnergyBuffer;
 import com.voltaicdynamics.core.energy.RecentInputFaces;
@@ -33,9 +44,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuProvider, SideConfigurable, EnergyBuffer {
@@ -52,7 +60,7 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
     private SidedHandlers sided;
     private final RecentInputFaces inputFaces = new RecentInputFaces(this);
 
-    private final ItemStackHandler itemHandler = new ItemStackHandler(2) {
+    private final VoltaicItemHandler itemHandler = new VoltaicItemHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
             saveChanges();
@@ -60,9 +68,7 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            IEnergyStorage itemEnergy = stack.getCapability(Capabilities.EnergyStorage.ITEM);
-            if (itemEnergy == null) return false;
-            return slot == SLOT_CHARGE ? itemEnergy.canReceive() : itemEnergy.canExtract();
+            return Transfers.itemEnergy(stack) != null;
         }
 
         @Override
@@ -72,40 +78,14 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
     };
 
     /** What pipes and hoppers see: insert into either slot, but only take items out once they are done. */
-    private final IItemHandler automationHandler = new IItemHandler() {
+    private final ResourceHandler<ItemResource> automationHandler = new DelegatingResourceHandler<>(itemHandler) {
         @Override
-        public int getSlots() {
-            return itemHandler.getSlots();
-        }
-
-        @Override
-        public ItemStack getStackInSlot(int slot) {
-            return itemHandler.getStackInSlot(slot);
-        }
-
-        @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return itemHandler.insertItem(slot, stack, simulate);
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            ItemStack stack = itemHandler.getStackInSlot(slot);
-            IEnergyStorage itemEnergy = stack.getCapability(Capabilities.EnergyStorage.ITEM);
+        public int extract(int slot, ItemResource resource, int amount, TransactionContext transaction) {
+            EnergyHandler itemEnergy = Transfers.itemEnergy(itemHandler.getStackInSlot(slot));
             boolean done = itemEnergy == null
-                    || (slot == SLOT_CHARGE ? itemEnergy.getEnergyStored() >= itemEnergy.getMaxEnergyStored()
-                    : itemEnergy.getEnergyStored() <= 0);
-            return done ? itemHandler.extractItem(slot, amount, simulate) : ItemStack.EMPTY;
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return itemHandler.getSlotLimit(slot);
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return itemHandler.isItemValid(slot, stack);
+                    || (slot == SLOT_CHARGE ? itemEnergy.getAmountAsLong() >= itemEnergy.getCapacityAsLong()
+                    : itemEnergy.getAmountAsLong() <= 0);
+            return done ? super.extract(slot, resource, amount, transaction) : 0;
         }
     };
 
@@ -134,22 +114,14 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
     public static void tick(Level level, BlockPos pos, BlockState state, AccumulatorBlockEntity entity) {
         int transfer = entity.tier.transfer();
 
-        ItemStack chargeStack = entity.itemHandler.getStackInSlot(SLOT_CHARGE);
-        if (!chargeStack.isEmpty() && entity.energyStorage.getEnergyStored() > 0) {
-            IEnergyStorage itemEnergy = chargeStack.getCapability(Capabilities.EnergyStorage.ITEM);
-            if (itemEnergy != null && itemEnergy.canReceive()) {
-                int accepted = itemEnergy.receiveEnergy(Math.min(entity.energyStorage.getEnergyStored(), transfer), false);
-                if (accepted > 0) entity.energyStorage.consumeEnergy(accepted);
-            }
+        if (entity.energyStorage.getEnergyStored() > 0) {
+            EnergyHandler itemEnergy = Transfers.itemEnergy(entity.itemHandler, SLOT_CHARGE);
+            if (itemEnergy != null) EnergyHandlerUtil.move(entity.energyStorage, itemEnergy, transfer, null);
         }
 
-        ItemStack dischargeStack = entity.itemHandler.getStackInSlot(SLOT_DISCHARGE);
-        if (!dischargeStack.isEmpty() && entity.energyStorage.getSpace() > 0) {
-            IEnergyStorage itemEnergy = dischargeStack.getCapability(Capabilities.EnergyStorage.ITEM);
-            if (itemEnergy != null && itemEnergy.canExtract()) {
-                int extracted = itemEnergy.extractEnergy(Math.min(entity.energyStorage.getSpace(), transfer), false);
-                if (extracted > 0) entity.energyStorage.generateEnergy(extracted);
-            }
+        if (entity.energyStorage.getSpace() > 0) {
+            EnergyHandler itemEnergy = Transfers.itemEnergy(entity.itemHandler, SLOT_DISCHARGE);
+            if (itemEnergy != null) EnergyHandlerUtil.move(itemEnergy, entity.energyStorage, transfer, null);
         }
 
         // Into machines and cables (ours or other mods'), never into another Accumulator (except from a Creative one,
@@ -166,8 +138,14 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
         return 1 + (int) ((long) energy * 14 / Math.max(1, energyStorage.getMaxEnergyStored()));
     }
 
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        drops();
+    }
+
     public void drops() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             SimpleContainer inventory = new SimpleContainer(itemHandler.getSlots());
             for (int i = 0; i < itemHandler.getSlots(); i++) {
                 inventory.setItem(i, itemHandler.getStackInSlot(i));
@@ -182,12 +160,12 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
     }
 
     @Nullable
-    public IEnergyStorage getEnergyStorage(@Nullable Direction side) {
+    public EnergyHandler getEnergyStorage(@Nullable Direction side) {
         return inputFaces.wrap(side, sided().energy(side));
     }
 
     @Nullable
-    public IItemHandler getItemHandler(@Nullable Direction side) {
+    public ResourceHandler<ItemResource> getItemHandler(@Nullable Direction side) {
         return sided().items(side);
     }
 
@@ -213,7 +191,7 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
     }
 
     /** Unrestricted handler for the GUI slots. */
-    public IItemHandler getMenuItemHandler() {
+    public VoltaicItemHandler getMenuItemHandler() {
         return itemHandler;
     }
 
@@ -242,9 +220,9 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
 
     // Stored energy travels with the item when the cell is broken and placed again.
     @Override
-    protected void applyImplicitComponents(DataComponentInput input) {
-        super.applyImplicitComponents(input);
-        energyStorage.setEnergy(input.getOrDefault(ModDataComponents.ENERGY.get(), 0));
+    protected void applyImplicitComponents(DataComponentGetter components) {
+        super.applyImplicitComponents(components);
+        energyStorage.setEnergy(components.getOrDefault(ModDataComponents.ENERGY.get(), 0));
     }
 
     @Override
@@ -256,25 +234,25 @@ public class AccumulatorBlockEntity extends VoltaicBlockEntity implements MenuPr
     }
 
     @Override
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        tag.remove("Energy");
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        output.discard("Energy");
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Inventory", itemHandler.serializeNBT(registries));
-        tag.put("Energy", energyStorage.serializeNBT(registries));
-        tag.put("SideConfig", sideConfig.save());
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        itemHandler.serialize(output.child("Inventory"));
+        energyStorage.serialize(output);
+        sideConfig.save(output);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("Inventory")) itemHandler.deserializeNBT(registries, tag.getCompound("Inventory"));
-        if (tag.contains("Energy")) energyStorage.deserializeNBT(registries, tag.getCompound("Energy"));
-        if (tag.contains("SideConfig")) sideConfig.load(tag.getCompound("SideConfig"));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        input.child("Inventory").ifPresent(itemHandler::deserialize);
+        energyStorage.deserialize(input);
+        sideConfig.load(input);
         sided().invalidate();
     }
 }

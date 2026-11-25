@@ -2,18 +2,10 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "C": {
-      "tag": "c:ingots/copper"
-    },
-    "I": {
-      "tag": "c:ingots/voltaic"
-    },
-    "P": {
-      "item": "voltaicdynamics:pocket_accumulator"
-    },
-    "R": {
-      "tag": "c:dusts/redstone"
-    }
+    "C": "#c:ingots/copper",
+    "I": "#c:ingots/voltaic",
+    "P": "voltaicdynamics:pocket_accumulator",
+    "R": "#c:dusts/redstone"
   },
   "pattern": [
     "ICI",
@@ -21,7 +13,6 @@
     "ICI"
   ],
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:basic_accumulator"
   }
 }

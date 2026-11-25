@@ -1,5 +1,7 @@
 package com.voltaicdynamics.gadgets;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.block.WrenchConfigurable;
 import com.voltaicdynamics.core.sideconfig.SideConfigurable;
@@ -60,12 +62,12 @@ public class VoltaicWrenchItem extends Item {
             return InteractionResult.PASS;
         }
         if (player.isShiftKeyDown()) {
-            if (!level.isClientSide) dismantle((ServerLevel) level, pos, state, player, stack);
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            if (!level.isClientSide()) dismantle((ServerLevel) level, pos, state, player, stack);
+            return InteractionResult.SUCCESS;
         }
         if (state.hasProperty(HorizontalDirectionalBlock.FACING)) {
-            if (!level.isClientSide) rotate(level, pos, state);
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            if (!level.isClientSide()) rotate(level, pos, state);
+            return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
     }
@@ -90,15 +92,15 @@ public class VoltaicWrenchItem extends Item {
         List<ItemStack> drops = Block.getDrops(state, level, pos, be, player, wrench);
         level.removeBlock(pos, false);
         for (ItemStack drop : drops) {
-            if (!player.getInventory().add(drop)) player.drop(drop, false);
+            player.getInventory().placeItemBackInInventory(drop, net.minecraft.util.Prediction.SERVER_ONLY);
         }
         level.playSound(null, pos, state.getSoundType(level, pos, player).getBreakSound(), SoundSource.BLOCKS, 1.0F, 0.9F);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.voltaic_wrench.rotate").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.voltaic_wrench.cable").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.voltaic_wrench.dismantle").withStyle(ChatFormatting.GRAY));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.voltaic_wrench.rotate").withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.voltaic_wrench.cable").withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.voltaic_wrench.dismantle").withStyle(ChatFormatting.GRAY));
     }
 }

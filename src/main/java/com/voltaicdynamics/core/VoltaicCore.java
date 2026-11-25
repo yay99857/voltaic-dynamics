@@ -73,7 +73,7 @@ public final class VoltaicCore {
 
     /** The Basic Accumulator lives in the power module, so the icon is looked up by id instead of imported. */
     private static ItemStack tabIcon() {
-        Item icon = BuiltInRegistries.ITEM.get(VoltaicDynamics.id("basic_accumulator"));
+        Item icon = BuiltInRegistries.ITEM.getValue(VoltaicDynamics.id("basic_accumulator"));
         return new ItemStack(icon == Items.AIR ? VOLTAIC_INGOT.get() : icon);
     }
 }

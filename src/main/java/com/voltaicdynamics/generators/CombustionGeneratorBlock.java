@@ -1,8 +1,9 @@
 package com.voltaicdynamics.generators;
 
+import java.util.function.Consumer;
+import com.voltaicdynamics.core.block.TooltipBlock;
 import com.voltaicdynamics.VoltaicConfig;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,15 +32,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class CombustionGeneratorBlock extends BaseEntityBlock {
-    public static final MapCodec<CombustionGeneratorBlock> CODEC = simpleCodec(CombustionGeneratorBlock::new);
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+public class CombustionGeneratorBlock extends BaseEntityBlock implements TooltipBlock {
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
     public CombustionGeneratorBlock(BlockBehaviour.Properties properties) {
@@ -47,10 +47,6 @@ public class CombustionGeneratorBlock extends BaseEntityBlock {
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
     }
 
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -77,31 +73,21 @@ public class CombustionGeneratorBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide) return null;
+        if (level.isClientSide()) return null;
         return createTickerHelper(blockEntityType, VoltaicGenerators.COMBUSTION_GENERATOR_BE.get(), CombustionGeneratorBlockEntity::tick);
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof CombustionGeneratorBlockEntity generator && player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.openMenu(generator, buf -> buf.writeBlockPos(pos));
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock())) {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof CombustionGeneratorBlockEntity generator) {
-                generator.drops();
-            }
-        }
-        super.onRemove(state, level, pos, newState, isMoving);
-    }
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
@@ -127,9 +113,9 @@ public class CombustionGeneratorBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.combustion.desc1",
+    public void appendTooltip(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.accept(Component.translatable("tooltip.voltaicdynamics.combustion.desc1",
                 VoltaicConfig.get(VoltaicConfig.COMBUSTION_GENERATION)).withStyle(ChatFormatting.RED));
-        tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.combustion.desc2").withStyle(ChatFormatting.GRAY));
+        tooltipComponents.accept(Component.translatable("tooltip.voltaicdynamics.combustion.desc2").withStyle(ChatFormatting.GRAY));
     }
 }

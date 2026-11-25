@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:gold_ingot_from_dust_from_blasting"
+        "recipes": "voltaicdynamics:gold_ingot_from_dust_from_blasting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

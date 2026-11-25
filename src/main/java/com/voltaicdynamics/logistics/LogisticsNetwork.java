@@ -1,5 +1,11 @@
 package com.voltaicdynamics.logistics;
 
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import com.voltaicdynamics.VoltaicConfig;
 
 import net.minecraft.core.BlockPos;
@@ -8,9 +14,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -116,28 +119,32 @@ public final class LogisticsNetwork {
 
     // ---- items ----
 
+    @SuppressWarnings("unchecked")
     private void pullItems(Endpoint source) {
-        if (!(source.capability() instanceof IItemHandler from)) return;
+        if (!(source.capability() instanceof ResourceHandler<?> raw)) return;
+        ResourceHandler<ItemResource> from = (ResourceHandler<ItemResource>) raw;
         int budget = itemsPerOperation();
-        int slots = from.getSlots();
+        int slots = from.size();
         if (slots <= 0) return;
         int scanned = 0;
         int slot = source.cursor % slots;
         while (budget > 0 && scanned < Math.min(slots, MAX_SLOTS_SCANNED)) {
-            ItemStack available = from.extractItem(slot, budget, true);
-            if (!available.isEmpty()) {
-                ItemStack rest = deliverItem(source.target, available, true);
-                int movable = available.getCount() - rest.getCount();
-                if (movable > 0) {
-                    ItemStack taken = from.extractItem(slot, movable, false);
-                    ItemStack leftover = deliverItem(source.target, taken, false);
-                    if (!leftover.isEmpty()) {
-                        // A target changed its mind between simulate and execute: give the rest back.
-                        ItemStack back = from.insertItem(slot, leftover, false);
-                        if (!back.isEmpty()) net.minecraft.world.Containers.dropItemStack(level,
-                                source.target.getX() + 0.5, source.target.getY() + 0.5, source.target.getZ() + 0.5, back);
+            ItemResource resource = from.getResource(slot);
+            int available = resource.isEmpty() ? 0 : Math.min(budget, from.getAmountAsInt(slot));
+            if (available > 0) {
+                int moved = 0;
+                int[] last = {-1};
+                try (Transaction tx = Transaction.openRoot()) {
+                    int delivered = deliverItem(source.target, resource, available, tx, last);
+                    // Only what the slot really gives up is delivered; otherwise the whole move is undone.
+                    if (delivered > 0 && from.extract(slot, resource, delivered, tx) == delivered) {
+                        tx.commit();
+                        moved = delivered;
                     }
-                    budget -= taken.getCount() - leftover.getCount();
+                }
+                if (moved > 0) {
+                    if (last[0] >= 0) roundRobin = last[0];
+                    budget -= moved;
                     source.cursor = slot; // keep draining the same slot next time
                     if (budget <= 0) return;
                 }
@@ -148,66 +155,93 @@ public final class LogisticsNetwork {
         source.cursor = slot;
     }
 
-    /** Hands a stack to the targets, round-robin, skipping the block it came from. Returns what nobody took. */
-    private ItemStack deliverItem(@Nullable BlockPos from, ItemStack stack, boolean simulate) {
-        ItemStack remaining = stack.copy();
+    /**
+     * Hands items to the targets, round-robin, skipping the block they came from. Returns how many were taken.
+     * {@code last[0]} is set to the round-robin position after the last target that took some.
+     */
+    @SuppressWarnings("unchecked")
+    private int deliverItem(@Nullable BlockPos from, ItemResource resource, int amount, TransactionContext transaction,
+                            int[] last) {
+        int remaining = amount;
         int count = targets.size();
         int start = roundRobin;
-        for (int i = 0; i < count && !remaining.isEmpty(); i++) {
+        for (int i = 0; i < count && remaining > 0; i++) {
             Endpoint target = targets.get((start + i) % count);
             if (target.target.equals(from)) continue;
-            if (!(target.capability() instanceof IItemHandler to)) continue;
-            int before = remaining.getCount();
-            remaining = ItemHandlerHelper.insertItemStacked(to, remaining, simulate);
-            if (!simulate && remaining.getCount() < before) roundRobin = (start + i + 1) % count;
+            if (!(target.capability() instanceof ResourceHandler<?> raw)) continue;
+            int inserted = ResourceHandlerUtil.insertStacking((ResourceHandler<ItemResource>) raw, resource, remaining, transaction);
+            if (inserted > 0) {
+                remaining -= inserted;
+                last[0] = (start + i + 1) % count;
+            }
         }
-        return remaining;
+        return amount - remaining;
     }
 
-    /** Items pushed into a connector by the block behind it. */
-    public ItemStack insertItem(BlockPos from, ItemStack stack, boolean simulate) {
-        if (!valid) return stack;
-        return deliverItem(from, stack, simulate);
+    /** Items pushed into a connector by the block behind it. Returns how many were taken. */
+    public int insertItem(BlockPos from, ItemResource resource, int amount, TransactionContext transaction) {
+        if (!valid) return 0;
+        int[] last = {-1};
+        int inserted = deliverItem(from, resource, amount, transaction, last);
+        if (last[0] >= 0) roundRobin = last[0];
+        return inserted;
     }
 
     // ---- fluids ----
 
+    @SuppressWarnings("unchecked")
     private void pullFluid(Endpoint source) {
-        if (!(source.capability() instanceof IFluidHandler from)) return;
-        FluidStack available = from.drain(fluidRate(), IFluidHandler.FluidAction.SIMULATE);
-        if (available.isEmpty()) return;
-        int accepted = deliverFluid(source.target, available, true);
-        if (accepted <= 0) return;
-        FluidStack drained = from.drain(available.copyWithAmount(accepted), IFluidHandler.FluidAction.EXECUTE);
-        if (drained.isEmpty()) return;
-        int delivered = deliverFluid(source.target, drained, false);
-        if (delivered < drained.getAmount()) {
-            from.fill(drained.copyWithAmount(drained.getAmount() - delivered), IFluidHandler.FluidAction.EXECUTE);
+        if (!(source.capability() instanceof ResourceHandler<?> raw)) return;
+        ResourceHandler<FluidResource> from = (ResourceHandler<FluidResource>) raw;
+        FluidResource resource = FluidResource.EMPTY;
+        for (int i = 0; i < from.size() && resource.isEmpty(); i++) {
+            if (from.getAmountAsLong(i) > 0) resource = from.getResource(i);
         }
+        if (resource.isEmpty()) return;
+        int[] last = {-1};
+        boolean moved = false;
+        try (Transaction tx = Transaction.openRoot()) {
+            int available;
+            try (Transaction probe = Transaction.open(tx)) {
+                available = from.extract(resource, fluidRate(), probe);
+            }
+            if (available <= 0) return;
+            int delivered = deliverFluid(source.target, resource, available, tx, last);
+            if (delivered > 0 && from.extract(resource, delivered, tx) == delivered) {
+                tx.commit();
+                moved = true;
+            }
+        }
+        if (moved && last[0] >= 0) roundRobin = last[0];
     }
 
     /** Splits a fluid between the targets that accept it. Returns the amount taken. */
-    private int deliverFluid(@Nullable BlockPos from, FluidStack fluid, boolean simulate) {
-        int remaining = fluid.getAmount();
+    @SuppressWarnings("unchecked")
+    private int deliverFluid(@Nullable BlockPos from, FluidResource resource, int amount, TransactionContext transaction,
+                             int[] last) {
+        int remaining = amount;
         int count = targets.size();
         int start = roundRobin;
-        IFluidHandler.FluidAction action = simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE;
         for (int i = 0; i < count && remaining > 0; i++) {
             Endpoint target = targets.get((start + i) % count);
             if (target.target.equals(from)) continue;
-            if (!(target.capability() instanceof IFluidHandler to)) continue;
-            int filled = to.fill(fluid.copyWithAmount(remaining), action);
-            remaining -= filled;
-            if (!simulate && filled > 0) roundRobin = (start + i + 1) % count;
+            if (!(target.capability() instanceof ResourceHandler<?> raw)) continue;
+            int filled = ((ResourceHandler<FluidResource>) raw).insert(resource, remaining, transaction);
+            if (filled > 0) {
+                remaining -= filled;
+                last[0] = (start + i + 1) % count;
+            }
         }
-        return fluid.getAmount() - remaining;
+        return amount - remaining;
     }
 
     /** Fluid pushed into a connector by the block behind it. */
-    public int insertFluid(BlockPos from, FluidStack fluid, boolean simulate) {
+    public int insertFluid(BlockPos from, FluidResource resource, int amount, TransactionContext transaction) {
         if (!valid) return 0;
-        FluidStack limited = fluid.getAmount() > fluidRate() ? fluid.copyWithAmount(fluidRate()) : fluid;
-        return deliverFluid(from, limited, simulate);
+        int[] last = {-1};
+        int inserted = deliverFluid(from, resource, Math.min(amount, fluidRate()), transaction, last);
+        if (last[0] >= 0) roundRobin = last[0];
+        return inserted;
     }
 
     private final class Endpoint {

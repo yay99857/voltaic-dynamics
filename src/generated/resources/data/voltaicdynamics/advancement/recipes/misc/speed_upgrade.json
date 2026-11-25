@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:speed_upgrade"
+        "recipes": "voltaicdynamics:speed_upgrade"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

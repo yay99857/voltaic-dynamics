@@ -49,7 +49,7 @@ public abstract class ProcessingMenu extends MachineMenu {
 
             @Override
             public void onTake(Player player, ItemStack stack) {
-                stack.onCraftedBy(player.level(), player, stack.getCount());
+                stack.onCraftedBy(player, stack.getCount());
                 blockEntity.awardExperience(player);
                 super.onTake(player, stack);
             }

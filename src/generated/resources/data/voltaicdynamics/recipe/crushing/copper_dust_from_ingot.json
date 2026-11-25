@@ -1,11 +1,7 @@
 {
   "type": "voltaicdynamics:crushing",
-  "ingredient": {
-    "count": 1,
-    "tag": "c:ingots/copper"
-  },
+  "ingredient": "#c:ingots/copper",
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:copper_dust"
   },
   "time": 80

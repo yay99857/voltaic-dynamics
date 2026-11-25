@@ -24,7 +24,7 @@ import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.VanillaEmiRecipeCategories;
 import dev.emi.emi.api.recipe.handler.StandardRecipeHandler;
 import dev.emi.emi.api.stack.EmiStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.Slot;
 
 import java.util.List;
@@ -36,10 +36,10 @@ import java.util.List;
 @EmiEntrypoint
 public class VoltaicEmiPlugin implements EmiPlugin {
     public static final EmiRecipeCategory ALLOYING = new EmiRecipeCategory(
-            ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "alloying"), EmiStack.of(VoltaicMachines.ALLOY_SMELTER.get()));
+            Identifier.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "alloying"), EmiStack.of(VoltaicMachines.ALLOY_SMELTER.get()));
 
     public static final EmiRecipeCategory CRUSHING = new EmiRecipeCategory(
-            ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "crushing"), EmiStack.of(VoltaicMachines.PULVERIZER.get()));
+            Identifier.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "crushing"), EmiStack.of(VoltaicMachines.PULVERIZER.get()));
 
     @Override
     public void register(EmiRegistry registry) {
@@ -117,7 +117,7 @@ public class VoltaicEmiPlugin implements EmiPlugin {
 
         for (VoltaicInfo.Entry entry : VoltaicInfo.ENTRIES) {
             registry.addRecipe(new EmiInfoRecipe(List.of(EmiStack.of(entry.item().get())), List.of(entry.text()),
-                    ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "/info/" + entry.name())));
+                    Identifier.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "/info/" + entry.name())));
         }
     }
 }

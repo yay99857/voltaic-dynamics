@@ -34,7 +34,7 @@ public abstract class MachineMenu extends AbstractContainerMenu {
     protected MachineMenu(@Nullable MenuType<?> type, int containerId, BlockEntity machine) {
         super(type, containerId);
         this.machine = machine;
-        this.serverSide = !machine.getLevel().isClientSide;
+        this.serverSide = !machine.getLevel().isClientSide();
         SideConfigurable configurable = machine instanceof SideConfigurable c ? c : null;
         for (TransferType transfer : TransferType.values()) {
             sideBits[transfer.ordinal()] = syncInt(() -> configurable == null ? 0 : configurable.getSideConfig().pack(transfer));

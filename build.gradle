@@ -13,7 +13,7 @@ base {
     archivesName = project.mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 // Datagen output is part of the mod's resources.
 sourceSets.main.resources {
@@ -59,6 +59,22 @@ neoForge {
             // config translations and crashes the menu. Players never run with assertions.
             jvmArgument '-da'
         }
+        // ./gradlew runCompatGameTestServer : the game tests with the mods in runs/compat/mods (storage, pipes,
+        // recipe viewers...), to check that our blocks work with them. Fill that folder with the 26.3 jars first.
+        compatGameTestServer {
+            type = "gameTestServer"
+            gameDirectory = project.file('runs/compat')
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+        // ./gradlew runCompatClient : a client with the same mods, to look at JEI, Jade and the GUIs by hand.
+        compatClient {
+            client()
+            gameDirectory = project.file('runs/compat')
+            // Opens (or creates) the "Compat Test" world straight away.
+            programArguments.addAll '--quickPlaySingleplayer', 'Compat Test'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            jvmArgument '-da'
+        }
         // ./gradlew runGameTestServer : runs every @GameTest and exits (non-zero on failure)
         gameTestServer {
             type = "gameTestServer"
@@ -66,7 +82,7 @@ neoForge {
         }
         // ./gradlew runData : regenerates tags, loot tables and recipes into src/generated/resources
         data {
-            data()
+            clientData()
             programArguments.addAll '--mod', project.mod_id, '--all',
                     '--output', file('src/generated/resources/').getAbsolutePath(),
                     '--existing', file('src/main/resources/').getAbsolutePath()
@@ -83,7 +99,11 @@ neoForge {
 repositories {
     mavenLocal()
     mavenCentral()
-    // JEI, EMI and Jade at the exact versions shipped in Bubie Pack (CurseForge file ids).
+    // JEI and Jade builds for 26.3 (compiled against only; the compat runs load the jars from runs/compat/mods).
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
     maven {
         url = 'https://cursemaven.com'
         content { includeGroup 'curse.maven' }
@@ -92,16 +112,10 @@ repositories {
 
 dependencies {
     // Optional integrations: compiled against, never required at runtime (see compat/*).
-    compileOnly 'curse.maven:jei-238222:9205121'    // JEI 19.64.0.455
-    compileOnly 'curse.maven:emi-580555:8081408'    // EMI 1.1.24
-    compileOnly 'curse.maven:jade-324717:8591319'   // Jade 15.10.6
-    // Loaded in runClient / runServer / runGameTestServer so the integrations are exercised in dev.
-    runtimeOnly 'curse.maven:jei-238222:9205121'
-    runtimeOnly 'curse.maven:emi-580555:8081408'
-    runtimeOnly 'curse.maven:jade-324717:8591319'
-    // Dev only: Mekanism supplies iron/copper dust (Voltaic Dust recipe) and FE machines to test cables against.
-    runtimeOnly 'curse.maven:mekanism-268560:7904058'            // Mekanism 10.7.19
-    runtimeOnly 'curse.maven:mekanism-generators-268566:7904061' // Mekanism Generators 10.7.19
+    compileOnly 'maven.modrinth:jei:31.23.0.130'            // JEI for 26.3
+    compileOnly 'maven.modrinth:jade:26.3.5+neoforge'       // Jade for 26.3
+    // The other mods (JEI, Jade, storage mods...) are loaded at runtime only by runCompatClient and
+    // runCompatGameTestServer, from runs/compat/mods. Mekanism has no 26.3 build yet, so CompatGameTests skip it.
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -125,4 +139,9 @@ processResources {
     filesMatching('META-INF/neoforge.mods.toml') {
         expand modMetadata
     }
+}
+
+// EMI has no 26.3 build yet: its integration is left out until it does.
+sourceSets.main.java {
+    exclude 'com/voltaicdynamics/compat/emi/**'
 }

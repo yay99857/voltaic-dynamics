@@ -18,7 +18,7 @@ public abstract class VoltaicBlockEntity extends BlockEntity {
      * saves a chunk lookup and a comparator update per call. On the client it calls {@code setChanged()} directly.
      */
     public void saveChanges() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             setChanged();
         } else {
             DeferredSaves.schedule(this);

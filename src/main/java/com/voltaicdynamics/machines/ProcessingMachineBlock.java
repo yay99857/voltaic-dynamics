@@ -1,5 +1,7 @@
 package com.voltaicdynamics.machines;
 
+import java.util.function.Consumer;
+import com.voltaicdynamics.core.block.TooltipBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -21,7 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import com.voltaicdynamics.core.ModDataComponents;
@@ -35,8 +37,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /** Facing, lit state, GUI, drops, comparator and sparks shared by the FE processing machines. */
-public abstract class ProcessingMachineBlock extends BaseEntityBlock {
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+public abstract class ProcessingMachineBlock extends BaseEntityBlock implements TooltipBlock {
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
     protected ProcessingMachineBlock(BlockBehaviour.Properties properties) {
@@ -71,37 +73,29 @@ public abstract class ProcessingMachineBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide || type != blockEntityType().get()) return null;
+        if (level.isClientSide() || type != blockEntityType().get()) return null;
         return (lvl, pos, st, be) -> ProcessingMachineBlockEntity.tick(lvl, pos, st, (ProcessingMachineBlockEntity) be);
     }
 
     /** A machine item raised with a Tier Installer says so. */
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendTooltip(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltip, TooltipFlag flag) {
         MachineTier tier = stack.get(ModDataComponents.MACHINE_TIER.get());
         if (tier != null && tier != MachineTier.BASIC) {
-            tooltip.add(Component.translatable("jade.voltaicdynamics.tier", TierInstallerItem.tierName(tier), tier.parallel())
+            tooltip.accept(Component.translatable("jade.voltaicdynamics.tier", TierInstallerItem.tierName(tier), tier.parallel())
                     .withStyle(tier.color()));
         }
-        super.appendHoverText(stack, context, tooltip, flag);
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof ProcessingMachineBlockEntity machine
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ProcessingMachineBlockEntity machine
                 && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(machine, buf -> buf.writeBlockPos(pos));
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof ProcessingMachineBlockEntity machine) {
-            machine.drops();
-        }
-        super.onRemove(state, level, pos, newState, isMoving);
-    }
 
     @Override
     protected boolean hasAnalogOutputSignal(BlockState state) {
@@ -109,7 +103,7 @@ public abstract class ProcessingMachineBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
         return level.getBlockEntity(pos) instanceof ProcessingMachineBlockEntity machine ? machine.getComparatorSignal() : 0;
     }
 

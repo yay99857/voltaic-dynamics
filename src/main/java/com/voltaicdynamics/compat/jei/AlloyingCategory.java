@@ -12,12 +12,13 @@ import mezz.jei.api.gui.drawable.IDrawableAnimated;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeHolderType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 
@@ -27,8 +28,7 @@ import java.util.Map;
 
 /** JEI page for {@code voltaicdynamics:alloying}: three inputs, an animated arrow, the result, time and energy. */
 public class AlloyingCategory implements IRecipeCategory<RecipeHolder<AlloyingRecipe>> {
-    public static final RecipeType<RecipeHolder<AlloyingRecipe>> TYPE =
-            RecipeType.createRecipeHolderType(ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "alloying"));
+    public static final IRecipeHolderType<AlloyingRecipe> TYPE = IRecipeHolderType.create(VoltaicDynamics.id("alloying"));
     private static final int WIDTH = 120;
     private static final int HEIGHT = 40;
 
@@ -44,7 +44,7 @@ public class AlloyingCategory implements IRecipeCategory<RecipeHolder<AlloyingRe
     }
 
     @Override
-    public RecipeType<RecipeHolder<AlloyingRecipe>> getRecipeType() {
+    public IRecipeType<RecipeHolder<AlloyingRecipe>> getRecipeType() {
         return TYPE;
     }
 
@@ -75,23 +75,23 @@ public class AlloyingCategory implements IRecipeCategory<RecipeHolder<AlloyingRe
             SizedIngredient ingredient = recipe.ingredients().get(i);
             builder.addInputSlot(1 + i * 18, 4)
                     .setStandardSlotBackground()
-                    .addItemStacks(Arrays.asList(ingredient.getItems()));
+                    .add(ingredient.ingredient());
         }
         for (int i = recipe.ingredients().size(); i < AlloyingRecipe.MAX_INGREDIENTS; i++) {
             builder.addInputSlot(1 + i * 18, 4).setStandardSlotBackground();
         }
-        builder.addOutputSlot(97, 4).setOutputSlotBackground().addItemStack(recipe.result());
+        builder.addOutputSlot(97, 4).setOutputSlotBackground().add(recipe.result());
         builder.setShapeless(WIDTH - 10, 0);
     }
 
     @Override
-    public void draw(RecipeHolder<AlloyingRecipe> holder, IRecipeSlotsView slots, GuiGraphics g, double mouseX, double mouseY) {
+    public void draw(RecipeHolder<AlloyingRecipe> holder, IRecipeSlotsView slots, GuiGraphicsExtractor g, double mouseX, double mouseY) {
         int ticks = AlloySmelterBlockEntity.scaledTime(holder.value().time());
         arrows.computeIfAbsent(ticks, t -> guiHelper.createAnimatedRecipeArrow(t)).draw(g, 62, 4);
         var font = Minecraft.getInstance().font;
         int energy = ticks * VoltaicConfig.get(VoltaicConfig.ALLOY_ENERGY_PER_TICK);
         Component text = Component.translatable("jei.voltaicdynamics.alloying.info",
                 String.format("%.1f", ticks / 20.0), String.format("%,d", energy));
-        g.drawString(font, text, 0, HEIGHT - 10, 0xFF606060, false);
+        g.text(font, text, 0, HEIGHT - 10, 0xFF606060, false);
     }
 }

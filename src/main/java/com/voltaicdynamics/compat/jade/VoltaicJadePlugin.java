@@ -24,7 +24,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import snownee.jade.api.Accessor;
@@ -37,8 +37,9 @@ import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
 import snownee.jade.api.WailaPlugin;
 import snownee.jade.api.config.IPluginConfig;
-import snownee.jade.api.ui.IElement;
-import snownee.jade.api.ui.IElementHelper;
+import snownee.jade.api.ui.Element;
+import snownee.jade.api.ui.JadeUI;
+import snownee.jade.api.view.EnergyView;
 import snownee.jade.api.view.IServerExtensionProvider;
 import snownee.jade.api.view.ViewGroup;
 
@@ -51,17 +52,17 @@ import java.util.List;
  */
 @WailaPlugin(VoltaicDynamics.MOD_ID)
 public class VoltaicJadePlugin implements IWailaPlugin {
-    static final ResourceLocation MACHINE_INFO = ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "machine_info");
-    static final ResourceLocation TANK_ICON = ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "tank_icon");
-    static final ResourceLocation CABLE_ENERGY = ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "cable_energy");
+    static final Identifier MACHINE_INFO = Identifier.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "machine_info");
+    static final Identifier TANK_ICON = Identifier.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "tank_icon");
+    static final Identifier CABLE_ENERGY = Identifier.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "cable_energy");
 
     @Override
     public void register(IWailaCommonRegistration registration) {
-        registration.registerBlockDataProvider(MachineInfo.INSTANCE, ProcessingMachineBlockEntity.class);
-        registration.registerBlockDataProvider(MachineInfo.INSTANCE, LogisticsCableBlockEntity.class);
-        registration.registerBlockDataProvider(MachineInfo.INSTANCE, CombustionGeneratorBlockEntity.class);
-        registration.registerBlockDataProvider(MachineInfo.INSTANCE, FluidGeneratorBlockEntity.class);
-        registration.registerBlockDataProvider(MachineInfo.INSTANCE, ThermoelectricGeneratorBlockEntity.class);
+        registration.registerBlockDataProvider(MachineData.INSTANCE, ProcessingMachineBlockEntity.class);
+        registration.registerBlockDataProvider(MachineData.INSTANCE, LogisticsCableBlockEntity.class);
+        registration.registerBlockDataProvider(MachineData.INSTANCE, CombustionGeneratorBlockEntity.class);
+        registration.registerBlockDataProvider(MachineData.INSTANCE, FluidGeneratorBlockEntity.class);
+        registration.registerBlockDataProvider(MachineData.INSTANCE, ThermoelectricGeneratorBlockEntity.class);
         registration.registerEnergyStorage(NoCableEnergy.INSTANCE, VoltaicCableBlockEntity.class);
     }
 
@@ -75,11 +76,12 @@ public class VoltaicJadePlugin implements IWailaPlugin {
         registration.registerBlockIcon(TankIcon.INSTANCE, FluidTankBlock.class);
     }
 
-    enum MachineInfo implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
+    /** Server side of the machine tooltip: progress, tier, network size, generation rate. */
+    enum MachineData implements IServerDataProvider<BlockAccessor> {
         INSTANCE;
 
         @Override
-        public ResourceLocation getUid() {
+        public Identifier getUid() {
             return MACHINE_INFO;
         }
 
@@ -110,25 +112,36 @@ public class VoltaicJadePlugin implements IWailaPlugin {
             }
         }
 
+    }
+
+    /** Client side of the machine tooltip, from what {@link MachineData} sent. */
+    enum MachineInfo implements IBlockComponentProvider {
+        INSTANCE;
+
+        @Override
+        public Identifier getUid() {
+            return MACHINE_INFO;
+        }
+
         @Override
         public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
             CompoundTag data = accessor.getServerData();
             if (data.contains("Progress")) {
-                MachineTier tier = MachineTier.byOrdinal(data.getInt("Tier"));
+                MachineTier tier = MachineTier.byOrdinal(data.getIntOr("Tier", 0));
                 if (tier != MachineTier.BASIC) {
                     tooltip.add(Component.translatable("jade.voltaicdynamics.tier", TierInstallerItem.tierName(tier), tier.parallel())
                             .withStyle(tier.color()));
                 }
-                int total = Math.max(1, data.getInt("Total"));
-                int percent = data.getInt("Progress") * 100 / total;
+                int total = Math.max(1, data.getIntOr("Total", 0));
+                int percent = data.getIntOr("Progress", 0) * 100 / total;
                 if (percent > 0) {
                     tooltip.add(Component.translatable("jade.voltaicdynamics.progress", percent));
                 }
             } else if (data.contains("Cables")) {
-                tooltip.add(Component.translatable("jade.voltaicdynamics.network", data.getInt("Cables"),
-                        data.getInt("Pulls"), data.getInt("Targets")).withStyle(ChatFormatting.GRAY));
+                tooltip.add(Component.translatable("jade.voltaicdynamics.network", data.getIntOr("Cables", 0),
+                        data.getIntOr("Pulls", 0), data.getIntOr("Targets", 0)).withStyle(ChatFormatting.GRAY));
             } else if (data.contains("Rate")) {
-                int rate = data.getInt("Rate");
+                int rate = data.getIntOr("Rate", 0);
                 tooltip.add(rate > 0
                         ? Component.translatable("jade.voltaicdynamics.generating", rate)
                         : Component.translatable("jade.voltaicdynamics.idle").withStyle(ChatFormatting.GRAY));
@@ -144,18 +157,18 @@ public class VoltaicJadePlugin implements IWailaPlugin {
         INSTANCE;
 
         @Override
-        public ResourceLocation getUid() {
+        public Identifier getUid() {
             return TANK_ICON;
         }
 
         @Override
-        public IElement getIcon(BlockAccessor accessor, IPluginConfig config, IElement currentIcon) {
+        public Element getIcon(BlockAccessor accessor, IPluginConfig config, Element currentIcon) {
             if (!(accessor.getBlockEntity() instanceof FluidTankBlockEntity tank)) return currentIcon;
             ItemStack stack = new ItemStack(tank.getBlockState().getBlock());
             if (!tank.getFluid().isEmpty()) {
                 stack.set(ModDataComponents.FLUID.get(), SimpleFluidContent.copyOf(tank.getFluid()));
             }
-            return IElementHelper.get().item(stack);
+            return JadeUI.item(stack);
         }
 
         @Override
@@ -163,16 +176,16 @@ public class VoltaicJadePlugin implements IWailaPlugin {
         }
     }
 
-    enum NoCableEnergy implements IServerExtensionProvider<CompoundTag> {
+    enum NoCableEnergy implements IServerExtensionProvider<EnergyView.Data> {
         INSTANCE;
 
         @Override
-        public ResourceLocation getUid() {
+        public Identifier getUid() {
             return CABLE_ENERGY;
         }
 
         @Override
-        public List<ViewGroup<CompoundTag>> getGroups(Accessor<?> accessor) {
+        public List<ViewGroup<EnergyView.Data>> getGroups(Accessor<?> accessor) {
             return List.of(); // handled: show no energy bar for cables
         }
     }

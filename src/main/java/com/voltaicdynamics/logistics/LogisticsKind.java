@@ -8,8 +8,8 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 
 /** Item cables and fluid cables share all network code; only the capability differs. */
 public enum LogisticsKind {
-    ITEM(Capabilities.ItemHandler.BLOCK),
-    FLUID(Capabilities.FluidHandler.BLOCK);
+    ITEM(Capabilities.Item.BLOCK),
+    FLUID(Capabilities.Fluid.BLOCK);
 
     private final BlockCapability<?, Direction> capability;
 

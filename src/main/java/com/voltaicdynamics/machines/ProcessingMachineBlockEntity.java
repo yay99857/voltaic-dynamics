@@ -9,10 +9,12 @@ import com.voltaicdynamics.core.sideconfig.SideConfigHelper;
 import com.voltaicdynamics.core.sideconfig.SideConfigurable;
 import com.voltaicdynamics.core.sideconfig.SidedHandlers;
 import com.voltaicdynamics.core.sideconfig.TransferType;
+import com.voltaicdynamics.core.transfer.VoltaicItemHandler;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -23,16 +25,19 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -51,11 +56,11 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
 
     protected final int inputSlots;
     protected final VoltaicEnergyStorage energyStorage;
-    protected final ItemStackHandler itemHandler;
+    protected final VoltaicItemHandler itemHandler;
     /** Speed and efficiency upgrades; not reachable by pipes. */
-    protected final ItemStackHandler upgradeHandler;
+    protected final VoltaicItemHandler upgradeHandler;
     public static final int UPGRADE_SLOTS = 2;
-    private final IItemHandler automationHandler;
+    private final ResourceHandler<ItemResource> automationHandler;
     private final SideConfig sideConfig;
     private final SidedHandlers sided;
     private final SideConfigHelper.Neighbors neighbors = new SideConfigHelper.Neighbors(this);
@@ -75,7 +80,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     @Nullable
     private Craft cachedCraft;
     @Nullable
-    private RecipeManager cachedRecipes;
+    private RecipeMap cachedRecipes;
 
     /**
      * One operation the machine can run with what is in its input slots right now. {@code bonusChance} (0..1) is
@@ -99,7 +104,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
         this.inputSlots = inputSlots;
         this.craftInputs = new ItemStack[inputSlots];
         this.energyStorage = new VoltaicEnergyStorage(capacity, MAX_INPUT, 0, this::saveChanges);
-        this.itemHandler = new ItemStackHandler(inputSlots + 1) {
+        this.itemHandler = new VoltaicItemHandler(inputSlots + 1) {
             @Override
             protected void onContentsChanged(int slot) {
                 saveChanges();
@@ -110,7 +115,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
                 return slot < ProcessingMachineBlockEntity.this.inputSlots && isValidInput(stack);
             }
         };
-        this.upgradeHandler = new ItemStackHandler(UPGRADE_SLOTS) {
+        this.upgradeHandler = new VoltaicItemHandler(UPGRADE_SLOTS) {
             @Override
             protected void onContentsChanged(int slot) {
                 saveChanges();
@@ -126,44 +131,47 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
                 return UpgradeItem.MAX_PER_TYPE;
             }
         };
-        this.automationHandler = new IItemHandler() {
+        this.automationHandler = new ResourceHandler<>() {
             @Override
-            public int getSlots() {
-                return itemHandler.getSlots();
+            public int size() {
+                return itemHandler.size();
             }
 
             @Override
-            public ItemStack getStackInSlot(int slot) {
-                return itemHandler.getStackInSlot(slot);
+            public ItemResource getResource(int slot) {
+                return itemHandler.getResource(slot);
             }
 
             @Override
-            public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-                if (slot >= ProcessingMachineBlockEntity.this.inputSlots) return stack;
+            public long getAmountAsLong(int slot) {
+                return itemHandler.getAmountAsLong(slot);
+            }
+
+            @Override
+            public long getCapacityAsLong(int slot, ItemResource resource) {
+                return itemHandler.getCapacityAsLong(slot, resource);
+            }
+
+            @Override
+            public boolean isValid(int slot, ItemResource resource) {
+                return slot < ProcessingMachineBlockEntity.this.inputSlots && itemHandler.isValid(slot, resource);
+            }
+
+            @Override
+            public int insert(int slot, ItemResource resource, int amount, TransactionContext transaction) {
+                if (slot >= ProcessingMachineBlockEntity.this.inputSlots) return 0;
                 // Pipes spread one item type over one slot only, so a stream of iron cannot fill every slot.
-                if (ProcessingMachineBlockEntity.this.inputSlots > 1 && itemHandler.getStackInSlot(slot).isEmpty()) {
+                if (ProcessingMachineBlockEntity.this.inputSlots > 1 && itemHandler.getResource(slot).isEmpty()) {
                     for (int other = 0; other < ProcessingMachineBlockEntity.this.inputSlots; other++) {
-                        if (other != slot && ItemStack.isSameItemSameComponents(itemHandler.getStackInSlot(other), stack)) {
-                            return stack;
-                        }
+                        if (other != slot && itemHandler.getResource(other).equals(resource)) return 0;
                     }
                 }
-                return itemHandler.insertItem(slot, stack, simulate);
+                return itemHandler.insert(slot, resource, amount, transaction);
             }
 
             @Override
-            public ItemStack extractItem(int slot, int amount, boolean simulate) {
-                return slot == outputSlot() ? itemHandler.extractItem(slot, amount, simulate) : ItemStack.EMPTY;
-            }
-
-            @Override
-            public int getSlotLimit(int slot) {
-                return itemHandler.getSlotLimit(slot);
-            }
-
-            @Override
-            public boolean isItemValid(int slot, ItemStack stack) {
-                return slot < ProcessingMachineBlockEntity.this.inputSlots && itemHandler.isItemValid(slot, stack);
+            public int extract(int slot, ItemResource resource, int amount, TransactionContext transaction) {
+                return slot == outputSlot() ? itemHandler.extract(slot, resource, amount, transaction) : 0;
             }
         };
         this.sideConfig = SideConfig.builder()
@@ -221,7 +229,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
         return Math.max(1, (int) Math.round(baseTicks / UpgradeItem.speedFactor(upgrades(UpgradeItem.Type.SPEED))));
     }
 
-    public IItemHandler getUpgradeHandler() {
+    public VoltaicItemHandler getUpgradeHandler() {
         return upgradeHandler;
     }
 
@@ -254,7 +262,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     /** {@link #findCraft} for the current inputs, reused while the inputs and the loaded recipes stay the same. */
     @Nullable
     private Craft currentCraft(Level level) {
-        RecipeManager recipes = level.getRecipeManager();
+        RecipeMap recipes = ((ServerLevel) level).recipeAccess().recipeMap();
         boolean same = cachedRecipes == recipes;
         for (int slot = 0; same && slot < inputSlots; slot++) {
             ItemStack previous = craftInputs[slot];
@@ -297,7 +305,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
             craft.consume().accept(times);
             ItemStack made = craft.result().copyWithCount(craft.result().getCount() * times);
             if (craft.bonusChance() > 0) {
-                for (int i = 0; i < times; i++) if (level.random.nextFloat() < craft.bonusChance()) made.grow(1);
+                for (int i = 0; i < times; i++) if (level.getRandom().nextFloat() < craft.bonusChance()) made.grow(1);
             }
             ItemStack output = itemHandler.getStackInSlot(outputSlot());
             if (output.isEmpty()) {
@@ -324,7 +332,7 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
         if (!(level instanceof ServerLevel serverLevel) || storedExperience <= 0) return;
         int whole = Mth.floor(storedExperience);
         float fraction = Mth.frac(storedExperience);
-        if (fraction > 0 && serverLevel.random.nextFloat() < fraction) whole++;
+        if (fraction > 0 && serverLevel.getRandom().nextFloat() < fraction) whole++;
         storedExperience = 0;
         saveChanges();
         if (whole > 0) ExperienceOrb.award(serverLevel, player.position(), whole);
@@ -344,8 +352,14 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
         return Math.max(1, Math.round(15.0F * fill / inputSlots));
     }
 
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        drops();
+    }
+
     public void drops() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             SimpleContainer inventory = new SimpleContainer(itemHandler.getSlots());
             for (int i = 0; i < itemHandler.getSlots(); i++) {
                 inventory.setItem(i, itemHandler.getStackInSlot(i));
@@ -359,16 +373,16 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     }
 
     @Nullable
-    public IEnergyStorage getEnergyStorage(@Nullable Direction side) {
+    public EnergyHandler getEnergyStorage(@Nullable Direction side) {
         return sided.energy(side);
     }
 
     @Nullable
-    public IItemHandler getItemHandler(@Nullable Direction side) {
+    public ResourceHandler<ItemResource> getItemHandler(@Nullable Direction side) {
         return sided.items(side);
     }
 
-    public IItemHandler getMenuItemHandler() {
+    public VoltaicItemHandler getMenuItemHandler() {
         return itemHandler;
     }
 
@@ -405,22 +419,22 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Inventory", itemHandler.serializeNBT(registries));
-        tag.put("Energy", energyStorage.serializeNBT(registries));
-        tag.putInt("Progress", progress);
-        tag.putFloat("Experience", storedExperience);
-        tag.put("SideConfig", sideConfig.save());
-        tag.put("Upgrades", upgradeHandler.serializeNBT(registries));
-        if (tier != MachineTier.BASIC) tag.putString("Tier", tier.getSerializedName());
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        itemHandler.serialize(output.child("Inventory"));
+        energyStorage.serialize(output);
+        output.putInt("Progress", progress);
+        output.putFloat("Experience", storedExperience);
+        sideConfig.save(output);
+        upgradeHandler.serialize(output.child("Upgrades"));
+        if (tier != MachineTier.BASIC) output.putString("Tier", tier.getSerializedName());
     }
 
     // The tier travels with the item when the machine is broken.
     @Override
-    protected void applyImplicitComponents(DataComponentInput input) {
-        super.applyImplicitComponents(input);
-        tier = input.getOrDefault(ModDataComponents.MACHINE_TIER.get(), MachineTier.BASIC);
+    protected void applyImplicitComponents(DataComponentGetter components) {
+        super.applyImplicitComponents(components);
+        tier = components.getOrDefault(ModDataComponents.MACHINE_TIER.get(), MachineTier.BASIC);
     }
 
     @Override
@@ -430,9 +444,9 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     }
 
     @Override
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        tag.remove("Tier");
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        output.discard("Tier");
     }
 
     /** Clients get the tier for the GUI badge and Jade. */
@@ -450,15 +464,15 @@ public abstract class ProcessingMachineBlockEntity extends VoltaicBlockEntity im
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("Inventory")) itemHandler.deserializeNBT(registries, tag.getCompound("Inventory"));
-        if (tag.contains("Energy")) energyStorage.deserializeNBT(registries, tag.getCompound("Energy"));
-        progress = tag.getInt("Progress");
-        storedExperience = tag.getFloat("Experience");
-        if (tag.contains("SideConfig")) sideConfig.load(tag.getCompound("SideConfig"));
-        if (tag.contains("Upgrades")) upgradeHandler.deserializeNBT(registries, tag.getCompound("Upgrades"));
-        tier = tag.contains("Tier") ? MachineTier.byName(tag.getString("Tier")) : MachineTier.BASIC;
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        input.child("Inventory").ifPresent(itemHandler::deserialize);
+        energyStorage.deserialize(input);
+        progress = input.getIntOr("Progress", 0);
+        storedExperience = input.getFloatOr("Experience", 0F);
+        sideConfig.load(input);
+        input.child("Upgrades").ifPresent(upgradeHandler::deserialize);
+        tier = input.getString("Tier").map(MachineTier::byName).orElse(MachineTier.BASIC);
         sided.invalidate();
     }
 }

@@ -1,5 +1,8 @@
 package com.voltaicdynamics.power;
 
+import net.neoforged.neoforge.transfer.TransferPreconditions;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import com.voltaicdynamics.VoltaicConfig;
 
 import net.minecraft.core.BlockPos;
@@ -7,7 +10,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -15,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * {@link CableNetwork}, which routes energy in the same call (see {@link CableNetworkManager}).
  */
 public class VoltaicCableBlockEntity extends BlockEntity {
-    private final IEnergyStorage[] faces = new IEnergyStorage[7];
+    private final EnergyHandler[] faces = new EnergyHandler[7];
 
     public VoltaicCableBlockEntity(BlockPos pos, BlockState blockState) {
         super(VoltaicPower.VOLTAIC_CABLE_BE.get(), pos, blockState);
@@ -37,9 +39,9 @@ public class VoltaicCableBlockEntity extends BlockEntity {
         }
     }
 
-    public IEnergyStorage getEnergyStorage(@Nullable Direction side) {
+    public EnergyHandler getEnergyStorage(@Nullable Direction side) {
         int index = side == null ? 6 : side.ordinal();
-        IEnergyStorage face = faces[index];
+        EnergyHandler face = faces[index];
         if (face == null) {
             face = new Face(side);
             faces[index] = face;
@@ -47,7 +49,8 @@ public class VoltaicCableBlockEntity extends BlockEntity {
         return face;
     }
 
-    private final class Face implements IEnergyStorage {
+    /** A cable face: passes what it is given straight on to the network, stores nothing and gives nothing. */
+    private final class Face implements EnergyHandler {
         @Nullable
         private final Direction side;
 
@@ -56,35 +59,26 @@ public class VoltaicCableBlockEntity extends BlockEntity {
         }
 
         @Override
-        public int receiveEnergy(int maxReceive, boolean simulate) {
+        public int insert(int amount, TransactionContext transaction) {
+            TransferPreconditions.checkNonNegative(amount);
             if (!(level instanceof ServerLevel serverLevel) || isRemoved()) return 0;
             CableNetwork network = CableNetworkManager.get(serverLevel).getNetwork(worldPosition);
-            return network == null ? 0 : network.insert(worldPosition, side, maxReceive, simulate);
+            return network == null ? 0 : network.insert(worldPosition, side, amount, transaction);
         }
 
         @Override
-        public int extractEnergy(int maxExtract, boolean simulate) {
+        public int extract(int amount, TransactionContext transaction) {
             return 0;
         }
 
         @Override
-        public int getEnergyStored() {
+        public long getAmountAsLong() {
             return 0;
         }
 
         @Override
-        public int getMaxEnergyStored() {
+        public long getCapacityAsLong() {
             return VoltaicConfig.get(VoltaicConfig.CABLE_TRANSFER);
-        }
-
-        @Override
-        public boolean canExtract() {
-            return false;
-        }
-
-        @Override
-        public boolean canReceive() {
-            return true;
         }
     }
 }

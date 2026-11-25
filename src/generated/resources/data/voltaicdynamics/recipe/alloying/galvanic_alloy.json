@@ -4,15 +4,15 @@
   "ingredients": [
     {
       "count": 1,
-      "tag": "c:ingots/voltaic"
+      "ingredient": "#c:ingots/voltaic"
     },
     {
       "count": 1,
-      "tag": "c:ingots/gold"
+      "ingredient": "#c:ingots/gold"
     },
     {
       "count": 1,
-      "tag": "c:dusts/redstone"
+      "ingredient": "#c:dusts/redstone"
     }
   ],
   "result": {

@@ -2,7 +2,9 @@ package com.voltaicdynamics.core.energy;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -26,9 +28,9 @@ public final class RecentInputFaces {
         Arrays.fill(lastInput, Long.MIN_VALUE / 2);
     }
 
-    /** The capability for {@code side}, recording every insert that goes through it. */
+    /** The capability for {@code side}, recording every committed insert that goes through it. */
     @Nullable
-    public IEnergyStorage wrap(@Nullable Direction side, @Nullable IEnergyStorage base) {
+    public EnergyHandler wrap(@Nullable Direction side, @Nullable EnergyHandler base) {
         if (base == null || side == null) return base;
         Face face = faces[side.ordinal()];
         if (face == null || face.base != base) {
@@ -42,47 +44,50 @@ public final class RecentInputFaces {
         return owner.getLevel() != null && owner.getLevel().getGameTime() - lastInput[side.ordinal()] <= WINDOW;
     }
 
-    private final class Face implements IEnergyStorage {
-        private final IEnergyStorage base;
+    private final class Face implements EnergyHandler {
+        private final EnergyHandler base;
         private final int index;
+        /** Rolls the timestamp back when the insert that set it is aborted (a simulation). */
+        private final SnapshotJournal<Long> journal = new SnapshotJournal<>() {
+            @Override
+            protected Long createSnapshot() {
+                return lastInput[index];
+            }
 
-        private Face(IEnergyStorage base, int index) {
+            @Override
+            protected void revertToSnapshot(Long snapshot) {
+                lastInput[index] = snapshot;
+            }
+        };
+
+        private Face(EnergyHandler base, int index) {
             this.base = base;
             this.index = index;
         }
 
         @Override
-        public int receiveEnergy(int maxReceive, boolean simulate) {
-            int received = base.receiveEnergy(maxReceive, simulate);
-            if (received > 0 && !simulate && owner.getLevel() != null) {
+        public int insert(int amount, TransactionContext transaction) {
+            int received = base.insert(amount, transaction);
+            if (received > 0 && owner.getLevel() != null) {
+                journal.updateSnapshots(transaction);
                 lastInput[index] = owner.getLevel().getGameTime();
             }
             return received;
         }
 
         @Override
-        public int extractEnergy(int maxExtract, boolean simulate) {
-            return base.extractEnergy(maxExtract, simulate);
+        public int extract(int amount, TransactionContext transaction) {
+            return base.extract(amount, transaction);
         }
 
         @Override
-        public int getEnergyStored() {
-            return base.getEnergyStored();
+        public long getAmountAsLong() {
+            return base.getAmountAsLong();
         }
 
         @Override
-        public int getMaxEnergyStored() {
-            return base.getMaxEnergyStored();
-        }
-
-        @Override
-        public boolean canExtract() {
-            return base.canExtract();
-        }
-
-        @Override
-        public boolean canReceive() {
-            return base.canReceive();
+        public long getCapacityAsLong() {
+            return base.getCapacityAsLong();
         }
     }
 }

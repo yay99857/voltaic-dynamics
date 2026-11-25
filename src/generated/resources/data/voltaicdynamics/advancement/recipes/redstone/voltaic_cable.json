@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:voltaic_cable"
+        "recipes": "voltaicdynamics:voltaic_cable"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

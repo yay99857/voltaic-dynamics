@@ -26,19 +26,19 @@ import java.util.Collection;
 import java.util.List;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /** JEI: machines as catalysts, clickable progress areas, the "+" transfer for the furnace and info pages. */
 @JeiPlugin
 public class VoltaicJeiPlugin implements IModPlugin {
     @Override
-    public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "jei_plugin");
+    public Identifier getPluginUid() {
+        return Identifier.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "jei_plugin");
     }
 
     @Override
@@ -52,7 +52,7 @@ public class VoltaicJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(VoltaicMachines.ALLOY_SMELTER.get(), AlloyingCategory.TYPE);
         registration.addRecipeCatalyst(VoltaicMachines.PULVERIZER.get(), CrushingCategory.TYPE);
         registration.addRecipeCatalyst(VoltaicMachines.ELECTRIC_FURNACE.get(), RecipeTypes.SMELTING);
-        registration.addRecipeCatalyst(VoltaicGenerators.COMBUSTION_GENERATOR.get(), RecipeTypes.FUELING);
+        registration.addRecipeCatalyst(VoltaicGenerators.COMBUSTION_GENERATOR.get(), RecipeTypes.SMELTING_FUEL);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class VoltaicJeiPlugin implements IModPlugin {
             /** Clicking the arrow or flame (as placed by the screen layout) opens the matching recipes. */
             @Override
             public Collection<IGuiClickableArea> getGuiClickableAreas(MachineScreen<?> screen, double mouseX, double mouseY) {
-                RecipeType<?> type = null;
+                IRecipeType<?> type = null;
                 String widget = "progress";
                 if (screen instanceof ElectricFurnaceScreen) {
                     type = RecipeTypes.SMELTING;
@@ -76,7 +76,7 @@ public class VoltaicJeiPlugin implements IModPlugin {
                 } else if (screen instanceof PulverizerScreen) {
                     type = CrushingCategory.TYPE;
                 } else if (screen instanceof CombustionGeneratorScreen) {
-                    type = RecipeTypes.FUELING;
+                    type = RecipeTypes.SMELTING_FUEL;
                     widget = "burn";
                 }
                 ScreenLayout.Widget area = type == null ? null : screen.widget(widget);
@@ -101,13 +101,12 @@ public class VoltaicJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level != null) {
-            registration.addRecipes(AlloyingCategory.TYPE,
-                    List.copyOf(level.getRecipeManager().getAllRecipesFor(ModRecipes.ALLOYING.get())));
-            registration.addRecipes(CrushingCategory.TYPE,
-                    List.copyOf(level.getRecipeManager().getAllRecipesFor(ModRecipes.CRUSHING.get())));
-        }
+        // Recipes live on the server; ours are sent to clients when they join (see ModRecipes.syncToClients).
+        registration.addRecipes(AlloyingCategory.TYPE, List.copyOf(ModRecipes.clientRecipes().byType(ModRecipes.ALLOYING.get())));
+        registration.addRecipes(CrushingCategory.TYPE, List.copyOf(ModRecipes.clientRecipes().byType(ModRecipes.CRUSHING.get())));
+        VoltaicDynamics.LOGGER.debug("JEI: {} alloying and {} crushing recipes",
+                ModRecipes.clientRecipes().byType(ModRecipes.ALLOYING.get()).size(),
+                ModRecipes.clientRecipes().byType(ModRecipes.CRUSHING.get()).size());
         for (VoltaicInfo.Entry entry : VoltaicInfo.ENTRIES) {
             registration.addIngredientInfo(entry.item().get(), entry.text());
         }

@@ -1,11 +1,12 @@
 package com.voltaicdynamics.core.sideconfig;
 
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.resource.Resource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -16,15 +17,15 @@ import org.jetbrains.annotations.Nullable;
 public final class SidedHandlers {
     private final SideConfigurable owner;
     @Nullable
-    private final IItemHandler items;
+    private final ResourceHandler<ItemResource> items;
     @Nullable
-    private final IFluidHandler fluids;
+    private final ResourceHandler<FluidResource> fluids;
     @Nullable
-    private final IEnergyStorage energy;
+    private final EnergyHandler energy;
     private final Object[][] cache = new Object[3][6];
 
-    public SidedHandlers(SideConfigurable owner, @Nullable IItemHandler items, @Nullable IFluidHandler fluids,
-                         @Nullable IEnergyStorage energy) {
+    public SidedHandlers(SideConfigurable owner, @Nullable ResourceHandler<ItemResource> items,
+                         @Nullable ResourceHandler<FluidResource> fluids, @Nullable EnergyHandler energy) {
         this.owner = owner;
         this.items = items;
         this.fluids = fluids;
@@ -40,35 +41,33 @@ public final class SidedHandlers {
     }
 
     @Nullable
-    public IItemHandler items(@Nullable Direction side) {
-        if (items == null) return null;
-        if (side == null) return items;
-        IoMode mode = mode(TransferType.ITEM, side);
+    public ResourceHandler<ItemResource> items(@Nullable Direction side) {
+        return view(items, TransferType.ITEM, 0, side);
+    }
+
+    @Nullable
+    public ResourceHandler<FluidResource> fluids(@Nullable Direction side) {
+        return view(fluids, TransferType.FLUID, 1, side);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    private <T extends Resource> ResourceHandler<T> view(@Nullable ResourceHandler<T> base, TransferType type, int row,
+                                                         @Nullable Direction side) {
+        if (base == null) return null;
+        if (side == null) return base;
+        IoMode mode = mode(type, side);
         if (mode == IoMode.NONE) return null;
-        if (mode == IoMode.BOTH) return items;
-        Object cached = cache[0][side.ordinal()];
-        if (cached instanceof ItemView view && view.mode == mode) return view;
-        ItemView view = new ItemView(items, mode);
-        cache[0][side.ordinal()] = view;
+        if (mode == IoMode.BOTH) return base;
+        Object cached = cache[row][side.ordinal()];
+        if (cached instanceof ResourceView<?> view && view.mode == mode) return (ResourceHandler<T>) view;
+        ResourceView<T> view = new ResourceView<>(base, mode);
+        cache[row][side.ordinal()] = view;
         return view;
     }
 
     @Nullable
-    public IFluidHandler fluids(@Nullable Direction side) {
-        if (fluids == null) return null;
-        if (side == null) return fluids;
-        IoMode mode = mode(TransferType.FLUID, side);
-        if (mode == IoMode.NONE) return null;
-        if (mode == IoMode.BOTH) return fluids;
-        Object cached = cache[1][side.ordinal()];
-        if (cached instanceof FluidView view && view.mode == mode) return view;
-        FluidView view = new FluidView(fluids, mode);
-        cache[1][side.ordinal()] = view;
-        return view;
-    }
-
-    @Nullable
-    public IEnergyStorage energy(@Nullable Direction side) {
+    public EnergyHandler energy(@Nullable Direction side) {
         if (energy == null) return null;
         if (side == null) return energy;
         IoMode mode = mode(TransferType.ENERGY, side);
@@ -81,85 +80,51 @@ public final class SidedHandlers {
         return view;
     }
 
-    private record ItemView(IItemHandler base, IoMode mode) implements IItemHandler {
-        public int getSlots() {
-            return base.getSlots();
+    private record ResourceView<T extends Resource>(ResourceHandler<T> base, IoMode mode) implements ResourceHandler<T> {
+        public int size() {
+            return base.size();
         }
 
-        public ItemStack getStackInSlot(int slot) {
-            return base.getStackInSlot(slot);
+        public T getResource(int index) {
+            return base.getResource(index);
         }
 
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return mode.canInput() ? base.insertItem(slot, stack, simulate) : stack;
+        public long getAmountAsLong(int index) {
+            return base.getAmountAsLong(index);
         }
 
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return mode.canOutput() ? base.extractItem(slot, amount, simulate) : ItemStack.EMPTY;
+        public long getCapacityAsLong(int index, T resource) {
+            return base.getCapacityAsLong(index, resource);
         }
 
-        public int getSlotLimit(int slot) {
-            return base.getSlotLimit(slot);
+        public boolean isValid(int index, T resource) {
+            return mode.canInput() && base.isValid(index, resource);
         }
 
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return mode.canInput() && base.isItemValid(slot, stack);
-        }
-    }
-
-    private record FluidView(IFluidHandler base, IoMode mode) implements IFluidHandler {
-        public int getTanks() {
-            return base.getTanks();
+        public int insert(int index, T resource, int amount, TransactionContext transaction) {
+            return mode.canInput() ? base.insert(index, resource, amount, transaction) : 0;
         }
 
-        public FluidStack getFluidInTank(int tank) {
-            return base.getFluidInTank(tank);
-        }
-
-        public int getTankCapacity(int tank) {
-            return base.getTankCapacity(tank);
-        }
-
-        public boolean isFluidValid(int tank, FluidStack stack) {
-            return mode.canInput() && base.isFluidValid(tank, stack);
-        }
-
-        public int fill(FluidStack resource, FluidAction action) {
-            return mode.canInput() ? base.fill(resource, action) : 0;
-        }
-
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            return mode.canOutput() ? base.drain(resource, action) : FluidStack.EMPTY;
-        }
-
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            return mode.canOutput() ? base.drain(maxDrain, action) : FluidStack.EMPTY;
+        public int extract(int index, T resource, int amount, TransactionContext transaction) {
+            return mode.canOutput() ? base.extract(index, resource, amount, transaction) : 0;
         }
     }
 
-    private record EnergyView(IEnergyStorage base, IoMode mode) implements IEnergyStorage {
-        public int receiveEnergy(int maxReceive, boolean simulate) {
-            return mode.canInput() ? base.receiveEnergy(maxReceive, simulate) : 0;
+    private record EnergyView(EnergyHandler base, IoMode mode) implements EnergyHandler {
+        public long getAmountAsLong() {
+            return base.getAmountAsLong();
         }
 
-        public int extractEnergy(int maxExtract, boolean simulate) {
-            return mode.canOutput() ? base.extractEnergy(maxExtract, simulate) : 0;
+        public long getCapacityAsLong() {
+            return base.getCapacityAsLong();
         }
 
-        public int getEnergyStored() {
-            return base.getEnergyStored();
+        public int insert(int amount, TransactionContext transaction) {
+            return mode.canInput() ? base.insert(amount, transaction) : 0;
         }
 
-        public int getMaxEnergyStored() {
-            return base.getMaxEnergyStored();
-        }
-
-        public boolean canExtract() {
-            return mode.canOutput() && base.canExtract();
-        }
-
-        public boolean canReceive() {
-            return mode.canInput() && base.canReceive();
+        public int extract(int amount, TransactionContext transaction) {
+            return mode.canOutput() ? base.extract(amount, transaction) : 0;
         }
     }
 }

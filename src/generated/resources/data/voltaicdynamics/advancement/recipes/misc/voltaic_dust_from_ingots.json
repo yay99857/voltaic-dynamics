@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:voltaic_dust_from_ingots"
+        "recipes": "voltaicdynamics:voltaic_dust_from_ingots"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

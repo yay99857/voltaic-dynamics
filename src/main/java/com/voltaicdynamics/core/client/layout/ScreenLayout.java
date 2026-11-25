@@ -1,10 +1,11 @@
 package com.voltaicdynamics.core.client.layout;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,11 +41,11 @@ import java.util.Map;
  * plus, when it has {@code u}/{@code v}, the part of the texture drawn over it ("fill": up, down, right, left
  * for gauges and arrows, "none" for a fixed overlay). Screens also use widgets for their tooltip areas.
  */
-public record ScreenLayout(ResourceLocation texture, int width, int height, int[] title, int[] inventoryLabel,
+public record ScreenLayout(Identifier texture, int width, int height, int[] title, int[] inventoryLabel,
                            int[] playerInventory, Map<String, int[]> slots, Map<String, Widget> widgets,
-                           List<String> slotFrames, ResourceLocation slotFrameTexture, Map<String, String> slotHints) {
-    public static final ResourceLocation DEFAULT_SLOT_FRAME =
-            ResourceLocation.fromNamespaceAndPath("voltaicdynamics", "textures/gui/slot.png");
+                           List<String> slotFrames, Identifier slotFrameTexture, Map<String, String> slotHints) {
+    public static final Identifier DEFAULT_SLOT_FRAME =
+            Identifier.fromNamespaceAndPath("voltaicdynamics", "textures/gui/slot.png");
 
 
     @Nullable
@@ -68,26 +69,26 @@ public record ScreenLayout(ResourceLocation texture, int width, int height, int[
         }
 
         /** Draws the texture part over the widget, showing {@code fraction} (0..1) of it in the fill direction. */
-        public void draw(GuiGraphics g, ResourceLocation texture, int left, int top, double fraction) {
+        public void draw(GuiGraphicsExtractor g, Identifier texture, int left, int top, double fraction) {
             if (u < 0) return;
             double f = Math.max(0, Math.min(1, fraction));
             switch (fill) {
-                case NONE -> g.blit(texture, left + x, top + y, u, v, w, h);
+                case NONE -> g.blit(RenderPipelines.GUI_TEXTURED, texture, left + x, top + y, u, v, w, h, 256, 256);
                 case RIGHT -> {
                     int shown = (int) (w * f);
-                    if (shown > 0) g.blit(texture, left + x, top + y, u, v, shown, h);
+                    if (shown > 0) g.blit(RenderPipelines.GUI_TEXTURED, texture, left + x, top + y, u, v, shown, h, 256, 256);
                 }
                 case LEFT -> {
                     int shown = (int) (w * f);
-                    if (shown > 0) g.blit(texture, left + x + w - shown, top + y, u + w - shown, v, shown, h);
+                    if (shown > 0) g.blit(RenderPipelines.GUI_TEXTURED, texture, left + x + w - shown, top + y, u + w - shown, v, shown, h, 256, 256);
                 }
                 case UP -> {
                     int shown = (int) (h * f);
-                    if (shown > 0) g.blit(texture, left + x, top + y + h - shown, u, v + h - shown, w, shown);
+                    if (shown > 0) g.blit(RenderPipelines.GUI_TEXTURED, texture, left + x, top + y + h - shown, u, v + h - shown, w, shown, 256, 256);
                 }
                 case DOWN -> {
                     int shown = (int) (h * f);
-                    if (shown > 0) g.blit(texture, left + x, top + y, u, v, w, shown);
+                    if (shown > 0) g.blit(RenderPipelines.GUI_TEXTURED, texture, left + x, top + y, u, v, w, shown, 256, 256);
                 }
             }
         }
@@ -98,8 +99,8 @@ public record ScreenLayout(ResourceLocation texture, int width, int height, int[
         }
     }
 
-    static ScreenLayout parse(ResourceLocation id, JsonObject json) {
-        ResourceLocation texture = ResourceLocation.parse(GsonHelper.getAsString(json, "texture"));
+    static ScreenLayout parse(Identifier id, JsonObject json) {
+        Identifier texture = Identifier.parse(GsonHelper.getAsString(json, "texture"));
         int[] size = pair(json, "size", new int[]{176, 166});
         Map<String, int[]> slots = new HashMap<>();
         JsonObject slotsJson = GsonHelper.getAsJsonObject(json, "slots", new JsonObject());
@@ -122,8 +123,8 @@ public record ScreenLayout(ResourceLocation texture, int width, int height, int[
         for (Map.Entry<String, JsonElement> e : GsonHelper.getAsJsonObject(json, "slot_hints", new JsonObject()).entrySet()) {
             hints.put(e.getKey(), e.getValue().getAsString());
         }
-        ResourceLocation frameTexture = json.has("slot_frame_texture")
-                ? ResourceLocation.parse(GsonHelper.getAsString(json, "slot_frame_texture")) : DEFAULT_SLOT_FRAME;
+        Identifier frameTexture = json.has("slot_frame_texture")
+                ? Identifier.parse(GsonHelper.getAsString(json, "slot_frame_texture")) : DEFAULT_SLOT_FRAME;
         return new ScreenLayout(texture, size[0], size[1],
                 pair(json, "title", new int[]{8, 6}),
                 pair(json, "inventory_label", new int[]{8, size[1] - 94}),

@@ -1,19 +1,11 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:ingots/iron"
-    },
-    {
-      "tag": "c:ingots/copper"
-    },
-    {
-      "tag": "c:dusts/redstone"
-    }
+    "#c:ingots/iron",
+    "#c:ingots/copper",
+    "#c:dusts/redstone"
   ],
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:voltaic_dust"
   }
 }

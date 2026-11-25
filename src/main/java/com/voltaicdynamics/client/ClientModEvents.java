@@ -20,8 +20,8 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
@@ -45,18 +45,24 @@ public class ClientModEvents {
     }
 
     @SubscribeEvent
-    public static void clientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(FluidTankItemRendering::registerFillProperty);
+    public static void registerItemProperties(RegisterRangeSelectItemModelPropertyEvent event) {
+        FluidTankItemRendering.registerFillProperty(event);
     }
 
     /** Screen layouts (assets/<mod>/screens/*.json), reloaded with F3+T. */
     @SubscribeEvent
-    public static void registerReloadListeners(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener(ScreenLayouts.INSTANCE);
+    public static void registerReloadListeners(AddClientReloadListenersEvent event) {
+        event.addListener(VoltaicDynamics.id("screen_layouts"), ScreenLayouts.INSTANCE);
+    }
+
+    /** Keeps our recipes for recipe viewers; the server sends them on join and on /reload. */
+    @SubscribeEvent
+    public static void recipesReceived(net.neoforged.neoforge.client.event.RecipesReceivedEvent event) {
+        com.voltaicdynamics.machines.recipe.ModRecipes.setClientRecipes(event.getRecipeMap());
     }
 
     @SubscribeEvent
-    public static void registerItemColors(RegisterColorHandlersEvent.Item event) {
-        FluidTankItemRendering.registerColors(event);
+    public static void registerItemTints(RegisterColorHandlersEvent.ItemTintSources event) {
+        FluidTankItemRendering.registerTint(event);
     }
 }

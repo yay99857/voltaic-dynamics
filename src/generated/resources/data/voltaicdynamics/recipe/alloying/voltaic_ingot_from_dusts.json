@@ -4,15 +4,15 @@
   "ingredients": [
     {
       "count": 1,
-      "tag": "c:dusts/iron"
+      "ingredient": "#c:dusts/iron"
     },
     {
       "count": 1,
-      "tag": "c:dusts/copper"
+      "ingredient": "#c:dusts/copper"
     },
     {
       "count": 1,
-      "tag": "c:dusts/redstone"
+      "ingredient": "#c:dusts/redstone"
     }
   ],
   "result": {

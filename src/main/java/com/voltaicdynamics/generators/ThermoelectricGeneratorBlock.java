@@ -1,8 +1,9 @@
 package com.voltaicdynamics.generators;
 
+import java.util.function.Consumer;
+import com.voltaicdynamics.core.block.TooltipBlock;
 import com.voltaicdynamics.VoltaicConfig;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -24,17 +25,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ThermoelectricGeneratorBlock extends BaseEntityBlock {
-    public static final MapCodec<ThermoelectricGeneratorBlock> CODEC = simpleCodec(ThermoelectricGeneratorBlock::new);
+public class ThermoelectricGeneratorBlock extends BaseEntityBlock implements TooltipBlock {
 
     public ThermoelectricGeneratorBlock(BlockBehaviour.Properties properties) {
         super(properties);
     }
 
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     protected RenderShape getRenderShape(BlockState state) {
@@ -50,34 +46,32 @@ public class ThermoelectricGeneratorBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide) return null;
+        if (level.isClientSide()) return null;
         return createTickerHelper(blockEntityType, VoltaicGenerators.THERMOELECTRIC_GENERATOR_BE.get(), ThermoelectricGeneratorBlockEntity::tick);
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof ThermoelectricGeneratorBlockEntity te) {
-                player.displayClientMessage(
+                player.sendOverlayMessage(
                         Component.translatable("chat.voltaicdynamics.thermoelectric.status",
                                 te.getLastGenerated(),
                                 String.format("%,d", te.getEnergyStored()),
                                 String.format("%,d", te.getCapacity()))
-                                .withStyle(ChatFormatting.GOLD),
-                        true
-                );
+                                .withStyle(ChatFormatting.GOLD));
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.thermoelectric.desc1").withStyle(ChatFormatting.AQUA));
-        tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.thermoelectric.desc2").withStyle(ChatFormatting.GRAY));
+    public void appendTooltip(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.accept(Component.translatable("tooltip.voltaicdynamics.thermoelectric.desc1").withStyle(ChatFormatting.AQUA));
+        tooltipComponents.accept(Component.translatable("tooltip.voltaicdynamics.thermoelectric.desc2").withStyle(ChatFormatting.GRAY));
         if (VoltaicConfig.get(VoltaicConfig.THERMO_WEAR_CHANCE) > 0) {
-            tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.thermoelectric.desc3").withStyle(ChatFormatting.DARK_GRAY));
+            tooltipComponents.accept(Component.translatable("tooltip.voltaicdynamics.thermoelectric.desc3").withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 }

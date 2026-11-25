@@ -1,19 +1,10 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
-    "G": {
-      "tag": "c:glass_blocks"
-    },
-    "N": {
-      "tag": "c:ingots/netherite"
-    },
-    "O": {
-      "tag": "c:obsidians"
-    },
-    "T": {
-      "item": "voltaicdynamics:elite_fluid_tank"
-    }
+    "G": "#c:glass_blocks",
+    "N": "#c:ingots/netherite",
+    "O": "#c:obsidians",
+    "T": "voltaicdynamics:elite_fluid_tank"
   },
   "pattern": [
     "OGO",
@@ -21,7 +12,6 @@
     "ONO"
   ],
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:ultimate_fluid_tank"
   }
 }

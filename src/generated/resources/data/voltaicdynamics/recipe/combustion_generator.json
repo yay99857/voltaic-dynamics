@@ -2,18 +2,10 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "F": {
-      "item": "minecraft:furnace"
-    },
-    "G": {
-      "tag": "c:ingots/voltaic"
-    },
-    "I": {
-      "tag": "c:ingots/iron"
-    },
-    "V": {
-      "tag": "c:ingots/copper"
-    }
+    "F": "minecraft:furnace",
+    "G": "#c:ingots/voltaic",
+    "I": "#c:ingots/iron",
+    "V": "#c:ingots/copper"
   },
   "pattern": [
     "III",
@@ -21,7 +13,6 @@
     "GVG"
   ],
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:combustion_generator"
   }
 }

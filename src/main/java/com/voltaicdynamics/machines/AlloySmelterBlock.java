@@ -1,8 +1,9 @@
 package com.voltaicdynamics.machines;
 
+import java.util.function.Consumer;
+import com.voltaicdynamics.core.block.TooltipBlock;
 import com.voltaicdynamics.VoltaicConfig;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
@@ -16,17 +17,12 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /** Combines up to three ingredients into alloys with FE ({@code voltaicdynamics:alloying} recipes). */
-public class AlloySmelterBlock extends ProcessingMachineBlock {
-    public static final MapCodec<AlloySmelterBlock> CODEC = simpleCodec(AlloySmelterBlock::new);
+public class AlloySmelterBlock extends ProcessingMachineBlock implements TooltipBlock {
 
     public AlloySmelterBlock(BlockBehaviour.Properties properties) {
         super(properties);
     }
 
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     protected Supplier<BlockEntityType<AlloySmelterBlockEntity>> blockEntityType() {
@@ -34,10 +30,10 @@ public class AlloySmelterBlock extends ProcessingMachineBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.alloy_smelter.desc1",
+    public void appendTooltip(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.alloy_smelter.desc1",
                 VoltaicConfig.get(VoltaicConfig.ALLOY_ENERGY_PER_TICK)).withStyle(ChatFormatting.AQUA));
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.alloy_smelter.desc2").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.side_config").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.alloy_smelter.desc2").withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.side_config").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:alloy_smelter"
+        "recipes": "voltaicdynamics:alloy_smelter"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

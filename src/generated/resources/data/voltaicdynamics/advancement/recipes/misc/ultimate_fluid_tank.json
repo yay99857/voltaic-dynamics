@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:ultimate_fluid_tank"
+        "recipes": "voltaicdynamics:ultimate_fluid_tank"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

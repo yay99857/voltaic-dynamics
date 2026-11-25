@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:thermopile_core"
+        "recipes": "voltaicdynamics:thermopile_core"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

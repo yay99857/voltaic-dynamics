@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:combustion_generator"
+        "recipes": "voltaicdynamics:combustion_generator"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

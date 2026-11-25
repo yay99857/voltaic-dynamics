@@ -1,5 +1,7 @@
 package com.voltaicdynamics.machines;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -40,24 +42,24 @@ public class TierInstallerItem extends Item {
         Player player = context.getPlayer();
         MachineTier current = machine.getTier();
         if (current.next() != tier) {
-            if (player != null && !level.isClientSide) {
+            if (player != null && !level.isClientSide()) {
                 Component reason = current.ordinal() >= tier.ordinal()
                         ? Component.translatable("message.voltaicdynamics.tier_installer.already", tierName(current))
                         : Component.translatable("message.voltaicdynamics.tier_installer.needs", tierName(tier.previous()));
-                player.displayClientMessage(reason.copy().withStyle(ChatFormatting.RED), true);
+                player.sendOverlayMessage(reason.copy().withStyle(ChatFormatting.RED));
             }
             return InteractionResult.FAIL;
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             machine.setTier(tier);
             if (player == null || !player.getAbilities().instabuild) stack.shrink(1);
             level.playSound(null, context.getClickedPos(), SoundEvents.SMITHING_TABLE_USE, SoundSource.BLOCKS, 1F, 1.2F);
             if (player != null) {
-                player.displayClientMessage(Component.translatable("message.voltaicdynamics.tier_installer.done",
-                        tierName(tier), tier.parallel()).withStyle(tier.color()), true);
+                player.sendOverlayMessage(Component.translatable("message.voltaicdynamics.tier_installer.done",
+                        tierName(tier), tier.parallel()).withStyle(tier.color()));
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     public static Component tierName(MachineTier tier) {
@@ -65,9 +67,9 @@ public class TierInstallerItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.tier_installer", tier.parallel()).withStyle(tier.color()));
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.tier_installer.how", tierName(tier.previous()))
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.tier_installer", tier.parallel()).withStyle(tier.color()));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.tier_installer.how", tierName(tier.previous()))
                 .withStyle(ChatFormatting.GRAY));
     }
 }

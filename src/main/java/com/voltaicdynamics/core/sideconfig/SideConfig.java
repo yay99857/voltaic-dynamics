@@ -1,7 +1,8 @@
 package com.voltaicdynamics.core.sideconfig;
 
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
@@ -99,18 +100,21 @@ public final class SideConfig {
         return (bits & (1 << 12)) != 0;
     }
 
-    public CompoundTag save() {
-        CompoundTag tag = new CompoundTag();
+    /** Writes a "SideConfig" child of {@code output}. */
+    public void save(ValueOutput output) {
+        ValueOutput tag = output.child("SideConfig");
         for (Map.Entry<TransferType, Entry> e : entries.entrySet()) {
             tag.putInt(e.getKey().name(), pack(e.getKey()));
         }
-        return tag;
     }
 
-    public void load(CompoundTag tag) {
+    /** Reads the "SideConfig" child of {@code input}, if there is one. */
+    public void load(ValueInput input) {
+        ValueInput tag = input.childOrEmpty("SideConfig");
         for (Map.Entry<TransferType, Entry> e : entries.entrySet()) {
-            if (!tag.contains(e.getKey().name())) continue;
-            int bits = tag.getInt(e.getKey().name());
+            java.util.Optional<Integer> stored = tag.getInt(e.getKey().name());
+            if (stored.isEmpty()) continue;
+            int bits = stored.get();
             Entry entry = e.getValue();
             for (RelativeSide side : RelativeSide.values()) {
                 IoMode mode = unpackMode(bits, side);

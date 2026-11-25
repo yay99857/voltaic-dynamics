@@ -1,6 +1,6 @@
 # Voltaic Dynamics
 
-**Compact Forge Energy tech for NeoForge 1.21.1: generators, machines with upgrades, batteries and cables for energy, items and fluids.**
+**Compact Forge Energy tech for NeoForge 26.3 (2.x) and 1.21.1 (1.x): generators, machines with upgrades, batteries and cables for energy, items and fluids.**
 
 *🇧🇷 Versão em português mais abaixo.*
 
@@ -34,7 +34,7 @@ pointless.
 
 ## 🇧🇷 Em português
 
-**Tecnologia com Forge Energy para NeoForge 1.21.1: geradores, máquinas com melhorias, baterias e cabos de energia, itens e fluidos.**
+**Tecnologia com Forge Energy para NeoForge 26.3 (2.x) e 1.21.1 (1.x): geradores, máquinas com melhorias, baterias e cabos de energia, itens e fluidos.**
 
 Tudo usa Forge Energy (FE), então funciona com Mekanism, Applied Energistics 2, Powah, Extreme Reactors e qualquer mod
 de FE. Feito para o Bubie Pack e equilibrado para conviver com a Thermal e o Mekanism.
@@ -56,10 +56,12 @@ awaiting moderation). Manage it at https://authors.curseforge.com/#/projects/180
 First file: "Voltaic Dynamics 1.5.0", fileID **9642198** (Release; 1.21.1, NeoForge, Java 21, client + server).
 1.6.0: fileID **9658155** (sent 2026-11-17).
 1.7.0: fileID **9731481** (sent 2026-11-21; Modrinth version Y6NkQbZO).
+2.0.0 (Minecraft 26.3, branch `mc/26.3`): game version 26.3, NeoForge, Java 25.
 
 1. `./gradlew build` and `./gradlew runGameTestServer` (all tests pass).
-2. `tools/prepare-pack-server.sh && ./gradlew runPackServer`: the server reaches "Done" with the whole Bubie Pack.
+2. 1.x: `tools/prepare-pack-server.sh && ./gradlew runPackServer`: the server reaches "Done" with the whole Bubie Pack.
+   2.x: fill `runs/compat/mods` with the 26.3 jars and run `./gradlew runCompatGameTestServer`.
 3. Bump `mod_version` in `gradle.properties` and the changelog in `README.md`.
-4. Upload `build/libs/voltaicdynamics-<version>.jar` (CurseForge / Modrinth), loader NeoForge, game version 1.21.1,
+4. Upload `build/libs/voltaicdynamics-<version>.jar` (CurseForge / Modrinth), loader NeoForge, game version 1.21.1 (1.x) or 26.3 (2.x),
    environment client + server, license MIT. Logo: `src/main/resources/voltaicdynamics_logo.png`.
 5. Add the jar to Bubie Pack's `pack/manifest.json` (projectID 1809423, fileID of the uploaded jar).

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:advanced_accumulator"
+        "recipes": "voltaicdynamics:advanced_accumulator"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

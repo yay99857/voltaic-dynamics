@@ -1,16 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
-    "A": {
-      "tag": "voltaicdynamics:alloys/galvanic"
-    },
-    "G": {
-      "tag": "c:ingots/gold"
-    },
-    "L": {
-      "tag": "c:gems/lapis"
-    }
+    "A": "#voltaicdynamics:alloys/galvanic",
+    "G": "#c:ingots/gold",
+    "L": "#c:gems/lapis"
   },
   "pattern": [
     " L ",
@@ -18,7 +11,6 @@
     " G "
   ],
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:efficiency_upgrade"
   }
 }

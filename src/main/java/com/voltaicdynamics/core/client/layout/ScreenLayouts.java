@@ -1,9 +1,10 @@
 package com.voltaicdynamics.core.client.layout;
 
-import com.google.gson.Gson;
+import net.minecraft.resources.FileToIdConverter;
+import net.minecraft.util.ExtraCodecs;
 import com.google.gson.JsonElement;
 import com.voltaicdynamics.VoltaicDynamics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
@@ -19,22 +20,22 @@ import java.util.Map;
  * resource reload (F3+T), so a screen can be rearranged without recompiling. A file that fails to parse is
  * logged and skipped; its screen then keeps the slots where the menu put them.
  */
-public final class ScreenLayouts extends SimpleJsonResourceReloadListener {
+public final class ScreenLayouts extends SimpleJsonResourceReloadListener<JsonElement> {
     public static final ScreenLayouts INSTANCE = new ScreenLayouts();
-    private static volatile Map<ResourceLocation, ScreenLayout> layouts = Map.of();
+    private static volatile Map<Identifier, ScreenLayout> layouts = Map.of();
 
     private ScreenLayouts() {
-        super(new Gson(), "screens");
+        super(ExtraCodecs.JSON, FileToIdConverter.json("screens"));
     }
 
     @Nullable
-    public static ScreenLayout get(ResourceLocation id) {
+    public static ScreenLayout get(Identifier id) {
         return layouts.get(id);
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> files, ResourceManager manager, ProfilerFiller profiler) {
-        Map<ResourceLocation, ScreenLayout> loaded = new HashMap<>();
+    protected void apply(Map<Identifier, JsonElement> files, ResourceManager manager, ProfilerFiller profiler) {
+        Map<Identifier, ScreenLayout> loaded = new HashMap<>();
         files.forEach((id, json) -> {
             // Other mods use assets/<their namespace>/screens too (AE2 does, in its own format): only ours.
             if (!id.getNamespace().equals(VoltaicDynamics.MOD_ID)) return;

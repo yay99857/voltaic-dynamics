@@ -1,18 +1,18 @@
 package com.voltaicdynamics.machines.recipe;
 
-import com.voltaicdynamics.machines.VoltaicMachines;
-
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
+
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -25,27 +25,29 @@ import java.util.List;
  * {@code voltaicdynamics:alloying}: up to three sized ingredients in any slot order make one result.
  * Packs and other mods can add their own through datapacks:
  * <pre>{"type": "voltaicdynamics:alloying",
- *  "ingredients": [{"tag": "c:ingots/iron", "count": 1}, {"item": "minecraft:redstone", "count": 1}],
+ *  "ingredients": [{"ingredient": "#c:ingots/iron", "count": 1}, {"ingredient": "minecraft:redstone", "count": 1}],
  *  "result": {"id": "voltaicdynamics:voltaic_ingot", "count": 2}, "time": 100, "experience": 0.5}</pre>
  */
-public record AlloyingRecipe(List<SizedIngredient> ingredients, ItemStack result, int time, float experience)
+public record AlloyingRecipe(List<SizedIngredient> ingredients, ItemStackTemplate result, int time, float experience)
         implements Recipe<AlloyingInput> {
     public static final int MAX_INGREDIENTS = 3;
     public static final int DEFAULT_TIME = 100;
 
     public static final MapCodec<AlloyingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            SizedIngredient.FLAT_CODEC.listOf(1, MAX_INGREDIENTS).fieldOf("ingredients").forGetter(AlloyingRecipe::ingredients),
-            ItemStack.STRICT_CODEC.fieldOf("result").forGetter(AlloyingRecipe::result),
+            SizedIngredient.NESTED_CODEC.listOf(1, MAX_INGREDIENTS).fieldOf("ingredients").forGetter(AlloyingRecipe::ingredients),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(AlloyingRecipe::result),
             Codec.intRange(1, 72_000).optionalFieldOf("time", DEFAULT_TIME).forGetter(AlloyingRecipe::time),
             Codec.floatRange(0, 100).optionalFieldOf("experience", 0.0F).forGetter(AlloyingRecipe::experience)
     ).apply(instance, AlloyingRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AlloyingRecipe> STREAM_CODEC = StreamCodec.composite(
             SizedIngredient.STREAM_CODEC.apply(ByteBufCodecs.list(MAX_INGREDIENTS)), AlloyingRecipe::ingredients,
-            ItemStack.STREAM_CODEC, AlloyingRecipe::result,
+            ItemStackTemplate.STREAM_CODEC, AlloyingRecipe::result,
             ByteBufCodecs.VAR_INT, AlloyingRecipe::time,
             ByteBufCodecs.FLOAT, AlloyingRecipe::experience,
             AlloyingRecipe::new);
+
+    public static final RecipeSerializer<AlloyingRecipe> SERIALIZER = new RecipeSerializer<>(CODEC, STREAM_CODEC);
 
     /**
      * Which input slot feeds each ingredient, or null when the inputs do not fit. Every non-empty slot must be
@@ -91,31 +93,14 @@ public record AlloyingRecipe(List<SizedIngredient> ingredients, ItemStack result
         return match(input) != null;
     }
 
-    @Override
-    public ItemStack assemble(AlloyingInput input, HolderLookup.Provider registries) {
-        return result.copy();
+    /** The result as a new stack. */
+    public ItemStack resultStack() {
+        return result.create();
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return true;
-    }
-
-    @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
-        return result;
-    }
-
-    @Override
-    public NonNullList<Ingredient> getIngredients() {
-        NonNullList<Ingredient> list = NonNullList.create();
-        for (SizedIngredient ingredient : ingredients) list.add(ingredient.ingredient());
-        return list;
-    }
-
-    @Override
-    public ItemStack getToastSymbol() {
-        return new ItemStack(VoltaicMachines.ALLOY_SMELTER.get());
+    public ItemStack assemble(AlloyingInput input) {
+        return result.create();
     }
 
     @Override
@@ -124,24 +109,32 @@ public record AlloyingRecipe(List<SizedIngredient> ingredients, ItemStack result
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public boolean showNotification() {
+        return false;
+    }
+
+    @Override
+    public String group() {
+        return "";
+    }
+
+    @Override
+    public PlacementInfo placementInfo() {
+        return PlacementInfo.NOT_PLACEABLE;
+    }
+
+    @Override
+    public RecipeBookCategory recipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
+    }
+
+    @Override
+    public RecipeSerializer<AlloyingRecipe> getSerializer() {
         return ModRecipes.ALLOYING_SERIALIZER.get();
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<AlloyingRecipe> getType() {
         return ModRecipes.ALLOYING.get();
-    }
-
-    public static final class Serializer implements RecipeSerializer<AlloyingRecipe> {
-        @Override
-        public MapCodec<AlloyingRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, AlloyingRecipe> streamCodec() {
-            return STREAM_CODEC;
-        }
     }
 }

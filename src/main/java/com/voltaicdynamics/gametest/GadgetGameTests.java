@@ -12,7 +12,6 @@ import com.voltaicdynamics.power.AccumulatorBlockEntity;
 import com.voltaicdynamics.power.VoltaicPower;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -24,18 +23,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
-import static com.voltaicdynamics.gametest.GameTestSupport.EMPTY;
 import static com.voltaicdynamics.gametest.GameTestSupport.storageOf;
 
 /**
  * Pocket Accumulator and Voltaic Wrench. Run with {@code ./gradlew runGameTestServer};
  * the server exits non-zero when a required test fails. Only loaded when game tests are enabled.
  */
-@GameTestHolder(VoltaicDynamics.MOD_ID)
-@PrefixGameTestTemplate(false)
 public class GadgetGameTests {
     private static Player playerWithWrench(GameTestHelper helper, boolean sneaking) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -51,7 +45,7 @@ public class GadgetGameTests {
     }
 
     /** A plain right-click turns a machine a quarter turn instead of opening its GUI. */
-    @GameTest(template = EMPTY)
+    @VoltaicTest
     public static void wrenchTurnsMachine(GameTestHelper helper) {
         BlockPos pos = new BlockPos(2, 1, 2);
         helper.setBlock(pos, VoltaicMachines.ELECTRIC_FURNACE.get().defaultBlockState()
@@ -65,11 +59,11 @@ public class GadgetGameTests {
     }
 
     /** Sneak + right-click picks a charged Accumulator up into the inventory, energy included. */
-    @GameTest(template = EMPTY)
+    @VoltaicTest
     public static void wrenchPicksUpAccumulatorWithEnergy(GameTestHelper helper) {
         BlockPos pos = new BlockPos(2, 1, 2);
         helper.setBlock(pos, VoltaicPower.BASIC_ACCUMULATOR.get());
-        AccumulatorBlockEntity cell = helper.getBlockEntity(pos);
+        AccumulatorBlockEntity cell = helper.getBlockEntity(pos, AccumulatorBlockEntity.class);
         storageOf(cell).setEnergy(123_456);
         Player player = playerWithWrench(helper, true);
         player.getMainHandItem().onItemUseFirst(new UseOnContext(player, InteractionHand.MAIN_HAND,
@@ -77,7 +71,7 @@ public class GadgetGameTests {
 
         helper.assertBlockPresent(Blocks.AIR, pos);
         ItemStack picked = ItemStack.EMPTY;
-        for (ItemStack stack : player.getInventory().items) {
+        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
             if (stack.is(VoltaicPower.BASIC_ACCUMULATOR.asItem())) picked = stack;
         }
         helper.assertFalse(picked.isEmpty(), "the Accumulator is not in the inventory");
@@ -86,7 +80,7 @@ public class GadgetGameTests {
     }
 
     /** Sneak + right-click with the wrench on a cable arm cycles it (the wrench lets the click through). */
-    @GameTest(template = EMPTY)
+    @VoltaicTest
     public static void wrenchCyclesCableArm(GameTestHelper helper) {
         BlockPos chest = new BlockPos(1, 1, 2);
         BlockPos cable = new BlockPos(2, 1, 2);

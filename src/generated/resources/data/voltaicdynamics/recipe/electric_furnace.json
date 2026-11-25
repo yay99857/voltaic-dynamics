@@ -2,21 +2,11 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "C": {
-      "tag": "voltaicdynamics:alloys/galvanic"
-    },
-    "F": {
-      "item": "minecraft:furnace"
-    },
-    "I": {
-      "tag": "c:ingots/iron"
-    },
-    "R": {
-      "tag": "c:dusts/redstone"
-    },
-    "V": {
-      "tag": "c:ingots/voltaic"
-    }
+    "C": "#voltaicdynamics:alloys/galvanic",
+    "F": "minecraft:furnace",
+    "I": "#c:ingots/iron",
+    "R": "#c:dusts/redstone",
+    "V": "#c:ingots/voltaic"
   },
   "pattern": [
     "ICI",
@@ -24,7 +14,6 @@
     "IRI"
   ],
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:electric_furnace"
   }
 }

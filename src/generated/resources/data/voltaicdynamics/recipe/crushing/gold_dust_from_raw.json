@@ -11,12 +11,8 @@
   "type": "voltaicdynamics:crushing",
   "bonus_chance": 0.5,
   "experience": 0.1,
-  "ingredient": {
-    "count": 1,
-    "tag": "c:raw_materials/gold"
-  },
+  "ingredient": "#c:raw_materials/gold",
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:gold_dust"
   }
 }

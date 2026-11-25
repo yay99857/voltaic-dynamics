@@ -1,5 +1,9 @@
 package com.voltaicdynamics.core.energy;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+
 /**
  * A bottomless FE buffer for creative blocks: always full, gives up to its transfer rate without running down and
  * swallows whatever it is given.
@@ -11,23 +15,25 @@ public class CreativeEnergyStorage extends VoltaicEnergyStorage {
     }
 
     @Override
-    public int receiveEnergy(int maxReceive, boolean simulate) {
-        return Math.max(0, Math.min(maxReceive, this.maxReceive));
+    public int insert(int amount, TransactionContext transaction) {
+        TransferPreconditions.checkNonNegative(amount);
+        return Math.min(amount, maxInsert);
     }
 
     @Override
-    public int extractEnergy(int maxExtract, boolean simulate) {
-        return Math.max(0, Math.min(maxExtract, this.maxExtract));
+    public int extract(int amount, TransactionContext transaction) {
+        TransferPreconditions.checkNonNegative(amount);
+        return Math.min(amount, maxExtract);
+    }
+
+    @Override
+    public long getAmountAsLong() {
+        return Integer.MAX_VALUE;
     }
 
     @Override
     public int getEnergyStored() {
         return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public boolean canReceive() {
-        return true;
     }
 
     @Override
@@ -49,5 +55,10 @@ public class CreativeEnergyStorage extends VoltaicEnergyStorage {
     @Override
     public int getSpace() {
         return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public void deserialize(ValueInput input) {
+        // always full
     }
 }

@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "I": {
-      "tag": "c:ingots/voltaic"
-    },
-    "R": {
-      "tag": "c:dusts/redstone"
-    }
+    "I": "#c:ingots/voltaic",
+    "R": "#c:dusts/redstone"
   },
   "pattern": [
     "III",

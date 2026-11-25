@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:pocket_accumulator"
+        "recipes": "voltaicdynamics:pocket_accumulator"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

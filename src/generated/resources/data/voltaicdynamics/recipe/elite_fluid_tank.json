@@ -1,16 +1,9 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
-    "D": {
-      "tag": "c:gems/diamond"
-    },
-    "G": {
-      "tag": "c:glass_blocks"
-    },
-    "T": {
-      "item": "voltaicdynamics:advanced_fluid_tank"
-    }
+    "D": "#c:gems/diamond",
+    "G": "#c:glass_blocks",
+    "T": "voltaicdynamics:advanced_fluid_tank"
   },
   "pattern": [
     "DGD",
@@ -18,7 +11,6 @@
     "DGD"
   ],
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:elite_fluid_tank"
   }
 }

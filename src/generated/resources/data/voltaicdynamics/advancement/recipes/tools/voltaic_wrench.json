@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:voltaic_wrench"
+        "recipes": "voltaicdynamics:voltaic_wrench"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

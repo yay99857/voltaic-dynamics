@@ -2,17 +2,18 @@
 
 # ⚡ Voltaic Dynamics
 
-Energy and technology mod for **Minecraft 1.21.1 (NeoForge)**, built for **Bubie Pack** (and any 1.21.1 NeoForge pack). Everything speaks Forge Energy (FE), so it works with **Mekanism**, **Applied Energistics 2**, **Powah**, **Extreme Reactors** and any other FE mod.
+Energy and technology mod for **Minecraft 26.3 (NeoForge)** from 2.0.0 (the `master` branch and the 1.x versions stay on **1.21.1**), built for **Bubie Pack** (and any NeoForge pack). Everything speaks Forge Energy (FE), so it works with **Mekanism**, **Applied Energistics 2**, **Powah**, **Extreme Reactors** and any other FE mod.
 
 ---
 
-## 🚀 Installation (Bubie Pack or any 1.21.1 pack)
+## 🚀 Installation (Bubie Pack or any NeoForge pack)
 
 1. Build the jar (`./gradlew build`). It lands in `build/libs/voltaicdynamics-<version>.jar`.
 2. Open your instance folder (CurseForge, Prism Launcher or Modrinth).
 3. Drop the jar into `mods/` and launch. The mod has its own creative tab; recipes show up in JEI/EMI.
 
-Server owners can tune every rate and capacity in `world/serverconfig/voltaicdynamics-server.toml` (synced to players).
+Server owners can tune every rate and capacity in `config/voltaicdynamics-synced.toml` (synced to players; on 1.21.1 it is
+`world/serverconfig/voltaicdynamics-server.toml`).
 
 ---
 
@@ -215,6 +216,15 @@ tools/prepare-pack-server.sh && ./gradlew runPackServer  # dedicated server with
 ---
 
 ## 📜 Changelog
+
+### 2.0.0 (Minecraft 26.3)
+- Ported to Minecraft 26.3 and NeoForge 26.3 (Java 25). Same blocks, items, recipes and balance as 1.7.1.
+- Energy, items and fluids use NeoForge's new transfer API, so cables and machines work with every 26.3 mod that uses it.
+- Tested with Iron Chests, Storage Drawers and Sophisticated Storage (machines eject into them, Item and Fluid Cables pull from them), JEI and Jade.
+- The server config is now `config/voltaicdynamics-synced.toml`.
+- Datapack format of `voltaicdynamics:alloying` and `voltaicdynamics:crushing` follows 26.3: ingredients are written `"ingredient": "#c:ingots/iron"` (crushing adds `"count"` beside it), results `{"id": ..., "count": ...}`.
+- Worlds from 1.21.1 are not carried over: machines there lose their inventory, tanks and side settings (energy stays).
+- EMI support waits for EMI's 26.3 release.
 
 ### 1.7.1
 - Each cable shows what it carries on its core: a bolt on Voltaic Cables (it lights up with the cable), a chest on Item Cables, a drop on Fluid Cables.

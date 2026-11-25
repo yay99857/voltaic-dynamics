@@ -1,5 +1,18 @@
 package com.voltaicdynamics.logistics;
 
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.util.ProblemReporter;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import com.voltaicdynamics.core.transfer.Transfers;
+import com.voltaicdynamics.core.transfer.VoltaicItemHandler;
+import com.voltaicdynamics.core.transfer.VoltaicFluidTank;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.core.component.DataComponentGetter;
 import com.voltaicdynamics.core.blockentity.VoltaicBlockEntity;
 import com.voltaicdynamics.VoltaicConfig;
 import com.voltaicdynamics.core.ModDataComponents;
@@ -30,14 +43,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidActionResult;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -52,8 +59,8 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
     private static final int SYNC_INTERVAL = 4;
 
     private final FluidTankTier tier;
-    private final FluidTank tank;
-    private final ItemStackHandler itemHandler = new ItemStackHandler(2) {
+    private final VoltaicFluidTank tank;
+    private final VoltaicItemHandler itemHandler = new VoltaicItemHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
             saveChanges();
@@ -61,7 +68,7 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return slot == SLOT_IN && stack.getCapability(Capabilities.FluidHandler.ITEM) != null;
+            return slot == SLOT_IN && Transfers.isFluidContainer(stack);
         }
 
         @Override
@@ -70,29 +77,15 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
         }
     };
     /** Pipes: insert containers into the in slot, take them from the out slot. */
-    private final IItemHandler automationHandler = new IItemHandler() {
-        public int getSlots() {
-            return 2;
+    private final ResourceHandler<ItemResource> automationHandler = new DelegatingResourceHandler<>(itemHandler) {
+        @Override
+        public int insert(int slot, ItemResource resource, int amount, TransactionContext transaction) {
+            return slot == SLOT_IN ? super.insert(slot, resource, amount, transaction) : 0;
         }
 
-        public ItemStack getStackInSlot(int slot) {
-            return itemHandler.getStackInSlot(slot);
-        }
-
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return slot == SLOT_IN ? itemHandler.insertItem(slot, stack, simulate) : stack;
-        }
-
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return slot == SLOT_OUT ? itemHandler.extractItem(slot, amount, simulate) : ItemStack.EMPTY;
-        }
-
-        public int getSlotLimit(int slot) {
-            return itemHandler.getSlotLimit(slot);
-        }
-
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return slot == SLOT_IN && itemHandler.isItemValid(slot, stack);
+        @Override
+        public int extract(int slot, ItemResource resource, int amount, TransactionContext transaction) {
+            return slot == SLOT_OUT ? super.extract(slot, resource, amount, transaction) : 0;
         }
     };
     private final SideConfig sideConfig = SideConfig.builder()
@@ -107,7 +100,7 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
     public FluidTankBlockEntity(BlockPos pos, BlockState state) {
         super(VoltaicLogistics.FLUID_TANK_BE.get(), pos, state);
         this.tier = state.getBlock() instanceof FluidTankBlock block ? block.getTier() : FluidTankTier.BASIC;
-        this.tank = tier.isCreative() ? new CreativeFluidTank(this::tankChanged) : new FluidTank(tier.capacity()) {
+        this.tank = tier.isCreative() ? new CreativeFluidTank(this::tankChanged) : new VoltaicFluidTank(tier.capacity()) {
             @Override
             protected void onContentsChanged() {
                 tankChanged();
@@ -155,38 +148,14 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
 
     /** Container in the in slot: empty it into the tank, or fill it from the tank when it is empty. */
     private void processContainers() {
-        ItemStack input = itemHandler.getStackInSlot(SLOT_IN);
-        if (input.isEmpty()) return;
-        ItemStack output = itemHandler.getStackInSlot(SLOT_OUT);
-        FluidActionResult result = FluidUtil.tryEmptyContainer(input, tank, Integer.MAX_VALUE, null, false);
-        if (!result.isSuccess()) result = FluidUtil.tryFillContainer(input, tank, Integer.MAX_VALUE, null, false);
-        if (!result.isSuccess()) return;
-        ItemStack after = result.getResult();
-        if (!after.isEmpty() && !output.isEmpty()
-                && (!ItemStack.isSameItemSameComponents(output, after) || output.getCount() + after.getCount() > output.getMaxStackSize())) {
-            return;
-        }
-        // Run it for real now that the output slot can take the result.
-        FluidActionResult real = FluidUtil.tryEmptyContainer(input, tank, Integer.MAX_VALUE, null, true);
-        if (!real.isSuccess()) real = FluidUtil.tryFillContainer(input, tank, Integer.MAX_VALUE, null, true);
-        if (!real.isSuccess()) return;
-        itemHandler.setStackInSlot(SLOT_IN, ItemStack.EMPTY);
-        ItemStack produced = real.getResult();
-        if (!produced.isEmpty()) {
-            if (output.isEmpty()) {
-                itemHandler.setStackInSlot(SLOT_OUT, produced.copy());
-            } else {
-                output.grow(produced.getCount());
-                itemHandler.setStackInSlot(SLOT_OUT, output);
-            }
-        }
+        Transfers.processContainer(itemHandler, SLOT_IN, SLOT_OUT, tank, true);
     }
 
     public FluidStack getFluid() {
         return tank.getFluid();
     }
 
-    public FluidTank getTank() {
+    public VoltaicFluidTank getTank() {
         return tank;
     }
 
@@ -196,21 +165,27 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
     }
 
     @Nullable
-    public IFluidHandler getFluidHandler(@Nullable Direction side) {
+    public ResourceHandler<FluidResource> getFluidHandler(@Nullable Direction side) {
         return sided.fluids(side);
     }
 
     @Nullable
-    public IItemHandler getItemHandler(@Nullable Direction side) {
+    public ResourceHandler<ItemResource> getItemHandler(@Nullable Direction side) {
         return sided.items(side);
     }
 
-    public IItemHandler getMenuItemHandler() {
+    public VoltaicItemHandler getMenuItemHandler() {
         return itemHandler;
     }
 
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        drops();
+    }
+
     public void drops() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             SimpleContainer inventory = new SimpleContainer(itemHandler.getSlots());
             for (int i = 0; i < itemHandler.getSlots(); i++) inventory.setItem(i, itemHandler.getStackInSlot(i));
             Containers.dropContents(level, worldPosition, inventory);
@@ -250,9 +225,9 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
 
     // Fluid travels with the item when the tank is broken.
     @Override
-    protected void applyImplicitComponents(DataComponentInput input) {
-        super.applyImplicitComponents(input);
-        tank.setFluid(input.getOrDefault(ModDataComponents.FLUID.get(), SimpleFluidContent.EMPTY).copy());
+    protected void applyImplicitComponents(DataComponentGetter components) {
+        super.applyImplicitComponents(components);
+        tank.setFluid(components.getOrDefault(ModDataComponents.FLUID.get(), SimpleFluidContent.EMPTY).copy());
     }
 
     @Override
@@ -262,34 +237,34 @@ public class FluidTankBlockEntity extends VoltaicBlockEntity implements MenuProv
     }
 
     @Override
-    public void removeComponentsFromTag(CompoundTag tag) {
-        super.removeComponentsFromTag(tag);
-        tag.remove("Tank");
+    public void removeComponentsFromTag(ValueOutput output) {
+        super.removeComponentsFromTag(output);
+        output.discard("Tank");
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Tank", tank.writeToNBT(registries, new CompoundTag()));
-        tag.put("Inventory", itemHandler.serializeNBT(registries));
-        tag.put("SideConfig", sideConfig.save());
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        tank.save(output, "Tank");
+        itemHandler.serialize(output.child("Inventory"));
+        sideConfig.save(output);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("Tank")) tank.readFromNBT(registries, tag.getCompound("Tank"));
-        if (tag.contains("Inventory")) itemHandler.deserializeNBT(registries, tag.getCompound("Inventory"));
-        if (tag.contains("SideConfig")) sideConfig.load(tag.getCompound("SideConfig"));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        tank.load(input, "Tank");
+        input.child("Inventory").ifPresent(itemHandler::deserialize);
+        sideConfig.load(input);
         sided.invalidate();
     }
 
     /** Only the fluid goes to clients (for the renderer). */
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        tag.put("Tank", tank.writeToNBT(registries, new CompoundTag()));
-        return tag;
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
+        tank.save(output, "Tank");
+        return output.buildResult();
     }
 
     @Nullable

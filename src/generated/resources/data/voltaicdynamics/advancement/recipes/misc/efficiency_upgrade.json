@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:efficiency_upgrade"
+        "recipes": "voltaicdynamics:efficiency_upgrade"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

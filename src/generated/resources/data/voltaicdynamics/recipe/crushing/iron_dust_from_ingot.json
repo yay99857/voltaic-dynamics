@@ -1,11 +1,7 @@
 {
   "type": "voltaicdynamics:crushing",
-  "ingredient": {
-    "count": 1,
-    "tag": "c:ingots/iron"
-  },
+  "ingredient": "#c:ingots/iron",
   "result": {
-    "count": 1,
     "id": "voltaicdynamics:iron_dust"
   },
   "time": 80

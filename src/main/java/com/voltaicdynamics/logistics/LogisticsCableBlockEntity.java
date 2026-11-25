@@ -1,5 +1,11 @@
 package com.voltaicdynamics.logistics;
 
+import net.neoforged.neoforge.transfer.resource.Resource;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -7,8 +13,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -58,96 +62,101 @@ public class LogisticsCableBlockEntity extends BlockEntity {
     }
 
     @Nullable
-    public IItemHandler getItemHandler(@Nullable Direction side) {
+    public ResourceHandler<ItemResource> getItemHandler(@Nullable Direction side) {
         if (kind() != LogisticsKind.ITEM || !accepts(side)) return null;
         Object face = faces[side.ordinal()];
         if (!(face instanceof ItemFace)) {
             face = new ItemFace(side);
             faces[side.ordinal()] = face;
         }
-        return (IItemHandler) face;
+        return (ItemFace) face;
     }
 
     @Nullable
-    public IFluidHandler getFluidHandler(@Nullable Direction side) {
+    public ResourceHandler<FluidResource> getFluidHandler(@Nullable Direction side) {
         if (kind() != LogisticsKind.FLUID || !accepts(side)) return null;
         Object face = faces[side.ordinal()];
         if (!(face instanceof FluidFace)) {
             face = new FluidFace(side);
             faces[side.ordinal()] = face;
         }
-        return (IFluidHandler) face;
+        return (FluidFace) face;
     }
 
-    private final class ItemFace implements IItemHandler {
-        private final Direction side;
+    /** A connector face: what the block behind it pushes in goes straight on to the network. Holds nothing. */
+    private abstract class Face<T extends Resource> implements ResourceHandler<T> {
+        final Direction side;
 
-        ItemFace(Direction side) {
+        Face(Direction side) {
             this.side = side;
         }
 
-        public int getSlots() {
+        @Override
+        public int size() {
             return 1;
         }
 
-        public ItemStack getStackInSlot(int slot) {
-            return ItemStack.EMPTY;
+        @Override
+        public long getAmountAsLong(int index) {
+            return 0;
         }
 
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            LogisticsNetwork network = network();
-            if (network == null || stack.isEmpty()) return stack;
-            return network.insertItem(worldPosition.relative(side), stack, simulate);
-        }
-
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return ItemStack.EMPTY;
-        }
-
-        public int getSlotLimit(int slot) {
-            return 64;
-        }
-
-        public boolean isItemValid(int slot, ItemStack stack) {
+        @Override
+        public boolean isValid(int index, T resource) {
             return true;
         }
+
+        @Override
+        public int extract(int index, T resource, int amount, TransactionContext transaction) {
+            return 0;
+        }
     }
 
-    private final class FluidFace implements IFluidHandler {
-        private final Direction side;
+    private final class ItemFace extends Face<ItemResource> {
+        ItemFace(Direction side) {
+            super(side);
+        }
 
+        @Override
+        public ItemResource getResource(int index) {
+            return ItemResource.EMPTY;
+        }
+
+        @Override
+        public long getCapacityAsLong(int index, ItemResource resource) {
+            return resource.isEmpty() ? 64 : resource.getMaxStackSize();
+        }
+
+        @Override
+        public int insert(int index, ItemResource resource, int amount, TransactionContext transaction) {
+            TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
+            LogisticsNetwork network = network();
+            if (network == null) return 0;
+            return network.insertItem(worldPosition.relative(side), resource, amount, transaction);
+        }
+    }
+
+    private final class FluidFace extends Face<FluidResource> {
         FluidFace(Direction side) {
-            this.side = side;
+            super(side);
         }
 
-        public int getTanks() {
-            return 1;
+        @Override
+        public FluidResource getResource(int index) {
+            return FluidResource.EMPTY;
         }
 
-        public FluidStack getFluidInTank(int tank) {
-            return FluidStack.EMPTY;
-        }
-
-        public int getTankCapacity(int tank) {
+        @Override
+        public long getCapacityAsLong(int index, FluidResource resource) {
             return LogisticsNetwork.fluidRate();
         }
 
-        public boolean isFluidValid(int tank, FluidStack stack) {
-            return true;
-        }
-
-        public int fill(FluidStack resource, FluidAction action) {
+        @Override
+        public int insert(int index, FluidResource resource, int amount, TransactionContext transaction) {
+            TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
             LogisticsNetwork network = network();
-            if (network == null || resource.isEmpty()) return 0;
-            return network.insertFluid(worldPosition.relative(side), resource, action.simulate());
-        }
-
-        public FluidStack drain(FluidStack resource, FluidAction action) {
-            return FluidStack.EMPTY;
-        }
-
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            return FluidStack.EMPTY;
+            if (network == null) return 0;
+            return network.insertFluid(worldPosition.relative(side), resource, amount, transaction);
         }
     }
 }

@@ -1,5 +1,11 @@
 package com.voltaicdynamics.logistics;
 
+import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.LevelReader;
+import java.util.function.Consumer;
+import com.voltaicdynamics.core.block.TooltipBlock;
 import com.voltaicdynamics.core.block.WrenchConfigurable;
 
 import com.voltaicdynamics.VoltaicConfig;
@@ -13,10 +19,9 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -52,7 +57,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>No item ever travels as an entity and cables never tick: each network moves items directly from the
  * pulling connectors into the targets on a fixed interval (see {@link LogisticsNetwork}).
  */
-public abstract class LogisticsCableBlock extends BaseEntityBlock implements WrenchConfigurable {
+public abstract class LogisticsCableBlock extends BaseEntityBlock implements WrenchConfigurable, TooltipBlock {
     public static final EnumProperty<ConnectionType> NORTH = EnumProperty.create("north", ConnectionType.class);
     public static final EnumProperty<ConnectionType> SOUTH = EnumProperty.create("south", ConnectionType.class);
     public static final EnumProperty<ConnectionType> EAST = EnumProperty.create("east", ConnectionType.class);
@@ -61,7 +66,7 @@ public abstract class LogisticsCableBlock extends BaseEntityBlock implements Wre
     public static final EnumProperty<ConnectionType> DOWN = EnumProperty.create("down", ConnectionType.class);
 
     private static final TagKey<Item> WRENCHES = TagKey.create(net.minecraft.core.registries.Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath("c", "tools/wrench"));
+            Identifier.fromNamespaceAndPath("c", "tools/wrench"));
 
     private static final double CORE_MIN = 5.0 / 16.0;
     private static final double CORE_MAX = 11.0 / 16.0;
@@ -119,7 +124,7 @@ public abstract class LogisticsCableBlock extends BaseEntityBlock implements Wre
     }
 
     /** Works out one arm from the world, keeping the player's choice (pull / off) where it still applies. */
-    private ConnectionType compute(LevelAccessor level, BlockPos pos, Direction dir, ConnectionType current) {
+    private ConnectionType compute(LevelReader level, BlockPos pos, Direction dir, ConnectionType current) {
         if (current == ConnectionType.DISABLED) return ConnectionType.DISABLED;
         BlockPos neighborPos = pos.relative(dir);
         BlockState neighbor = level.getBlockState(neighborPos);
@@ -144,8 +149,8 @@ public abstract class LogisticsCableBlock extends BaseEntityBlock implements Wre
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level,
-                                     BlockPos pos, BlockPos neighborPos) {
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+                                     Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         return state.setValue(property(direction), compute(level, pos, direction, connection(state, direction)));
     }
 
@@ -158,41 +163,43 @@ public abstract class LogisticsCableBlock extends BaseEntityBlock implements Wre
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos,
-                                   boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                                   @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         if (level instanceof ServerLevel serverLevel) {
-            // A capability can appear without a shape update (a machine's face switched on in its GUI).
-            Direction dir = Direction.fromDelta(neighborPos.getX() - pos.getX(), neighborPos.getY() - pos.getY(),
-                    neighborPos.getZ() - pos.getZ());
-            if (dir != null) {
+            // A capability can appear without a shape update (a machine's face switched on in its GUI). The
+            // neighbour that changed is no longer given, so every face is checked.
+            BlockState updated = state;
+            for (Direction dir : Direction.values()) {
                 ConnectionType now = compute(level, pos, dir, connection(state, dir));
-                if (now != connection(state, dir)) {
-                    level.setBlock(pos, state.setValue(property(dir), now), Block.UPDATE_ALL);
-                    return;
-                }
+                if (now != connection(state, dir)) updated = updated.setValue(property(dir), now);
             }
-            LogisticsNetworkManager.get(serverLevel, kind).onNeighborChanged(pos, neighborPos);
+            if (updated != state) {
+                level.setBlock(pos, updated, Block.UPDATE_ALL);
+                return;
+            }
+            LogisticsNetworkManager manager = LogisticsNetworkManager.get(serverLevel, kind);
+            for (Direction dir : Direction.values()) manager.onNeighborChanged(pos, pos.relative(dir));
         }
     }
 
     // ---- configuring arms ----
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                               InteractionHand hand, BlockHitResult hit) {
         if (stack.is(WRENCHES)) {
             configure(state, level, pos, player, hit);
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+            return InteractionResult.SUCCESS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!player.isShiftKeyDown()) return InteractionResult.PASS;
         configure(state, level, pos, player, hit);
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     /** The arm under the cursor: the one sticking out of the core, or the face of the core that was clicked. */
@@ -214,7 +221,7 @@ public abstract class LogisticsCableBlock extends BaseEntityBlock implements Wre
     }
 
     private void configure(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
         Direction dir = hitSide(pos, hit);
         ConnectionType current = connection(state, dir);
         BlockPos neighborPos = pos.relative(dir);
@@ -229,7 +236,7 @@ public abstract class LogisticsCableBlock extends BaseEntityBlock implements Wre
                 if (isSameCable(neighbor) && connection(neighbor, dir.getOpposite()) == ConnectionType.DISABLED) {
                     next = ConnectionType.CABLE;
                 } else {
-                    player.displayClientMessage(Component.translatable("cable.voltaicdynamics.nothing"), true);
+                    player.sendOverlayMessage(Component.translatable("cable.voltaicdynamics.nothing"));
                     return;
                 }
             }
@@ -244,8 +251,8 @@ public abstract class LogisticsCableBlock extends BaseEntityBlock implements Wre
             }
         }
         level.playSound(null, pos, SoundEvents.ITEM_FRAME_ROTATE_ITEM, SoundSource.BLOCKS, 0.6F, next == ConnectionType.DISABLED ? 0.7F : 1.2F);
-        player.displayClientMessage(Component.translatable("cable.voltaicdynamics.configured",
-                Component.translatable("sideconfig.voltaicdynamics.dir." + dir.getName()), next.label()), true);
+        player.sendOverlayMessage(Component.translatable("cable.voltaicdynamics.configured",
+                Component.translatable("sideconfig.voltaicdynamics.dir." + dir.getName()), next.label()));
     }
 
     // ---- shape ----
@@ -297,13 +304,13 @@ public abstract class LogisticsCableBlock extends BaseEntityBlock implements Wre
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendTooltip(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltip, TooltipFlag flag) {
         String name = kind == LogisticsKind.ITEM ? "item_cable" : "fluid_cable";
         Object rate = kind == LogisticsKind.ITEM
                 ? VoltaicConfig.get(VoltaicConfig.ITEM_CABLE_ITEMS) + " / " + String.format("%.1f", VoltaicConfig.get(VoltaicConfig.ITEM_CABLE_INTERVAL) / 20.0) + " s"
                 : String.format("%,d", VoltaicConfig.get(VoltaicConfig.FLUID_CABLE_RATE));
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics." + name + ".desc1", rate).withStyle(ChatFormatting.AQUA));
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.logistics_cable.desc2").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.logistics_cable.desc3").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics." + name + ".desc1", rate).withStyle(ChatFormatting.AQUA));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.logistics_cable.desc2").withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.logistics_cable.desc3").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

@@ -1,5 +1,8 @@
 package com.voltaicdynamics.generators;
 
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.voltaicdynamics.core.blockentity.VoltaicBlockEntity;
 import com.voltaicdynamics.VoltaicConfig;
 import com.voltaicdynamics.core.energy.NeighborEnergyCache;
@@ -18,7 +21,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -72,7 +74,7 @@ public class ThermoelectricGeneratorBlockEntity extends VoltaicBlockEntity {
         if (state.is(Blocks.PACKED_ICE)) return new Source(Kind.COLD, 16, Blocks.ICE.defaultBlockState());
         if (state.is(Blocks.POWDER_SNOW)) return new Source(Kind.COLD, 14, Blocks.AIR.defaultBlockState());
         if (state.is(Blocks.ICE)) {
-            BlockState melted = level.dimensionType().ultraWarm() ? Blocks.AIR.defaultBlockState() : Blocks.WATER.defaultBlockState();
+            BlockState melted = level.environmentAttributes().getValue(net.minecraft.world.attribute.EnvironmentAttributes.WATER_EVAPORATES, pos) ? Blocks.AIR.defaultBlockState() : Blocks.WATER.defaultBlockState();
             return new Source(Kind.COLD, 10, melted);
         }
         if (state.is(Blocks.SNOW_BLOCK)) return new Source(Kind.COLD, 8, Blocks.AIR.defaultBlockState());
@@ -108,7 +110,7 @@ public class ThermoelectricGeneratorBlockEntity extends VoltaicBlockEntity {
         }
 
         // Ambient cold: snowy biomes help the cold side.
-        if (level.getBiome(pos).value().coldEnoughToSnow(pos)) {
+        if (level.getBiome(pos).value().coldEnoughToSnow(pos, level.getSeaLevel())) {
             coldPoints += 8;
         }
 
@@ -118,7 +120,7 @@ public class ThermoelectricGeneratorBlockEntity extends VoltaicBlockEntity {
             double chance = VoltaicConfig.get(VoltaicConfig.THERMO_WEAR_CHANCE);
             if (chance > 0) {
                 for (int i = 0; i < wearable.size(); i++) {
-                    if (level.random.nextDouble() < chance) {
+                    if (level.getRandom().nextDouble() < chance) {
                         BlockPos wornPos = wearable.get(i);
                         level.setBlock(wornPos, wornStates.get(i), Block.UPDATE_ALL);
                         level.playSound(null, wornPos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.4F, 1.6F);
@@ -131,7 +133,7 @@ public class ThermoelectricGeneratorBlockEntity extends VoltaicBlockEntity {
         return Math.min(generation, VoltaicConfig.get(VoltaicConfig.THERMO_MAX_GENERATION));
     }
 
-    public IEnergyStorage getEnergyStorage(@Nullable Direction side) {
+    public EnergyHandler getEnergyStorage(@Nullable Direction side) {
         return energyStorage;
     }
 
@@ -148,16 +150,16 @@ public class ThermoelectricGeneratorBlockEntity extends VoltaicBlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Energy", energyStorage.serializeNBT(registries));
-        tag.putInt("LastGenerated", lastGenerated);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        energyStorage.serialize(output);
+        output.putInt("LastGenerated", lastGenerated);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("Energy")) energyStorage.deserializeNBT(registries, tag.getCompound("Energy"));
-        lastGenerated = tag.getInt("LastGenerated");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        energyStorage.deserialize(input);
+        lastGenerated = input.getIntOr("LastGenerated", 0);
     }
 }

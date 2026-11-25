@@ -7,7 +7,7 @@ import com.voltaicdynamics.core.client.layout.ScreenLayout;
 import com.voltaicdynamics.logistics.FluidTankMenu;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -25,7 +25,8 @@ public class FluidTankScreen extends MachineScreen<FluidTankMenu> {
     }
 
     @Override
-    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(g, mouseX, mouseY, partialTick);
         drawBackground(g);
         ScreenLayout.Widget gauge = widget("gauge");
         if (gauge == null) return;
@@ -35,8 +36,8 @@ public class FluidTankScreen extends MachineScreen<FluidTankMenu> {
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics g, int x, int y) {
-        super.renderTooltip(g, x, y);
+    protected void extractTooltip(GuiGraphicsExtractor g, int x, int y) {
+        super.extractTooltip(g, x, y);
         if (isHovering("gauge", x, y)) {
             FluidStack fluid = menu.getFluid();
             List<Component> lines = new ArrayList<>();
@@ -47,7 +48,7 @@ public class FluidTankScreen extends MachineScreen<FluidTankMenu> {
                     ? Component.translatable("tooltip.voltaicdynamics.gui.fluid_infinite").withStyle(ChatFormatting.GRAY)
                     : Component.translatable("tooltip.voltaicdynamics.gui.fluid",
                     String.format("%,d", menu.getAmount()), String.format("%,d", menu.getCapacity())).withStyle(ChatFormatting.GRAY));
-            g.renderComponentTooltip(font, lines, x, y);
+            g.setComponentTooltipForNextFrame(font, lines, x, y);
         }
     }
 }

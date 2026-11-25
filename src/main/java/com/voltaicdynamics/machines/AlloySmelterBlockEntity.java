@@ -6,6 +6,7 @@ import com.voltaicdynamics.machines.recipe.AlloyingRecipe;
 import com.voltaicdynamics.machines.recipe.ModRecipes;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -54,11 +55,9 @@ public class AlloySmelterBlockEntity extends ProcessingMachineBlockEntity {
 
     @Override
     protected boolean isValidInput(ItemStack stack) {
-        if (level == null || stack.isEmpty()) return false;
-        for (RecipeHolder<AlloyingRecipe> holder : level.getRecipeManager().getAllRecipesFor(ModRecipes.ALLOYING.get())) {
-            if (holder.value().uses(stack)) return true;
-        }
-        return false;
+        // The input set reaches the client too, unlike the recipes.
+        return level != null && !stack.isEmpty()
+                && level.recipeAccess().propertySet(ModRecipes.ALLOYING_INPUT).test(stack);
     }
 
     @Nullable
@@ -68,7 +67,7 @@ public class AlloySmelterBlockEntity extends ProcessingMachineBlockEntity {
         if (input.isEmpty()) return null;
         RecipeHolder<AlloyingRecipe> holder = cachedRecipe;
         if (holder == null || !holder.value().matches(input, level)) {
-            holder = level.getRecipeManager().getRecipeFor(ModRecipes.ALLOYING.get(), input, level).orElse(null);
+            holder = ((ServerLevel) level).recipeAccess().getRecipeFor(ModRecipes.ALLOYING.get(), input, level).orElse(null);
             if (holder == null) return null;
             cachedRecipe = holder;
         }
@@ -80,7 +79,7 @@ public class AlloySmelterBlockEntity extends ProcessingMachineBlockEntity {
             available = Math.min(available,
                     itemHandler.getStackInSlot(slots[i]).getCount() / Math.max(1, recipe.ingredients().get(i).count()));
         }
-        return new Craft(recipe.assemble(input, level.registryAccess()), scaledTime(recipe.time()), recipe.experience(), times -> {
+        return new Craft(recipe.assemble(input), scaledTime(recipe.time()), recipe.experience(), times -> {
             for (int i = 0; i < slots.length; i++) {
                 itemHandler.extractItem(slots[i], recipe.ingredients().get(i).count() * times, false);
             }

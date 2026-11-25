@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:thermoelectric_generator"
+        "recipes": "voltaicdynamics:thermoelectric_generator"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

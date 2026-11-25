@@ -1,5 +1,25 @@
 package com.voltaicdynamics.generators;
 
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import com.voltaicdynamics.core.transfer.VoltaicItemHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStackTemplate;
+import java.util.Optional;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.loot.NeoForgeLootContextParams;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.item.component.CookingFuel;
+import net.minecraft.core.component.DataComponents;
 import com.voltaicdynamics.core.blockentity.VoltaicBlockEntity;
 import com.voltaicdynamics.VoltaicConfig;
 import com.voltaicdynamics.core.energy.VoltaicEnergyStorage;
@@ -28,9 +48,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 public class CombustionGeneratorBlockEntity extends VoltaicBlockEntity implements MenuProvider, SideConfigurable {
@@ -45,7 +62,7 @@ public class CombustionGeneratorBlockEntity extends VoltaicBlockEntity implement
             .build();
     private SidedHandlers sided;
 
-    private final ItemStackHandler itemHandler = new ItemStackHandler(1) {
+    private final VoltaicItemHandler itemHandler = new VoltaicItemHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
             saveChanges();
@@ -53,41 +70,16 @@ public class CombustionGeneratorBlockEntity extends VoltaicBlockEntity implement
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return burnTimeOf(stack) > 0;
+            return isFuel(stack);
         }
     };
 
     /** Pipes may insert fuel, and may only take out what is not fuel (the empty bucket left by lava). */
-    private final IItemHandler automationHandler = new IItemHandler() {
+    private final ResourceHandler<ItemResource> automationHandler = new DelegatingResourceHandler<>(itemHandler) {
         @Override
-        public int getSlots() {
-            return 1;
-        }
-
-        @Override
-        public ItemStack getStackInSlot(int slot) {
-            return itemHandler.getStackInSlot(slot);
-        }
-
-        @Override
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return itemHandler.insertItem(slot, stack, simulate);
-        }
-
-        @Override
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            if (burnTimeOf(itemHandler.getStackInSlot(slot)) > 0) return ItemStack.EMPTY;
-            return itemHandler.extractItem(slot, amount, simulate);
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return itemHandler.getSlotLimit(slot);
-        }
-
-        @Override
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return itemHandler.isItemValid(slot, stack);
+        public int extract(int slot, ItemResource resource, int amount, TransactionContext transaction) {
+            if (isFuel(itemHandler.getStackInSlot(slot))) return 0;
+            return super.extract(slot, resource, amount, transaction);
         }
     };
 
@@ -136,7 +128,8 @@ public class CombustionGeneratorBlockEntity extends VoltaicBlockEntity implement
         int fuelBurn = burnTimeOf(fuel);
         if (fuelBurn <= 0) return;
 
-        ItemStack remainder = fuel.getCraftingRemainingItem();
+        ItemStackTemplate remainderTemplate = fuel.getCraftingRemainder();
+        ItemStack remainder = remainderTemplate == null ? ItemStack.EMPTY : remainderTemplate.create();
         int scaled = Math.max(1, (int) Math.round(fuelBurn * VoltaicConfig.get(VoltaicConfig.COMBUSTION_BURN_TIME_MULTIPLIER)));
         maxBurnTime = scaled;
         burnTime = scaled;
@@ -153,13 +146,33 @@ public class CombustionGeneratorBlockEntity extends VoltaicBlockEntity implement
         saveChanges();
     }
 
-    private static int burnTimeOf(ItemStack stack) {
-        if (stack.isEmpty()) return 0;
-        return stack.getBurnTime(RecipeType.SMELTING);
+    /** Whether the stack burns in a furnace; works on the client too. */
+    private static boolean isFuel(ItemStack stack) {
+        return !stack.isEmpty() && stack.has(DataComponents.COOKING_FUEL);
+    }
+
+    /** Furnace burn time of the stack, resolved like a furnace does (server only). */
+    private int burnTimeOf(ItemStack stack) {
+        if (!isFuel(stack) || !(level instanceof ServerLevel server)) return 0;
+        LootContext context = new LootContext.Builder(new LootParams.Builder(server)
+                .withParameter(LootContextParams.BLOCK_STATE, getBlockState())
+                .withParameter(LootContextParams.BLOCK_ENTITY, this)
+                .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(worldPosition))
+                .withParameter(LootContextParams.CONTAINER, new SimpleContainer(stack))
+                .withOptionalParameter(NeoForgeLootContextParams.QUERIED_STACK, stack)
+                .create(LootContextParamSets.CONTAINER_PROCESS))
+                .create(Optional.empty());
+        return ResolvableInt.getFromItem(stack, DataComponents.COOKING_FUEL, CookingFuel::burnTime, context, 0);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        drops();
     }
 
     public void drops() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             SimpleContainer inventory = new SimpleContainer(itemHandler.getSlots());
             for (int i = 0; i < itemHandler.getSlots(); i++) {
                 inventory.setItem(i, itemHandler.getStackInSlot(i));
@@ -174,12 +187,12 @@ public class CombustionGeneratorBlockEntity extends VoltaicBlockEntity implement
     }
 
     @Nullable
-    public IEnergyStorage getEnergyStorage(@Nullable Direction side) {
+    public EnergyHandler getEnergyStorage(@Nullable Direction side) {
         return sided().energy(side);
     }
 
     @Nullable
-    public IItemHandler getItemHandler(@Nullable Direction side) {
+    public ResourceHandler<ItemResource> getItemHandler(@Nullable Direction side) {
         return sided().items(side);
     }
 
@@ -199,7 +212,7 @@ public class CombustionGeneratorBlockEntity extends VoltaicBlockEntity implement
     }
 
     /** Unrestricted handler for the GUI slot, so players can take the empty bucket or fuel back. */
-    public IItemHandler getMenuItemHandler() {
+    public VoltaicItemHandler getMenuItemHandler() {
         return itemHandler;
     }
 
@@ -236,23 +249,23 @@ public class CombustionGeneratorBlockEntity extends VoltaicBlockEntity implement
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Inventory", itemHandler.serializeNBT(registries));
-        tag.put("Energy", energyStorage.serializeNBT(registries));
-        tag.putInt("BurnTime", burnTime);
-        tag.putInt("MaxBurnTime", maxBurnTime);
-        tag.put("SideConfig", sideConfig.save());
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        itemHandler.serialize(output.child("Inventory"));
+        energyStorage.serialize(output);
+        output.putInt("BurnTime", burnTime);
+        output.putInt("MaxBurnTime", maxBurnTime);
+        sideConfig.save(output);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("Inventory")) itemHandler.deserializeNBT(registries, tag.getCompound("Inventory"));
-        if (tag.contains("Energy")) energyStorage.deserializeNBT(registries, tag.getCompound("Energy"));
-        burnTime = tag.getInt("BurnTime");
-        maxBurnTime = tag.getInt("MaxBurnTime");
-        if (tag.contains("SideConfig")) sideConfig.load(tag.getCompound("SideConfig"));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        input.child("Inventory").ifPresent(itemHandler::deserialize);
+        energyStorage.deserialize(input);
+        burnTime = input.getIntOr("BurnTime", 0);
+        maxBurnTime = input.getIntOr("MaxBurnTime", 0);
+        sideConfig.load(input);
         sided().invalidate();
     }
 }

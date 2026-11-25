@@ -2,41 +2,31 @@ package com.voltaicdynamics.datagen;
 
 import com.voltaicdynamics.VoltaicDynamics;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.data.event.GatherDataRegistryEntriesEvent;
 
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-
-/** Run with {@code ./gradlew runData}; output goes to src/generated/resources. */
+/**
+ * {@code ./gradlew runData}: tags, the fluid fuel data map, block loot tables and recipes into src/generated/resources.
+ * Loot tables and recipes are reloadable registries, so they are gathered as registry entries.
+ */
 @EventBusSubscriber(modid = VoltaicDynamics.MOD_ID)
 public final class ModDataGenerators {
     private ModDataGenerators() {
     }
 
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event) {
-        DataGenerator generator = event.getGenerator();
-        PackOutput output = generator.getPackOutput();
-        CompletableFuture<HolderLookup.Provider> lookup = event.getLookupProvider();
-        ExistingFileHelper files = event.getExistingFileHelper();
+    public static void gatherRegistryEntries(GatherDataRegistryEntriesEvent event) {
+        event.lootTable(new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK))
+                .recipe(ModRecipeProvider::new);
+    }
 
-        ModBlockTagsProvider blockTags = generator.addProvider(event.includeServer(),
-                new ModBlockTagsProvider(output, lookup, files));
-        generator.addProvider(event.includeServer(),
-                new ModItemTagsProvider(output, lookup, blockTags.contentsGetter(), files));
-        generator.addProvider(event.includeServer(), new LootTableProvider(output, Set.of(),
-                List.of(new LootTableProvider.SubProviderEntry(ModBlockLootProvider::new, LootContextParamSets.BLOCK)),
-                lookup));
-        generator.addProvider(event.includeServer(), new ModRecipeProvider(output, lookup));
-        generator.addProvider(event.includeServer(), new ModDataMapProvider(output, lookup));
+    @SubscribeEvent
+    public static void gatherData(GatherDataEvent.Client event) {
+        event.createBlockAndItemTags(ModBlockTagsProvider::new, (output, lookup, blockTags) -> new ModItemTagsProvider(output, lookup));
+        event.createProvider(ModDataMapProvider::new);
     }
 }

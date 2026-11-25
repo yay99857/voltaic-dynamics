@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:iron_ingot_from_dust_from_smelting"
+        "recipes": "voltaicdynamics:iron_ingot_from_dust_from_smelting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

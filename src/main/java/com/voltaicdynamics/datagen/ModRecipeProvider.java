@@ -1,5 +1,12 @@
 package com.voltaicdynamics.datagen;
 
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.CookingBookCategory;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.advancements.Advancement;
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.VoltaicCore;
 import com.voltaicdynamics.gadgets.VoltaicGadgets;
@@ -10,43 +17,38 @@ import com.voltaicdynamics.machines.recipe.AlloyingRecipe;
 import com.voltaicdynamics.machines.recipe.CrushingRecipe;
 import com.voltaicdynamics.power.VoltaicPower;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.Tags;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.conditions.NotCondition;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import java.util.List;
 import net.neoforged.neoforge.common.conditions.TagEmptyCondition;
 
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Voltaic ingots come from smelting their dust, like any metal. Galvanic Alloy is an alloy like Mekanism's:
  * it has no dust and is made only in the Alloy Smelter, the mod's infuser, so it never comes out of a furnace.
  */
 public class ModRecipeProvider extends RecipeProvider {
-    public ModRecipeProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookup) {
-        super(output, lookup);
+    public ModRecipeProvider(BootstrapContext<Recipe<?>> recipes, BootstrapContext<Advancement> advancements) {
+        super(recipes, advancements);
     }
 
     @Override
-    protected void buildRecipes(RecipeOutput output) {
+    protected void buildRecipes() {
+        RecipeOutput output = this.output;
         // Dusts. The Pulverizer makes iron and copper dust (other mods' dusts work too, through the c: tags).
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, VoltaicCore.VOLTAIC_DUST.get(), 2)
+        shapeless(RecipeCategory.MISC, VoltaicCore.VOLTAIC_DUST.get(), 2)
                 .requires(ModTags.DUSTS_IRON)
                 .requires(ModTags.DUSTS_COPPER)
                 .requires(Tags.Items.DUSTS_REDSTONE)
@@ -54,7 +56,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .save(output);
         // The way in before any machine exists (the generators need Voltaic Ingots, the Pulverizer needs power):
         // a weaker recipe from ingots. Dusts give twice as much, and the Alloy Smelter more again.
-        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, VoltaicCore.VOLTAIC_DUST.get(), 1)
+        shapeless(RecipeCategory.MISC, VoltaicCore.VOLTAIC_DUST.get(), 1)
                 .requires(Tags.Items.INGOTS_IRON)
                 .requires(Tags.Items.INGOTS_COPPER)
                 .requires(Tags.Items.DUSTS_REDSTONE)
@@ -68,20 +70,20 @@ public class ModRecipeProvider extends RecipeProvider {
         cook(output, ModTags.DUSTS_GOLD, Items.GOLD_INGOT, 1.0F, "gold_ingot_from_dust");
 
         // Components
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicCore.THERMOPILE_CORE.get())
+        shaped(RecipeCategory.MISC, VoltaicCore.THERMOPILE_CORE.get())
                 .pattern(" C ").pattern("RIR").pattern(" C ")
                 .define('C', Tags.Items.INGOTS_COPPER)
                 .define('R', Tags.Items.DUSTS_REDSTONE)
                 .define('I', ModTags.INGOTS_VOLTAIC)
                 .unlockedBy("has_voltaic_ingot", has(ModTags.INGOTS_VOLTAIC))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, VoltaicGadgets.VOLTAIC_WRENCH.get())
+        shaped(RecipeCategory.TOOLS, VoltaicGadgets.VOLTAIC_WRENCH.get())
                 .pattern("I I").pattern(" V ").pattern(" I ")
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('V', ModTags.INGOTS_VOLTAIC)
                 .unlockedBy("has_voltaic_ingot", has(ModTags.INGOTS_VOLTAIC))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.TOOLS, VoltaicGadgets.POCKET_ACCUMULATOR.get())
+        shaped(RecipeCategory.TOOLS, VoltaicGadgets.POCKET_ACCUMULATOR.get())
                 .pattern(" R ").pattern("CVC").pattern(" R ")
                 .define('R', Tags.Items.DUSTS_REDSTONE)
                 .define('C', Tags.Items.INGOTS_COPPER)
@@ -90,7 +92,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .save(output);
 
         // Generators
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicGenerators.THERMOELECTRIC_GENERATOR.get())
+        shaped(RecipeCategory.REDSTONE, VoltaicGenerators.THERMOELECTRIC_GENERATOR.get())
                 .pattern("ICI").pattern("GTG").pattern("IBI")
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('C', Tags.Items.INGOTS_COPPER)
@@ -99,7 +101,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .define('B', Items.BUCKET)
                 .unlockedBy("has_thermopile_core", has(VoltaicCore.THERMOPILE_CORE.get()))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicGenerators.COMBUSTION_GENERATOR.get())
+        shaped(RecipeCategory.REDSTONE, VoltaicGenerators.COMBUSTION_GENERATOR.get())
                 .pattern("III").pattern("IFI").pattern("GVG")
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('F', Items.FURNACE)
@@ -109,10 +111,10 @@ public class ModRecipeProvider extends RecipeProvider {
                 .save(output);
 
         // Fluid Generator: a Combustion Generator that takes its fuel through pipes.
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicGenerators.FLUID_GENERATOR.get())
+        shaped(RecipeCategory.REDSTONE, VoltaicGenerators.FLUID_GENERATOR.get())
                 .pattern("IGI").pattern("VCV").pattern("IBI")
                 .define('I', Tags.Items.INGOTS_IRON)
-                .define('G', Tags.Items.GLASS_BLOCKS)
+                .define('G', Tags.BlockItems.GLASS_BLOCKS.item())
                 .define('V', ModTags.INGOTS_VOLTAIC)
                 .define('C', VoltaicGenerators.COMBUSTION_GENERATOR.get())
                 .define('B', Items.BUCKET)
@@ -120,7 +122,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .save(output);
 
         // Machines
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicMachines.ELECTRIC_FURNACE.get())
+        shaped(RecipeCategory.REDSTONE, VoltaicMachines.ELECTRIC_FURNACE.get())
                 .pattern("ICI").pattern("VFV").pattern("IRI")
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('C', ModTags.ALLOYS_GALVANIC)
@@ -131,7 +133,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .save(output);
 
         // Alloy Smelter: no Galvanic Alloy in it, since it is the machine that makes Galvanic Alloy.
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicMachines.ALLOY_SMELTER.get())
+        shaped(RecipeCategory.REDSTONE, VoltaicMachines.ALLOY_SMELTER.get())
                 .pattern("IVI").pattern("CFC").pattern("IRI")
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('V', ModTags.INGOTS_VOLTAIC)
@@ -142,7 +144,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .save(output);
 
         // Pulverizer: no Voltaic Ingot in it, since its dusts are the good way to make Voltaic Ingots.
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicMachines.PULVERIZER.get())
+        shaped(RecipeCategory.REDSTONE, VoltaicMachines.PULVERIZER.get())
                 .pattern("IFI").pattern("CPC").pattern("IRI")
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('F', Items.FLINT)
@@ -153,7 +155,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .save(output);
 
         // Upgrades: the use for Galvanic Alloy once the Advanced Accumulator is built.
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.SPEED_UPGRADE.get())
+        shaped(RecipeCategory.MISC, VoltaicMachines.SPEED_UPGRADE.get())
                 .pattern(" R ").pattern("RAR").pattern(" Q ")
                 .define('R', Tags.Items.DUSTS_REDSTONE)
                 .define('A', ModTags.ALLOYS_GALVANIC)
@@ -161,29 +163,29 @@ public class ModRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_galvanic_alloy", has(ModTags.ALLOYS_GALVANIC))
                 .save(output);
         // Tier Installers: raise a machine one tier in place (how many items it processes at once).
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.ADVANCED_TIER_INSTALLER.get())
+        shaped(RecipeCategory.MISC, VoltaicMachines.ADVANCED_TIER_INSTALLER.get())
                 .pattern("GAG").pattern("ARA").pattern("GAG")
                 .define('G', Tags.Items.INGOTS_GOLD)
                 .define('A', ModTags.ALLOYS_GALVANIC)
-                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .define('R', Tags.BlockItems.STORAGE_BLOCKS_REDSTONE.item())
                 .unlockedBy("has_galvanic_alloy", has(ModTags.ALLOYS_GALVANIC))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.ELITE_TIER_INSTALLER.get())
+        shaped(RecipeCategory.MISC, VoltaicMachines.ELITE_TIER_INSTALLER.get())
                 .pattern("DAD").pattern("ARA").pattern("DAD")
                 .define('D', Tags.Items.GEMS_DIAMOND)
                 .define('A', ModTags.ALLOYS_GALVANIC)
-                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .define('R', Tags.BlockItems.STORAGE_BLOCKS_REDSTONE.item())
                 .unlockedBy("has_advanced_tier_installer", has(VoltaicMachines.ADVANCED_TIER_INSTALLER.get()))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.ULTIMATE_TIER_INSTALLER.get())
+        shaped(RecipeCategory.MISC, VoltaicMachines.ULTIMATE_TIER_INSTALLER.get())
                 .pattern("DND").pattern("ARA").pattern("DAD")
                 .define('D', Tags.Items.GEMS_DIAMOND)
                 .define('N', Tags.Items.INGOTS_NETHERITE)
                 .define('A', ModTags.ALLOYS_GALVANIC)
-                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .define('R', Tags.BlockItems.STORAGE_BLOCKS_REDSTONE.item())
                 .unlockedBy("has_elite_tier_installer", has(VoltaicMachines.ELITE_TIER_INSTALLER.get()))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicMachines.EFFICIENCY_UPGRADE.get())
+        shaped(RecipeCategory.MISC, VoltaicMachines.EFFICIENCY_UPGRADE.get())
                 .pattern(" L ").pattern("LAL").pattern(" G ")
                 .define('L', Tags.Items.GEMS_LAPIS)
                 .define('A', ModTags.ALLOYS_GALVANIC)
@@ -195,36 +197,36 @@ public class ModRecipeProvider extends RecipeProvider {
         crushing(output);
 
         // Fluids and logistics
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicLogistics.FLUID_TANK.get())
+        shaped(RecipeCategory.MISC, VoltaicLogistics.FLUID_TANK.get())
                 .pattern("CGC").pattern("GBG").pattern("CGC")
                 .define('C', Tags.Items.INGOTS_COPPER)
-                .define('G', Tags.Items.GLASS_BLOCKS)
+                .define('G', Tags.BlockItems.GLASS_BLOCKS.item())
                 .define('B', Items.BUCKET)
                 .unlockedBy("has_bucket", has(Items.BUCKET))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicLogistics.ADVANCED_FLUID_TANK.get())
+        shaped(RecipeCategory.MISC, VoltaicLogistics.ADVANCED_FLUID_TANK.get())
                 .pattern("AGA").pattern("GTG").pattern("AGA")
                 .define('A', ModTags.ALLOYS_GALVANIC)
-                .define('G', Tags.Items.GLASS_BLOCKS)
+                .define('G', Tags.BlockItems.GLASS_BLOCKS.item())
                 .define('T', VoltaicLogistics.FLUID_TANK.get())
                 .unlockedBy("has_fluid_tank", has(VoltaicLogistics.FLUID_TANK.get()))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicLogistics.ELITE_FLUID_TANK.get())
+        shaped(RecipeCategory.MISC, VoltaicLogistics.ELITE_FLUID_TANK.get())
                 .pattern("DGD").pattern("GTG").pattern("DGD")
                 .define('D', Tags.Items.GEMS_DIAMOND)
-                .define('G', Tags.Items.GLASS_BLOCKS)
+                .define('G', Tags.BlockItems.GLASS_BLOCKS.item())
                 .define('T', VoltaicLogistics.ADVANCED_FLUID_TANK.get())
                 .unlockedBy("has_advanced_fluid_tank", has(VoltaicLogistics.ADVANCED_FLUID_TANK.get()))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, VoltaicLogistics.ULTIMATE_FLUID_TANK.get())
+        shaped(RecipeCategory.MISC, VoltaicLogistics.ULTIMATE_FLUID_TANK.get())
                 .pattern("OGO").pattern("GTG").pattern("ONO")
                 .define('O', Tags.Items.OBSIDIANS)
-                .define('G', Tags.Items.GLASS_BLOCKS)
+                .define('G', Tags.BlockItems.GLASS_BLOCKS.item())
                 .define('N', Tags.Items.INGOTS_NETHERITE)
                 .define('T', VoltaicLogistics.ELITE_FLUID_TANK.get())
                 .unlockedBy("has_elite_fluid_tank", has(VoltaicLogistics.ELITE_FLUID_TANK.get()))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicLogistics.ITEM_CABLE.get(), 8)
+        shaped(RecipeCategory.REDSTONE, VoltaicLogistics.ITEM_CABLE.get(), 8)
                 .pattern("IGI").pattern("VHV").pattern("IGI")
                 .define('I', Tags.Items.INGOTS_IRON)
                 .define('G', Tags.Items.GLASS_PANES)
@@ -232,7 +234,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .define('H', Items.HOPPER)
                 .unlockedBy("has_voltaic_ingot", has(ModTags.INGOTS_VOLTAIC))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicLogistics.FLUID_CABLE.get(), 8)
+        shaped(RecipeCategory.REDSTONE, VoltaicLogistics.FLUID_CABLE.get(), 8)
                 .pattern("IGI").pattern("VBV").pattern("IGI")
                 .define('I', Tags.Items.INGOTS_COPPER)
                 .define('G', Tags.Items.GLASS_PANES)
@@ -242,7 +244,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .save(output);
 
         // Storage and transport
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicPower.BASIC_ACCUMULATOR.get())
+        shaped(RecipeCategory.REDSTONE, VoltaicPower.BASIC_ACCUMULATOR.get())
                 .pattern("ICI").pattern("RPR").pattern("ICI")
                 .define('I', ModTags.INGOTS_VOLTAIC)
                 .define('C', Tags.Items.INGOTS_COPPER)
@@ -250,7 +252,7 @@ public class ModRecipeProvider extends RecipeProvider {
                 .define('P', VoltaicGadgets.POCKET_ACCUMULATOR.get())
                 .unlockedBy("has_pocket_accumulator", has(VoltaicGadgets.POCKET_ACCUMULATOR.get()))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicPower.ADVANCED_ACCUMULATOR.get())
+        shaped(RecipeCategory.REDSTONE, VoltaicPower.ADVANCED_ACCUMULATOR.get())
                 .pattern("AGA").pattern("RBR").pattern("AGA")
                 .define('A', ModTags.ALLOYS_GALVANIC)
                 .define('G', Tags.Items.INGOTS_GOLD)
@@ -259,23 +261,23 @@ public class ModRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_basic_accumulator", has(VoltaicPower.BASIC_ACCUMULATOR.get()))
                 .save(output);
         // Higher tiers: each one takes the one below. Creative blocks have no recipe.
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicPower.ELITE_ACCUMULATOR.get())
+        shaped(RecipeCategory.REDSTONE, VoltaicPower.ELITE_ACCUMULATOR.get())
                 .pattern("DAD").pattern("RBR").pattern("DAD")
                 .define('D', Tags.Items.GEMS_DIAMOND)
                 .define('A', ModTags.ALLOYS_GALVANIC)
-                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .define('R', Tags.BlockItems.STORAGE_BLOCKS_REDSTONE.item())
                 .define('B', VoltaicPower.ADVANCED_ACCUMULATOR.get())
                 .unlockedBy("has_advanced_accumulator", has(VoltaicPower.ADVANCED_ACCUMULATOR.get()))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicPower.ULTIMATE_ACCUMULATOR.get())
+        shaped(RecipeCategory.REDSTONE, VoltaicPower.ULTIMATE_ACCUMULATOR.get())
                 .pattern("ANA").pattern("RBR").pattern("ANA")
                 .define('N', Tags.Items.INGOTS_NETHERITE)
                 .define('A', ModTags.ALLOYS_GALVANIC)
-                .define('R', Tags.Items.STORAGE_BLOCKS_REDSTONE)
+                .define('R', Tags.BlockItems.STORAGE_BLOCKS_REDSTONE.item())
                 .define('B', VoltaicPower.ELITE_ACCUMULATOR.get())
                 .unlockedBy("has_elite_accumulator", has(VoltaicPower.ELITE_ACCUMULATOR.get()))
                 .save(output);
-        ShapedRecipeBuilder.shaped(RecipeCategory.REDSTONE, VoltaicPower.VOLTAIC_CABLE.get(), 8)
+        shaped(RecipeCategory.REDSTONE, VoltaicPower.VOLTAIC_CABLE.get(), 8)
                 .pattern("III").pattern("RRR").pattern("III")
                 .define('I', ModTags.INGOTS_VOLTAIC)
                 .define('R', Tags.Items.DUSTS_REDSTONE)
@@ -284,80 +286,89 @@ public class ModRecipeProvider extends RecipeProvider {
     }
 
     /** Alloy Smelter recipes. Dust versions yield more, rewarding ore processing, and load only when the dusts exist. */
-    private static void alloying(RecipeOutput output) {
+    private void alloying(RecipeOutput output) {
         alloy(output, "voltaic_ingot", List.of(
-                SizedIngredient.of(Tags.Items.INGOTS_IRON, 1),
-                SizedIngredient.of(Tags.Items.INGOTS_COPPER, 1),
-                SizedIngredient.of(Tags.Items.DUSTS_REDSTONE, 1)),
-                new ItemStack(VoltaicCore.VOLTAIC_INGOT.get(), 2), 100, 0.5F);
+                sized(Tags.Items.INGOTS_IRON, 1),
+                sized(Tags.Items.INGOTS_COPPER, 1),
+                sized(Tags.Items.DUSTS_REDSTONE, 1)),
+                new ItemStackTemplate(VoltaicCore.VOLTAIC_INGOT.get(), 2), 100, 0.5F);
         alloy(output, "voltaic_ingot_from_dusts", List.of(
-                SizedIngredient.of(ModTags.DUSTS_IRON, 1),
-                SizedIngredient.of(ModTags.DUSTS_COPPER, 1),
-                SizedIngredient.of(Tags.Items.DUSTS_REDSTONE, 1)),
-                new ItemStack(VoltaicCore.VOLTAIC_INGOT.get(), 3), 80, 0.6F);
+                sized(ModTags.DUSTS_IRON, 1),
+                sized(ModTags.DUSTS_COPPER, 1),
+                sized(Tags.Items.DUSTS_REDSTONE, 1)),
+                new ItemStackTemplate(VoltaicCore.VOLTAIC_INGOT.get(), 3), 80, 0.6F);
         alloy(output, "voltaic_ingot_from_voltaic_dust", List.of(
-                SizedIngredient.of(ModTags.DUSTS_VOLTAIC, 2)),
-                new ItemStack(VoltaicCore.VOLTAIC_INGOT.get(), 3), 60, 0.4F);
+                sized(ModTags.DUSTS_VOLTAIC, 2)),
+                new ItemStackTemplate(VoltaicCore.VOLTAIC_INGOT.get(), 3), 60, 0.4F);
         alloy(output, "galvanic_alloy", List.of(
-                SizedIngredient.of(ModTags.INGOTS_VOLTAIC, 1),
-                SizedIngredient.of(Tags.Items.INGOTS_GOLD, 1),
-                SizedIngredient.of(Tags.Items.DUSTS_REDSTONE, 1)),
-                new ItemStack(VoltaicCore.GALVANIC_ALLOY.get(), 2), 120, 0.7F);
+                sized(ModTags.INGOTS_VOLTAIC, 1),
+                sized(Tags.Items.INGOTS_GOLD, 1),
+                sized(Tags.Items.DUSTS_REDSTONE, 1)),
+                new ItemStackTemplate(VoltaicCore.GALVANIC_ALLOY.get(), 2), 120, 0.7F);
         alloy(output, "galvanic_alloy_from_dusts", List.of(
-                SizedIngredient.of(ModTags.DUSTS_VOLTAIC, 1),
-                SizedIngredient.of(ModTags.DUSTS_GOLD, 1),
-                SizedIngredient.of(Tags.Items.DUSTS_REDSTONE, 1)),
-                new ItemStack(VoltaicCore.GALVANIC_ALLOY.get(), 3), 100, 0.8F);
+                sized(ModTags.DUSTS_VOLTAIC, 1),
+                sized(ModTags.DUSTS_GOLD, 1),
+                sized(Tags.Items.DUSTS_REDSTONE, 1)),
+                new ItemStackTemplate(VoltaicCore.GALVANIC_ALLOY.get(), 3), 100, 0.8F);
     }
 
     /**
      * Pulverizer recipes: an ore block gives 2 dusts, a raw metal 1 plus a 50% chance of a second, an ingot 1.
      * Ores and raw metals load only when the tag has items, so packs without, say, tin show no dead recipes.
      */
-    private static void crushing(RecipeOutput output) {
-        metal(output, "iron", Tags.Items.ORES_IRON, Tags.Items.RAW_MATERIALS_IRON, Tags.Items.INGOTS_IRON, VoltaicCore.IRON_DUST.get());
-        metal(output, "copper", Tags.Items.ORES_COPPER, Tags.Items.RAW_MATERIALS_COPPER, Tags.Items.INGOTS_COPPER, VoltaicCore.COPPER_DUST.get());
-        metal(output, "gold", Tags.Items.ORES_GOLD, Tags.Items.RAW_MATERIALS_GOLD, Tags.Items.INGOTS_GOLD, VoltaicCore.GOLD_DUST.get());
-        crush(output, "voltaic_dust_from_ingot", SizedIngredient.of(ModTags.INGOTS_VOLTAIC, 1),
-                new ItemStack(VoltaicCore.VOLTAIC_DUST.get()), 0F, 80, 0F);
+    private void crushing(RecipeOutput output) {
+        metal(output, "iron", Tags.BlockItems.ORES_IRON.item(), Tags.Items.RAW_MATERIALS_IRON, Tags.Items.INGOTS_IRON, VoltaicCore.IRON_DUST.get());
+        metal(output, "copper", Tags.BlockItems.ORES_COPPER.item(), Tags.Items.RAW_MATERIALS_COPPER, Tags.Items.INGOTS_COPPER, VoltaicCore.COPPER_DUST.get());
+        metal(output, "gold", Tags.BlockItems.ORES_GOLD.item(), Tags.Items.RAW_MATERIALS_GOLD, Tags.Items.INGOTS_GOLD, VoltaicCore.GOLD_DUST.get());
+        crush(output, "voltaic_dust_from_ingot", sized(ModTags.INGOTS_VOLTAIC, 1),
+                new ItemStackTemplate(VoltaicCore.VOLTAIC_DUST.get()), 0F, 80, 0F);
         // Stone down to sand, like a pulverizer should.
-        crush(output, "gravel_from_cobblestone", SizedIngredient.of(Tags.Items.COBBLESTONES_NORMAL, 1),
-                new ItemStack(Items.GRAVEL), 0F, 60, 0F);
-        crush(output, "sand_from_gravel", SizedIngredient.of(Tags.Items.GRAVELS, 1),
-                new ItemStack(Items.SAND), 0F, 60, 0F);
+        crush(output, "gravel_from_cobblestone", sized(Tags.BlockItems.COBBLESTONES_NORMAL.item(), 1),
+                new ItemStackTemplate(Items.GRAVEL), 0F, 60, 0F);
+        crush(output, "sand_from_gravel", sized(Tags.BlockItems.GRAVELS.item(), 1),
+                new ItemStackTemplate(Items.SAND), 0F, 60, 0F);
         crush(output, "flint_from_gravel", SizedIngredient.of(Items.GRAVEL, 2),
-                new ItemStack(Items.FLINT), 0F, 80, 0F);
+                new ItemStackTemplate(Items.FLINT), 0F, 80, 0F);
     }
 
-    private static void metal(RecipeOutput output, String metal, TagKey<Item> ores, TagKey<Item> raw, TagKey<Item> ingots,
+    private void metal(RecipeOutput output, String metal, TagKey<Item> ores, TagKey<Item> raw, TagKey<Item> ingots,
                               Item dust) {
-        crush(output, metal + "_dust_from_ore", SizedIngredient.of(ores, 1), new ItemStack(dust, 2), 0F, 120, 0.2F,
+        crush(output, metal + "_dust_from_ore", sized(ores, 1), new ItemStackTemplate(dust, 2), 0F, 120, 0.2F,
                 new NotCondition(new TagEmptyCondition(ores)));
-        crush(output, metal + "_dust_from_raw", SizedIngredient.of(raw, 1), new ItemStack(dust), 0.5F, 100, 0.1F,
+        crush(output, metal + "_dust_from_raw", sized(raw, 1), new ItemStackTemplate(dust), 0.5F, 100, 0.1F,
                 new NotCondition(new TagEmptyCondition(raw)));
-        crush(output, metal + "_dust_from_ingot", SizedIngredient.of(ingots, 1), new ItemStack(dust), 0F, 80, 0F);
+        crush(output, metal + "_dust_from_ingot", sized(ingots, 1), new ItemStackTemplate(dust), 0F, 80, 0F);
     }
 
-    private static void crush(RecipeOutput output, String name, SizedIngredient input, ItemStack result, float bonus,
+    private static void crush(RecipeOutput output, String name, SizedIngredient input, ItemStackTemplate result, float bonus,
                               int time, float xp, ICondition... conditions) {
-        output.accept(id("crushing/" + name), new CrushingRecipe(input, result, bonus, time, xp), null, conditions);
+        output.accept(key("crushing/" + name), new CrushingRecipe(input, result, bonus, time, xp), null, conditions);
     }
 
-    private static void alloy(RecipeOutput output, String name, List<SizedIngredient> inputs, ItemStack result, int time,
-                              float xp, ICondition... conditions) {
-        output.accept(id("alloying/" + name), new AlloyingRecipe(inputs, result, time, xp), null, conditions);
+    private static void alloy(RecipeOutput output, String name, List<SizedIngredient> inputs, ItemStackTemplate result,
+                              int time, float xp, ICondition... conditions) {
+        output.accept(key("alloying/" + name), new AlloyingRecipe(inputs, result, time, xp), null, conditions);
     }
 
-    private static void cook(RecipeOutput output, TagKey<Item> input, ItemLike result, float xp, String name) {
-        SimpleCookingRecipeBuilder.smelting(Ingredient.of(input), RecipeCategory.MISC, result, xp, 200)
+    private void cook(RecipeOutput output, TagKey<Item> input, ItemLike result, float xp, String name) {
+        SimpleCookingRecipeBuilder.smelting(tag(input), RecipeCategory.MISC, CookingBookCategory.MISC, result, xp, 200)
                 .unlockedBy("has_dust", has(input))
                 .save(output, id(name + "_from_smelting"));
-        SimpleCookingRecipeBuilder.blasting(Ingredient.of(input), RecipeCategory.MISC, result, xp, 100)
+        SimpleCookingRecipeBuilder.blasting(tag(input), RecipeCategory.MISC, CookingBookCategory.MISC, result, xp, 100)
                 .unlockedBy("has_dust", has(input))
                 .save(output, id(name + "_from_blasting"));
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, path);
+    /** {@code count} of anything in the tag. */
+    private SizedIngredient sized(TagKey<Item> tag, int count) {
+        return new SizedIngredient(tag(tag), count);
+    }
+
+    private static String id(String path) {
+        return VoltaicDynamics.MOD_ID + ":" + path;
+    }
+
+    private static ResourceKey<Recipe<?>> key(String path) {
+        return ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, path));
     }
 }

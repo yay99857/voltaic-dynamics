@@ -1,5 +1,6 @@
 package com.voltaicdynamics.core.client;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.menu.MachineMenu;
 import com.voltaicdynamics.core.sideconfig.IoMode;
@@ -11,12 +12,12 @@ import com.voltaicdynamics.core.sideconfig.TransferType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -36,8 +37,8 @@ import java.util.List;
  * purple both, grey off. Changes go to the server through menu button clicks.
  */
 public class SideConfigPanel {
-    private static final ResourceLocation ICONS =
-            ResourceLocation.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "textures/gui/side_config.png");
+    private static final Identifier ICONS =
+            Identifier.fromNamespaceAndPath(VoltaicDynamics.MOD_ID, "textures/gui/side_config.png");
 
     private static final int TAB_SIZE = 22;
     private static final int WIDTH = 86;
@@ -84,31 +85,29 @@ public class SideConfigPanel {
 
     // ---- drawing ----
 
-    private static void bevel(GuiGraphics g, int x, int y, int w, int h, int fill) {
+    private static void bevel(GuiGraphicsExtractor g, int x, int y, int w, int h, int fill) {
         g.fill(x, y, x + w, y + h, 0xFF373737);
         g.fill(x, y, x + w - 1, y + h - 1, 0xFFFFFFFF);
         g.fill(x + 1, y + 1, x + w - 1, y + h - 1, fill);
     }
 
-    private static void inset(GuiGraphics g, int x, int y, int w, int h, int fill) {
+    private static void inset(GuiGraphicsExtractor g, int x, int y, int w, int h, int fill) {
         g.fill(x, y, x + w, y + h, 0xFFFFFFFF);
         g.fill(x, y, x + w - 1, y + h - 1, 0xFF373737);
         g.fill(x + 1, y + 1, x + w - 1, y + h - 1, fill);
     }
 
-    public void render(GuiGraphics g, Font font, int mouseX, int mouseY) {
-        g.pose().pushPose();
-        g.pose().translate(0, 0, 200);
+    public void render(GuiGraphicsExtractor g, Font font, int mouseX, int mouseY) {
+        g.nextStratum(); // above the slots and their items
         if (!open) {
             bevel(g, left - 1, top, TAB_SIZE + 2, TAB_SIZE, 0xFFC6C6C6);
-            g.blit(ICONS, left + 3, top + 3, 0, 0, 16, 16, 64, 32);
-            g.pose().popPose();
+            g.blit(RenderPipelines.GUI_TEXTURED, ICONS, left + 3, top + 3, 0, 0, 16, 16, 64, 32);
             return;
         }
 
         bevel(g, left - 1, top, WIDTH, HEIGHT, 0xFFC6C6C6);
-        g.blit(ICONS, left + 3, top + 3, 0, 0, 16, 16, 64, 32);
-        g.drawString(font, Component.translatable("sideconfig.voltaicdynamics.title"), left + 22, top + 7, 0xFF404040, false);
+        g.blit(RenderPipelines.GUI_TEXTURED, ICONS, left + 3, top + 3, 0, 0, 16, 16, 64, 32);
+        g.text(font, Component.translatable("sideconfig.voltaicdynamics.title"), left + 22, top + 7, 0xFF404040, false);
 
         // Type tabs
         for (int i = 0; i < types.size(); i++) {
@@ -120,11 +119,11 @@ public class SideConfigPanel {
             } else {
                 bevel(g, x, y, 18, 18, 0xFFC6C6C6);
             }
-            g.renderItem(type.icon(), x + 1, y + 1);
+            g.item(type.icon(), x + 1, y + 1);
         }
 
         TransferType type = selected;
-        g.drawString(font, type.label(), left + 5, top + 44, 0xFF404040, false);
+        g.text(font, type.label(), left + 5, top + 44, 0xFF404040, false);
 
         int bits = menu.getSideBits(type);
         for (RelativeSide side : RelativeSide.values()) {
@@ -135,7 +134,7 @@ public class SideConfigPanel {
             inset(g, x, y, FACE, FACE, mode.color());
             if (hover) g.fill(x + 1, y + 1, x + FACE - 1, y + FACE - 1, 0x40FFFFFF);
             String letter = side.label(!machine.hasFront()).getString().substring(0, 1);
-            g.drawCenteredString(font, letter, x + FACE / 2, y + 4, 0xFFFFFFFF);
+            g.centeredText(font, letter, x + FACE / 2, y + 4, 0xFFFFFFFF);
         }
 
         SideConfig.Entry entry = machine.getSideConfig().entry(type);
@@ -144,11 +143,10 @@ public class SideConfigPanel {
             int x = left + 4;
             int y = top + HEIGHT - 20;
             bevel(g, x, y, WIDTH - 9, 15, eject ? 0xFF4C9A4C : 0xFF8B8B8B);
-            g.blit(ICONS, x + 2, y, 16, 0, 16, 16, 64, 32);
-            g.drawString(font, Component.translatable(eject ? "sideconfig.voltaicdynamics.eject_on" : "sideconfig.voltaicdynamics.eject_off"),
+            g.blit(RenderPipelines.GUI_TEXTURED, ICONS, x + 2, y, 16, 0, 16, 16, 64, 32);
+            g.text(font, Component.translatable(eject ? "sideconfig.voltaicdynamics.eject_on" : "sideconfig.voltaicdynamics.eject_off"),
                     x + 18, y + 4, 0xFFFFFFFF, true);
         }
-        g.pose().popPose();
     }
 
     private int gridLeft() {

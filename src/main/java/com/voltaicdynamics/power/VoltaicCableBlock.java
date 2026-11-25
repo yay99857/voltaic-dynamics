@@ -1,8 +1,13 @@
 package com.voltaicdynamics.power;
 
+import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.LevelReader;
+import java.util.function.Consumer;
+import com.voltaicdynamics.core.block.TooltipBlock;
 import com.voltaicdynamics.VoltaicConfig;
 
-import com.mojang.serialization.MapCodec;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,8 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class VoltaicCableBlock extends BaseEntityBlock {
-    public static final MapCodec<VoltaicCableBlock> CODEC = simpleCodec(VoltaicCableBlock::new);
+public class VoltaicCableBlock extends BaseEntityBlock implements TooltipBlock {
 
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
@@ -79,10 +83,6 @@ public class VoltaicCableBlock extends BaseEntityBlock {
                 .setValue(POWERED, false));
     }
 
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -101,10 +101,13 @@ public class VoltaicCableBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                                   @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
         if (level instanceof ServerLevel serverLevel) {
-            CableNetworkManager.get(serverLevel).onNeighborChanged(pos, neighborPos);
+            // The neighbour that changed is no longer given; each check is cheap.
+            CableNetworkManager manager = CableNetworkManager.get(serverLevel);
+            for (Direction direction : Direction.values()) manager.onNeighborChanged(pos, pos.relative(direction));
         }
     }
 
@@ -119,7 +122,7 @@ public class VoltaicCableBlock extends BaseEntityBlock {
         };
     }
 
-    public static boolean canConnectTo(LevelAccessor level, BlockPos pos, Direction direction) {
+    public static boolean canConnectTo(LevelReader level, BlockPos pos, Direction direction) {
         BlockPos neighborPos = pos.relative(direction);
         BlockState neighborState = level.getBlockState(neighborPos);
 
@@ -130,7 +133,7 @@ public class VoltaicCableBlock extends BaseEntityBlock {
 
         // Connect to any machine or energy block that supports Forge Energy capability
         if (level instanceof Level fullLevel) {
-            return fullLevel.getCapability(Capabilities.EnergyStorage.BLOCK, neighborPos, direction.getOpposite()) != null;
+            return fullLevel.getCapability(Capabilities.Energy.BLOCK, neighborPos, direction.getOpposite()) != null;
         }
 
         return false;
@@ -152,7 +155,8 @@ public class VoltaicCableBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+                                  Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         boolean connects = canConnectTo(level, pos, direction);
         return switch (direction) {
             case NORTH -> state.setValue(NORTH, connects);
@@ -174,9 +178,9 @@ public class VoltaicCableBlock extends BaseEntityBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.voltaic_cable.desc1",
+    public void appendTooltip(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.accept(Component.translatable("tooltip.voltaicdynamics.voltaic_cable.desc1",
                 String.format("%,d", VoltaicConfig.get(VoltaicConfig.CABLE_TRANSFER))).withStyle(ChatFormatting.AQUA));
-        tooltipComponents.add(Component.translatable("tooltip.voltaicdynamics.voltaic_cable.desc2").withStyle(ChatFormatting.GRAY));
+        tooltipComponents.accept(Component.translatable("tooltip.voltaicdynamics.voltaic_cable.desc2").withStyle(ChatFormatting.GRAY));
     }
 }

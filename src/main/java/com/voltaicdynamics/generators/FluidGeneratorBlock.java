@@ -1,11 +1,12 @@
 package com.voltaicdynamics.generators;
 
 
-import com.mojang.serialization.MapCodec;
+import com.voltaicdynamics.core.transfer.Transfers;
+import java.util.function.Consumer;
+import com.voltaicdynamics.core.block.TooltipBlock;
 import net.minecraft.ChatFormatting;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.fluids.FluidUtil;
-import net.minecraft.world.ItemInteractionResult;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,16 +33,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 /** Burns liquid fuel (lava by default, any fluid in the voltaicdynamics:fluid_fuels data map) into FE. */
-public class FluidGeneratorBlock extends BaseEntityBlock {
-    public static final MapCodec<FluidGeneratorBlock> CODEC = simpleCodec(FluidGeneratorBlock::new);
-    public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
+public class FluidGeneratorBlock extends BaseEntityBlock implements TooltipBlock {
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
     public FluidGeneratorBlock(BlockBehaviour.Properties properties) {
@@ -49,10 +49,6 @@ public class FluidGeneratorBlock extends BaseEntityBlock {
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
     }
 
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -79,31 +75,21 @@ public class FluidGeneratorBlock extends BaseEntityBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        if (level.isClientSide) return null;
+        if (level.isClientSide()) return null;
         return createTickerHelper(blockEntityType, VoltaicGenerators.FLUID_GENERATOR_BE.get(), FluidGeneratorBlockEntity::tick);
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof FluidGeneratorBlockEntity generator && player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.openMenu(generator, buf -> buf.writeBlockPos(pos));
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!state.is(newState.getBlock())) {
-            BlockEntity blockEntity = level.getBlockEntity(pos);
-            if (blockEntity instanceof FluidGeneratorBlockEntity generator) {
-                generator.drops();
-            }
-        }
-        super.onRemove(state, level, pos, newState, isMoving);
-    }
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
@@ -115,23 +101,23 @@ public class FluidGeneratorBlock extends BaseEntityBlock {
 
     /** Buckets and other fuel containers pour straight into the tank. */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                               InteractionHand hand, BlockHitResult hit) {
-        if (FluidUtil.getFluidHandler(stack).isEmpty()) return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
-        if (FluidUtil.interactWithFluidHandler(player, hand, level, pos, null)) {
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        if (!Transfers.isFluidContainer(stack)) return InteractionResult.TRY_WITH_EMPTY_HAND;
+        if (FluidUtil.interactWithFluidHandler(player, hand, level, pos, hit.getDirection(), null)) {
+            return InteractionResult.SUCCESS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendTooltip(ItemStack stack, Item.TooltipContext context, Consumer<Component> tooltip, TooltipFlag flag) {
         FluidFuel lava = FluidFuel.of(Fluids.LAVA);
         if (lava != null) {
-            tooltip.add(Component.translatable("tooltip.voltaicdynamics.fluid_generator.desc1",
+            tooltip.accept(Component.translatable("tooltip.voltaicdynamics.fluid_generator.desc1",
                     lava.rate(), String.format("%,d", lava.energyPerMb() * 1000)).withStyle(ChatFormatting.LIGHT_PURPLE));
         }
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.fluid_generator.desc2").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.side_config").withStyle(ChatFormatting.DARK_GRAY));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.fluid_generator.desc2").withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.side_config").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

@@ -1,13 +1,16 @@
 package com.voltaicdynamics.core.menu;
 
+import com.voltaicdynamics.core.transfer.Transfers;
+import com.voltaicdynamics.core.transfer.VoltaicItemHandler;
+
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.StacksResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import javax.annotation.Nullable;
 
@@ -20,63 +23,83 @@ import javax.annotation.Nullable;
  * shift-clicking, hoppers and the screen see the items as before, while sorters skip it.
  */
 public class FixedSlot extends Slot {
-    private final IItemHandler handler;
+    @Nullable
+    private final ResourceHandler<ItemResource> handler;
     @Nullable
     private final Container backing;
 
-    public FixedSlot(IItemHandler handler, int index, int x, int y) {
-        this(handler, null, index, x, y);
+    public FixedSlot(ResourceHandler<ItemResource> handler, int index, int x, int y) {
+        super(new SimpleContainer(0), index, x, y);
+        this.handler = handler;
+        this.backing = null;
     }
 
     public FixedSlot(Container container, int index, int x, int y) {
-        this(new InvWrapper(container), container, index, x, y);
-    }
-
-    private FixedSlot(IItemHandler handler, @Nullable Container backing, int index, int x, int y) {
         super(new SimpleContainer(0), index, x, y);
-        this.handler = handler;
-        this.backing = backing;
+        this.handler = null;
+        this.backing = container;
     }
 
     @Override
     public ItemStack getItem() {
-        return handler.getStackInSlot(getContainerSlot());
+        int slot = getContainerSlot();
+        if (backing != null) return backing.getItem(slot);
+        // Menus change the slot's stack in place (shift-click merges into it), so ours must be the live one; a copy
+        // would take the items from the player and drop them on the floor of nowhere.
+        if (handler instanceof VoltaicItemHandler own) return own.getStackInSlot(slot);
+        return Transfers.getStack(handler, slot);
     }
 
     @Override
     public void set(ItemStack stack) {
         int slot = getContainerSlot();
-        if (handler instanceof IItemHandlerModifiable modifiable) {
-            modifiable.setStackInSlot(slot, stack);
+        if (backing != null) {
+            backing.setItem(slot, stack);
+        } else if (handler instanceof StacksResourceHandler<?, ItemResource> stacks) {
+            stacks.set(slot, ItemResource.of(stack), stack.getCount());
         } else {
-            handler.extractItem(slot, Integer.MAX_VALUE, false);
-            if (!stack.isEmpty()) handler.insertItem(slot, stack, false);
+            Transfers.extractItem(handler, slot, Integer.MAX_VALUE, false);
+            if (!stack.isEmpty()) Transfers.insertItem(handler, slot, stack, false);
         }
         setChanged();
     }
 
     @Override
     public ItemStack remove(int amount) {
-        return handler.extractItem(getContainerSlot(), amount, false);
+        int slot = getContainerSlot();
+        if (backing != null) return backing.removeItem(slot, amount);
+        return Transfers.extractItem(handler, slot, amount, false);
     }
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        return handler.isItemValid(getContainerSlot(), stack);
+        int slot = getContainerSlot();
+        if (backing != null) return backing.canPlaceItem(slot, stack);
+        return !stack.isEmpty() && handler.isValid(slot, ItemResource.of(stack));
     }
 
     @Override
     public boolean mayPickup(Player player) {
-        return !handler.extractItem(getContainerSlot(), 1, true).isEmpty();
+        int slot = getContainerSlot();
+        if (backing != null) return !backing.getItem(slot).isEmpty();
+        return !Transfers.extractItem(handler, slot, 1, true).isEmpty();
     }
 
     @Override
     public int getMaxStackSize() {
-        return handler.getSlotLimit(getContainerSlot());
+        if (backing != null) return backing.getMaxStackSize();
+        return handler.getCapacityAsInt(getContainerSlot(), ItemResource.EMPTY);
+    }
+
+    @Override
+    public int getMaxStackSize(ItemStack stack) {
+        if (backing != null) return Math.min(backing.getMaxStackSize(), stack.getMaxStackSize());
+        return stack.isEmpty() ? getMaxStackSize() : handler.getCapacityAsInt(getContainerSlot(), ItemResource.of(stack));
     }
 
     @Override
     public void setChanged() {
         if (backing != null) backing.setChanged();
+        else if (handler instanceof VoltaicItemHandler own) own.markChanged(getContainerSlot());
     }
 }

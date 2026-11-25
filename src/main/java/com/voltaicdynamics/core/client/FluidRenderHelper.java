@@ -3,10 +3,11 @@ package com.voltaicdynamics.core.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.minecraft.client.renderer.block.FluidModel;
+import net.neoforged.neoforge.client.fluid.FluidTintSource;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /** Draws fluids in GUIs (tiled still texture) and in the world (a tinted box). */
@@ -14,40 +15,41 @@ public final class FluidRenderHelper {
     private FluidRenderHelper() {
     }
 
-    public static TextureAtlasSprite sprite(FluidStack fluid) {
-        IClientFluidTypeExtensions ext = IClientFluidTypeExtensions.of(fluid.getFluid());
-        return Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(ext.getStillTexture(fluid));
+    /** The fluid's model: its textures and tint now live there. */
+    private static FluidModel model(FluidStack fluid) {
+        return Minecraft.getInstance().getModelManager().getFluidStateModelSet().get(fluid.getFluid().defaultFluidState());
     }
 
+    public static TextureAtlasSprite sprite(FluidStack fluid) {
+        return model(fluid).stillMaterial().sprite();
+    }
+
+    /** ARGB tint of the fluid as an item-like stack (no biome); -1 when untinted. */
     public static int tint(FluidStack fluid) {
-        return IClientFluidTypeExtensions.of(fluid.getFluid()).getTintColor(fluid);
+        FluidTintSource source = model(fluid).fluidTintSource();
+        return source == null ? -1 : source.colorAsStack(fluid);
     }
 
     /** Fills a gauge of {@code width} x {@code height} from the bottom up to {@code amount / capacity}. */
-    public static void drawGauge(GuiGraphics g, FluidStack fluid, int amount, int capacity, int x, int y, int width, int height) {
+    public static void drawGauge(GuiGraphicsExtractor g, FluidStack fluid, int amount, int capacity, int x, int y, int width, int height) {
         if (fluid.isEmpty() || amount <= 0 || capacity <= 0) return;
         int filled = (int) Math.max(1, Math.min(height, (long) amount * height / capacity));
         TextureAtlasSprite sprite = sprite(fluid);
         int color = tint(fluid);
-        float r = ((color >> 16) & 0xFF) / 255F;
-        float gr = ((color >> 8) & 0xFF) / 255F;
-        float b = (color & 0xFF) / 255F;
-        float a = ((color >>> 24) & 0xFF) / 255F;
-        if (a <= 0) a = 1F;
+        if ((color >>> 24) == 0) color |= 0xFF000000;
         int top = y + height - filled;
         g.enableScissor(x, top, x + width, y + height);
         for (int ty = y + height - 16; ty > top - 16; ty -= 16) {
             for (int tx = x; tx < x + width; tx += 16) {
-                g.blit(tx, ty, 0, 16, 16, sprite, r, gr, b, a);
+                g.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, tx, ty, 16, 16, color);
             }
         }
         g.disableScissor();
     }
 
     /** One textured, tinted face-culled box for the block entity renderer (coordinates in block units). */
-    public static void box(PoseStack pose, VertexConsumer consumer, TextureAtlasSprite sprite, int color, int light,
+    public static void box(PoseStack.Pose p, VertexConsumer consumer, TextureAtlasSprite sprite, int color, int light,
                            float x0, float y0, float z0, float x1, float y1, float z1) {
-        PoseStack.Pose p = pose.last();
         float u0 = sprite.getU(x0), u1 = sprite.getU(x1);
         float v0 = sprite.getV(z0), v1 = sprite.getV(z1);
         // top

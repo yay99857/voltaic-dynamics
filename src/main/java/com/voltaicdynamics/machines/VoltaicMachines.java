@@ -1,5 +1,6 @@
 package com.voltaicdynamics.machines;
 
+import com.voltaicdynamics.core.item.VoltaicBlockItem;
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.VoltaicCore;
 import com.voltaicdynamics.machines.recipe.ModRecipes;
@@ -27,47 +28,42 @@ public final class VoltaicMachines {
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, VoltaicDynamics.MOD_ID);
 
     // Blocks
-    public static final DeferredBlock<ElectricFurnaceBlock> ELECTRIC_FURNACE = BLOCKS.register(
-            "electric_furnace",
-            () -> new ElectricFurnaceBlock(VoltaicDynamics.machineProperties(3.5F, 6.0F)
-                    .lightLevel(state -> state.getValue(ElectricFurnaceBlock.LIT) ? 10 : 0)));
+    public static final DeferredBlock<ElectricFurnaceBlock> ELECTRIC_FURNACE = BLOCKS.registerBlock("electric_furnace",
+            p -> new ElectricFurnaceBlock(p),
+            () -> VoltaicDynamics.machineProperties(3.5F, 6.0F)
+                    .lightLevel(state -> state.getValue(ElectricFurnaceBlock.LIT) ? 10 : 0));
 
-    public static final DeferredBlock<AlloySmelterBlock> ALLOY_SMELTER = BLOCKS.register(
-            "alloy_smelter",
-            () -> new AlloySmelterBlock(VoltaicDynamics.machineProperties(3.5F, 6.0F)
-                    .lightLevel(state -> state.getValue(AlloySmelterBlock.LIT) ? 10 : 0)));
+    public static final DeferredBlock<AlloySmelterBlock> ALLOY_SMELTER = BLOCKS.registerBlock("alloy_smelter",
+            p -> new AlloySmelterBlock(p),
+            () -> VoltaicDynamics.machineProperties(3.5F, 6.0F)
+                    .lightLevel(state -> state.getValue(AlloySmelterBlock.LIT) ? 10 : 0));
 
-    public static final DeferredBlock<PulverizerBlock> PULVERIZER = BLOCKS.register(
-            "pulverizer",
-            () -> new PulverizerBlock(VoltaicDynamics.machineProperties(3.5F, 6.0F)
-                    .lightLevel(state -> state.getValue(PulverizerBlock.LIT) ? 6 : 0)));
+    public static final DeferredBlock<PulverizerBlock> PULVERIZER = BLOCKS.registerBlock("pulverizer",
+            p -> new PulverizerBlock(p),
+            () -> VoltaicDynamics.machineProperties(3.5F, 6.0F)
+                    .lightLevel(state -> state.getValue(PulverizerBlock.LIT) ? 6 : 0));
 
     // Upgrades
-    public static final DeferredItem<UpgradeItem> SPEED_UPGRADE = ITEMS.register("speed_upgrade",
-            () -> new UpgradeItem(UpgradeItem.Type.SPEED, new Item.Properties()));
-    public static final DeferredItem<UpgradeItem> EFFICIENCY_UPGRADE = ITEMS.register("efficiency_upgrade",
-            () -> new UpgradeItem(UpgradeItem.Type.EFFICIENCY, new Item.Properties()));
+    public static final DeferredItem<UpgradeItem> SPEED_UPGRADE = ITEMS.registerItem("speed_upgrade", p -> new UpgradeItem(UpgradeItem.Type.SPEED, p), p -> p);
+    public static final DeferredItem<UpgradeItem> EFFICIENCY_UPGRADE = ITEMS.registerItem("efficiency_upgrade", p -> new UpgradeItem(UpgradeItem.Type.EFFICIENCY, p), p -> p);
 
     // Tier Installers: raise a machine one tier in place
-    public static final DeferredItem<TierInstallerItem> ADVANCED_TIER_INSTALLER = ITEMS.register("advanced_tier_installer",
-            () -> new TierInstallerItem(MachineTier.ADVANCED, new Item.Properties()));
-    public static final DeferredItem<TierInstallerItem> ELITE_TIER_INSTALLER = ITEMS.register("elite_tier_installer",
-            () -> new TierInstallerItem(MachineTier.ELITE, new Item.Properties()));
-    public static final DeferredItem<TierInstallerItem> ULTIMATE_TIER_INSTALLER = ITEMS.register("ultimate_tier_installer",
-            () -> new TierInstallerItem(MachineTier.ULTIMATE, new Item.Properties().fireResistant()));
+    public static final DeferredItem<TierInstallerItem> ADVANCED_TIER_INSTALLER = ITEMS.registerItem("advanced_tier_installer", p -> new TierInstallerItem(MachineTier.ADVANCED, p), p -> p);
+    public static final DeferredItem<TierInstallerItem> ELITE_TIER_INSTALLER = ITEMS.registerItem("elite_tier_installer", p -> new TierInstallerItem(MachineTier.ELITE, p), p -> p);
+    public static final DeferredItem<TierInstallerItem> ULTIMATE_TIER_INSTALLER = ITEMS.registerItem("ultimate_tier_installer", p -> new TierInstallerItem(MachineTier.ULTIMATE, p), p -> p.fireResistant());
 
     // Block entities
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricFurnaceBlockEntity>> ELECTRIC_FURNACE_BE =
             BLOCK_ENTITIES.register("electric_furnace", () ->
-                    BlockEntityType.Builder.of(ElectricFurnaceBlockEntity::new, ELECTRIC_FURNACE.get()).build(null));
+                    new BlockEntityType<>(ElectricFurnaceBlockEntity::new, ELECTRIC_FURNACE.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AlloySmelterBlockEntity>> ALLOY_SMELTER_BE =
             BLOCK_ENTITIES.register("alloy_smelter", () ->
-                    BlockEntityType.Builder.of(AlloySmelterBlockEntity::new, ALLOY_SMELTER.get()).build(null));
+                    new BlockEntityType<>(AlloySmelterBlockEntity::new, ALLOY_SMELTER.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PulverizerBlockEntity>> PULVERIZER_BE =
             BLOCK_ENTITIES.register("pulverizer", () ->
-                    BlockEntityType.Builder.of(PulverizerBlockEntity::new, PULVERIZER.get()).build(null));
+                    new BlockEntityType<>(PulverizerBlockEntity::new, PULVERIZER.get()));
 
     // Menus
     public static final DeferredHolder<MenuType<?>, MenuType<ElectricFurnaceMenu>> ELECTRIC_FURNACE_MENU =
@@ -83,9 +79,9 @@ public final class VoltaicMachines {
     }
 
     public static void register(IEventBus modEventBus) {
-        ITEMS.registerSimpleBlockItem(ELECTRIC_FURNACE);
-        ITEMS.registerSimpleBlockItem(ALLOY_SMELTER);
-        ITEMS.registerSimpleBlockItem(PULVERIZER);
+        ITEMS.registerItem(ELECTRIC_FURNACE.getId().getPath(), p -> new VoltaicBlockItem(ELECTRIC_FURNACE.get(), p), Item.Properties::useBlockDescriptionPrefix);
+        ITEMS.registerItem(ALLOY_SMELTER.getId().getPath(), p -> new VoltaicBlockItem(ALLOY_SMELTER.get(), p), Item.Properties::useBlockDescriptionPrefix);
+        ITEMS.registerItem(PULVERIZER.getId().getPath(), p -> new VoltaicBlockItem(PULVERIZER.get(), p), Item.Properties::useBlockDescriptionPrefix);
 
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
@@ -94,22 +90,24 @@ public final class VoltaicMachines {
         ModRecipes.TYPES.register(modEventBus);
         ModRecipes.SERIALIZERS.register(modEventBus);
         modEventBus.addListener(VoltaicMachines::registerCapabilities);
+        modEventBus.addListener(ModRecipes::registerPropertySets);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(ModRecipes::syncToClients);
         modEventBus.addListener(VoltaicMachines::addToCreativeTab);
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         // Energy in, items in/out
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ELECTRIC_FURNACE_BE.get(),
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, ELECTRIC_FURNACE_BE.get(),
                 (be, side) -> be.getEnergyStorage(side));
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ELECTRIC_FURNACE_BE.get(),
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ELECTRIC_FURNACE_BE.get(),
                 (be, side) -> be.getItemHandler(side));
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ALLOY_SMELTER_BE.get(),
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, ALLOY_SMELTER_BE.get(),
                 (be, side) -> be.getEnergyStorage(side));
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ALLOY_SMELTER_BE.get(),
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ALLOY_SMELTER_BE.get(),
                 (be, side) -> be.getItemHandler(side));
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, PULVERIZER_BE.get(),
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, PULVERIZER_BE.get(),
                 (be, side) -> be.getEnergyStorage(side));
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, PULVERIZER_BE.get(),
+        event.registerBlockEntity(Capabilities.Item.BLOCK, PULVERIZER_BE.get(),
                 (be, side) -> be.getItemHandler(side));
     }
 

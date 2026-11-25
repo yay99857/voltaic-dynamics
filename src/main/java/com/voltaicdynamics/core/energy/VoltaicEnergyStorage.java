@@ -1,33 +1,44 @@
 package com.voltaicdynamics.core.energy;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.neoforged.neoforge.energy.EnergyStorage;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
+import org.jetbrains.annotations.Nullable;
 
 /**
- * FE buffer with a change callback. {@link #generateEnergy} and {@link #consumeEnergy} are the
- * machine's own internal operations and ignore the external receive/extract limits.
+ * FE buffer with a change callback. {@link #generateEnergy} and {@link #consumeEnergy} are the machine's own
+ * internal operations and ignore the external insert/extract limits; they must not run inside a transaction.
  */
-public class VoltaicEnergyStorage extends EnergyStorage {
+public class VoltaicEnergyStorage extends SimpleEnergyHandler {
+    @Nullable
     private final Runnable onContentsChanged;
 
-    public VoltaicEnergyStorage(int capacity, int maxReceive, int maxExtract, Runnable onContentsChanged) {
+    public VoltaicEnergyStorage(int capacity, int maxReceive, int maxExtract, @Nullable Runnable onContentsChanged) {
         super(capacity, maxReceive, maxExtract, 0);
         this.onContentsChanged = onContentsChanged;
     }
 
     @Override
-    public int receiveEnergy(int maxReceive, boolean simulate) {
-        int received = super.receiveEnergy(maxReceive, simulate);
-        if (received > 0 && !simulate) changed();
-        return received;
+    protected void onEnergyChanged(int previousAmount) {
+        changed();
     }
 
-    @Override
-    public int extractEnergy(int maxExtract, boolean simulate) {
-        int extracted = super.extractEnergy(maxExtract, simulate);
-        if (extracted > 0 && !simulate) changed();
-        return extracted;
+    public int getEnergyStored() {
+        return energy;
+    }
+
+    public int getMaxEnergyStored() {
+        return capacity;
+    }
+
+    /** Whether the outside may insert at all (face rules aside). */
+    public boolean canReceive() {
+        return maxInsert > 0;
+    }
+
+    /** Whether the outside may extract at all (face rules aside). */
+    public boolean canExtract() {
+        return maxExtract > 0;
     }
 
     public void setEnergy(int energy) {
@@ -63,15 +74,13 @@ public class VoltaicEnergyStorage extends EnergyStorage {
         if (onContentsChanged != null) onContentsChanged.run();
     }
 
-    public CompoundTag serializeNBT(HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        tag.putInt("Energy", energy);
-        return tag;
+    @Override
+    public void serialize(ValueOutput output) {
+        output.putInt("Energy", energy);
     }
 
-    public void deserializeNBT(HolderLookup.Provider registries, CompoundTag tag) {
-        if (tag.contains("Energy")) {
-            energy = Math.max(0, Math.min(tag.getInt("Energy"), capacity));
-        }
+    @Override
+    public void deserialize(ValueInput input) {
+        energy = Math.max(0, Math.min(input.getIntOr("Energy", 0), capacity));
     }
 }

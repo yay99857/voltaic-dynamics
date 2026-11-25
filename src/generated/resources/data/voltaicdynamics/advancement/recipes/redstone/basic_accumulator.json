@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "voltaicdynamics:basic_accumulator"
+        "recipes": "voltaicdynamics:basic_accumulator"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

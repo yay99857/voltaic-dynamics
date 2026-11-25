@@ -1,5 +1,9 @@
 package com.voltaicdynamics.gametest;
 
+import com.voltaicdynamics.core.transfer.Transfers;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import static com.voltaicdynamics.gametest.GameTestSupport.fluids;
+import static com.voltaicdynamics.gametest.GameTestSupport.items;
 import com.voltaicdynamics.VoltaicConfig;
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.ModDataComponents;
@@ -13,7 +17,6 @@ import com.voltaicdynamics.power.AccumulatorBlockEntity;
 import com.voltaicdynamics.power.VoltaicPower;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -27,27 +30,20 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
 
-import static com.voltaicdynamics.gametest.GameTestSupport.EMPTY;
 
 /** Higher tiers: Elite/Ultimate/Creative Accumulators, tank tiers and the Creative tank, machine tiers and installers. */
-@GameTestHolder(VoltaicDynamics.MOD_ID)
-@PrefixGameTestTemplate(false)
 public class TierGameTests {
     /** The new Accumulator and tank tiers hold what the config says. */
-    @GameTest(template = EMPTY)
+    @VoltaicTest
     public static void tierCapacities(GameTestHelper helper) {
         helper.setBlock(new BlockPos(1, 1, 1), VoltaicPower.ELITE_ACCUMULATOR.get());
         helper.setBlock(new BlockPos(2, 1, 1), VoltaicPower.ULTIMATE_ACCUMULATOR.get());
-        AccumulatorBlockEntity elite = helper.getBlockEntity(new BlockPos(1, 1, 1));
-        AccumulatorBlockEntity ultimate = helper.getBlockEntity(new BlockPos(2, 1, 1));
+        AccumulatorBlockEntity elite = helper.getBlockEntity(new BlockPos(1, 1, 1), AccumulatorBlockEntity.class);
+        AccumulatorBlockEntity ultimate = helper.getBlockEntity(new BlockPos(2, 1, 1), AccumulatorBlockEntity.class);
         helper.assertValueEqual(elite.getEnergyCapacity(), VoltaicConfig.get(VoltaicConfig.ELITE_CELL_CAPACITY), "elite capacity");
         helper.assertValueEqual(ultimate.getEnergyCapacity(), VoltaicConfig.get(VoltaicConfig.ULTIMATE_CELL_CAPACITY), "ultimate capacity");
 
@@ -57,28 +53,28 @@ public class TierGameTests {
         for (int i = 0; i < tanks.size(); i++) {
             BlockPos pos = new BlockPos(1 + i, 1, 3);
             helper.setBlock(pos, tanks.get(i).get());
-            FluidTankBlockEntity tank = helper.getBlockEntity(pos);
+            FluidTankBlockEntity tank = helper.getBlockEntity(pos, FluidTankBlockEntity.class);
             helper.assertValueEqual(tank.getTank().getCapacity(), basic * multipliers[i], tanks.get(i).getId().getPath());
         }
         helper.succeed();
     }
 
     /** The Creative Accumulator stays full while it runs a furnace and fills a Basic Accumulator next to it. */
-    @GameTest(template = EMPTY, timeoutTicks = 100)
+    @VoltaicTest(timeoutTicks = 100)
     public static void creativeAccumulatorNeverRunsOut(GameTestHelper helper) {
         BlockPos creativePos = new BlockPos(2, 1, 2);
         helper.setBlock(creativePos, VoltaicPower.CREATIVE_ACCUMULATOR.get());
         helper.setBlock(creativePos.east(), VoltaicMachines.ELECTRIC_FURNACE.get());
         helper.setBlock(creativePos.west(), VoltaicPower.BASIC_ACCUMULATOR.get());
-        ElectricFurnaceBlockEntity furnace = helper.getBlockEntity(creativePos.east());
-        furnace.getItemHandler(null).insertItem(ElectricFurnaceBlockEntity.SLOT_INPUT, new ItemStack(Items.RAW_IRON, 16), false);
-        AccumulatorBlockEntity creative = helper.getBlockEntity(creativePos);
-        AccumulatorBlockEntity basic = helper.getBlockEntity(creativePos.west());
+        ElectricFurnaceBlockEntity furnace = helper.getBlockEntity(creativePos.east(), ElectricFurnaceBlockEntity.class);
+        items(furnace.getItemHandler(null)).insertItem(ElectricFurnaceBlockEntity.SLOT_INPUT, new ItemStack(Items.RAW_IRON, 16), false);
+        AccumulatorBlockEntity creative = helper.getBlockEntity(creativePos, AccumulatorBlockEntity.class);
+        AccumulatorBlockEntity basic = helper.getBlockEntity(creativePos.west(), AccumulatorBlockEntity.class);
 
-        IEnergyStorage storage = creative.getEnergyStorage(null);
-        helper.assertValueEqual(storage.extractEnergy(5_000, false), 5_000, "gives energy");
-        helper.assertValueEqual(storage.getEnergyStored(), Integer.MAX_VALUE, "still full after giving");
-        helper.assertValueEqual(storage.receiveEnergy(5_000, false), 5_000, "swallows energy");
+        EnergyHandler storage = creative.getEnergyStorage(null);
+        helper.assertValueEqual(Transfers.extractEnergy(storage, 5_000, false), 5_000, "gives energy");
+        helper.assertValueEqual(storage.getAmountAsInt(), Integer.MAX_VALUE, "still full after giving");
+        helper.assertValueEqual(Transfers.insertEnergy(storage, 5_000, false), 5_000, "swallows energy");
 
         helper.succeedWhen(() -> {
             helper.assertTrue(furnace.getProgress() > 0, "the furnace runs on it");
@@ -88,32 +84,32 @@ public class TierGameTests {
     }
 
     /** The Creative tank: the first fluid fills it forever, more of it is voided, other fluids are refused, a clear resets it. */
-    @GameTest(template = EMPTY)
+    @VoltaicTest
     public static void creativeTankIsBottomless(GameTestHelper helper) {
         BlockPos pos = new BlockPos(2, 1, 2);
         helper.setBlock(pos, VoltaicLogistics.CREATIVE_FLUID_TANK.get());
-        FluidTankBlockEntity tank = helper.getBlockEntity(pos);
+        FluidTankBlockEntity tank = helper.getBlockEntity(pos, FluidTankBlockEntity.class);
         helper.assertTrue(tank.getTier() == FluidTankTier.CREATIVE, "creative tier");
-        IFluidHandler handler = tank.getFluidHandler(null);
+        var handler = fluids(tank.getFluidHandler(null));
 
-        helper.assertValueEqual(handler.fill(new FluidStack(Fluids.WATER, 1_000), IFluidHandler.FluidAction.EXECUTE), 1_000, "takes water");
+        helper.assertValueEqual(handler.fill(new FluidStack(Fluids.WATER, 1_000), false), 1_000, "takes water");
         for (int i = 0; i < 100; i++) {
-            FluidStack out = handler.drain(1_000, IFluidHandler.FluidAction.EXECUTE);
+            FluidStack out = handler.drain(1_000, false);
             helper.assertTrue(out.is(Fluids.WATER) && out.getAmount() == 1_000, "bucket " + i + " gave " + out.getAmount());
         }
         helper.assertValueEqual(tank.getTank().getFluidAmount(), Integer.MAX_VALUE, "still full after 100 buckets");
-        helper.assertValueEqual(handler.fill(new FluidStack(Fluids.WATER, 5_000), IFluidHandler.FluidAction.EXECUTE), 5_000, "voids more water");
-        helper.assertValueEqual(handler.fill(new FluidStack(Fluids.LAVA, 1_000), IFluidHandler.FluidAction.EXECUTE), 0, "refuses lava");
+        helper.assertValueEqual(handler.fill(new FluidStack(Fluids.WATER, 5_000), false), 5_000, "voids more water");
+        helper.assertValueEqual(handler.fill(new FluidStack(Fluids.LAVA, 1_000), false), 0, "refuses lava");
 
         helper.assertTrue(tank.clearCreative(), "clears");
         helper.assertTrue(tank.getTank().isEmpty(), "empty after clearing");
-        helper.assertValueEqual(handler.fill(new FluidStack(Fluids.LAVA, 1_000), IFluidHandler.FluidAction.EXECUTE), 1_000, "then takes lava");
+        helper.assertValueEqual(handler.fill(new FluidStack(Fluids.LAVA, 1_000), false), 1_000, "then takes lava");
         helper.assertTrue(tank.getFluid().is(Fluids.LAVA), "now lava");
         helper.succeed();
     }
 
     /** An Ultimate furnace smelts 8 at once at 8x FE/t; with 3 items it does 3; a nearly full output slot limits it. */
-    @GameTest(template = EMPTY, timeoutTicks = 400)
+    @VoltaicTest(timeoutTicks = 400)
     public static void machineTierProcessesInParallel(GameTestHelper helper) {
         BlockPos power = new BlockPos(2, 1, 2);
         helper.setBlock(power, VoltaicPower.CREATIVE_ACCUMULATOR.get());
@@ -122,12 +118,12 @@ public class TierGameTests {
         int[] inputs = {8, 3, 8};
         for (int i = 0; i < 3; i++) {
             helper.setBlock(at[i], VoltaicMachines.ELECTRIC_FURNACE.get());
-            furnaces[i] = helper.getBlockEntity(at[i]);
+            furnaces[i] = helper.getBlockEntity(at[i], ElectricFurnaceBlockEntity.class);
             furnaces[i].setTier(MachineTier.ULTIMATE);
-            furnaces[i].getItemHandler(null).insertItem(ElectricFurnaceBlockEntity.SLOT_INPUT, new ItemStack(Items.RAW_IRON, inputs[i]), false);
+            items(furnaces[i].getItemHandler(null)).insertItem(ElectricFurnaceBlockEntity.SLOT_INPUT, new ItemStack(Items.RAW_IRON, inputs[i]), false);
         }
         // The third one has room for only 2 more ingots.
-        ((net.neoforged.neoforge.items.IItemHandlerModifiable) furnaces[2].getMenuItemHandler())
+        items(furnaces[2].getMenuItemHandler())
                 .setStackInSlot(ElectricFurnaceBlockEntity.SLOT_OUTPUT, new ItemStack(Items.IRON_INGOT, 62));
         int ticks = furnaces[0].getMaxProgress();
 
@@ -139,19 +135,19 @@ public class TierGameTests {
             helper.assertValueEqual(output(furnaces[0]), 8, "ultimate: 8 ingots in one operation");
             helper.assertValueEqual(output(furnaces[1]), 3, "3 raw iron: 3 ingots");
             helper.assertValueEqual(output(furnaces[2]), 64, "output room for 2: 2 made");
-            helper.assertValueEqual(furnaces[2].getItemHandler(null).getStackInSlot(ElectricFurnaceBlockEntity.SLOT_INPUT).getCount(), 6,
+            helper.assertValueEqual(items(furnaces[2].getItemHandler(null)).getStackInSlot(ElectricFurnaceBlockEntity.SLOT_INPUT).getCount(), 6,
                     "the rest stays in the input");
             helper.succeed();
         });
     }
 
     private static int output(ElectricFurnaceBlockEntity furnace) {
-        ItemStack out = furnace.getItemHandler(null).getStackInSlot(ElectricFurnaceBlockEntity.SLOT_OUTPUT);
+        ItemStack out = items(furnace.getItemHandler(null)).getStackInSlot(ElectricFurnaceBlockEntity.SLOT_OUTPUT);
         return out.is(Items.IRON_INGOT) ? out.getCount() : -1;
     }
 
     /** Installers go one step at a time, are used up, and the broken machine keeps its tier. */
-    @GameTest(template = EMPTY)
+    @VoltaicTest
     public static void tierInstallersStepAndTierIsKept(GameTestHelper helper) {
         BlockPos pos = new BlockPos(2, 1, 2);
         helper.setBlock(pos, VoltaicMachines.PULVERIZER.get());
@@ -162,7 +158,7 @@ public class TierGameTests {
         helper.assertTrue(use(helper, player, elite, pos) == InteractionResult.FAIL, "elite on a basic machine fails");
         helper.assertValueEqual(elite.getCount(), 1, "a failed install keeps the installer");
         use(helper, player, advanced, pos);
-        var machine = (com.voltaicdynamics.machines.ProcessingMachineBlockEntity) helper.getBlockEntity(pos);
+        var machine = helper.getBlockEntity(pos, com.voltaicdynamics.machines.ProcessingMachineBlockEntity.class);
         helper.assertTrue(machine.getTier() == MachineTier.ADVANCED, "advanced now, is " + machine.getTier());
         helper.assertValueEqual(advanced.getCount(), 1, "the installer is used up");
         helper.assertTrue(use(helper, player, advanced, pos) == InteractionResult.FAIL, "advanced twice fails");

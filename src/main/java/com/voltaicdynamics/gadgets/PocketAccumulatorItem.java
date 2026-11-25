@@ -1,5 +1,12 @@
 package com.voltaicdynamics.gadgets;
 
+import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandlerUtil;
+import com.voltaicdynamics.core.transfer.Transfers;
+import net.minecraft.server.level.ServerLevel;
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
 import com.voltaicdynamics.VoltaicConfig;
 import com.voltaicdynamics.core.item.EnergyBarHelper;
 
@@ -13,7 +20,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 
 import java.util.List;
 
@@ -52,32 +58,27 @@ public class PocketAccumulatorItem extends Item {
 
     /** Charges the held items and worn armor; the per-tick transfer limit is shared between them. */
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
-        if (level.isClientSide || !(entity instanceof Player player)) return;
+    public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot heldIn) {
+        if (!(entity instanceof Player player)) return;
         EnergyBarHelper.migrateLegacy(stack);
 
-        IEnergyStorage self = stack.getCapability(Capabilities.EnergyStorage.ITEM);
+        EnergyHandler self = Transfers.itemEnergy(stack);
         if (self == null) return;
-        int budget = self.extractEnergy(transfer(), true);
-        if (budget <= 0) return;
+        int budget = transfer();
 
         for (EquipmentSlot slot : CHARGED_SLOTS) {
             ItemStack target = player.getItemBySlot(slot);
             if (target.isEmpty() || target == stack || target.getItem() instanceof PocketAccumulatorItem) continue;
-            IEnergyStorage targetEnergy = target.getCapability(Capabilities.EnergyStorage.ITEM);
-            if (targetEnergy == null || !targetEnergy.canReceive()) continue;
-            int accepted = targetEnergy.receiveEnergy(budget, false);
-            if (accepted > 0) {
-                self.extractEnergy(accepted, false);
-                budget -= accepted;
-                if (budget <= 0) return;
-            }
+            EnergyHandler targetEnergy = Transfers.itemEnergy(target);
+            if (targetEnergy == null) continue;
+            budget -= EnergyHandlerUtil.move(self, targetEnergy, budget, null);
+            if (budget <= 0) return;
         }
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         EnergyBarHelper.addTooltip(stack, capacity(), tooltip, ChatFormatting.AQUA);
-        tooltip.add(Component.translatable("tooltip.voltaicdynamics.pocket_accumulator.desc").withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Component.translatable("tooltip.voltaicdynamics.pocket_accumulator.desc").withStyle(ChatFormatting.GRAY));
     }
 }

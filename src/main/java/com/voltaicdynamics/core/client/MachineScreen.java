@@ -1,16 +1,18 @@
 package com.voltaicdynamics.core.client;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.client.layout.ScreenLayout;
 import com.voltaicdynamics.core.client.layout.ScreenLayouts;
 import com.voltaicdynamics.core.menu.MachineMenu;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.Nullable;
@@ -25,21 +27,30 @@ import java.util.Set;
  * side configuration tab and an energy tooltip helper.
  */
 public abstract class MachineScreen<M extends MachineMenu> extends AbstractContainerScreen<M> {
-    private static final Set<ResourceLocation> REPORTED_MISSING = new HashSet<>();
+    private static final Set<Identifier> REPORTED_MISSING = new HashSet<>();
 
-    private final ResourceLocation layoutId;
+    private final Identifier layoutId;
     @Nullable
     protected ScreenLayout layout;
     @Nullable
     protected SideConfigPanel sidePanel;
 
     /** @param layoutId the layout file {@code assets/<namespace>/screens/<path>.json} */
-    protected MachineScreen(M menu, Inventory playerInventory, Component title, ResourceLocation layoutId) {
-        super(menu, playerInventory, title);
+    protected MachineScreen(M menu, Inventory playerInventory, Component title, Identifier layoutId) {
+        // The GUI size is fixed when the screen is made, so it comes from the layout already loaded.
+        super(menu, playerInventory, title, widthOf(layoutId), heightOf(layoutId));
         this.layoutId = layoutId;
-        this.imageWidth = 176;
-        this.imageHeight = 166;
         this.inventoryLabelY = 72;
+    }
+
+    private static int widthOf(Identifier layoutId) {
+        ScreenLayout layout = ScreenLayouts.get(layoutId);
+        return layout == null ? 176 : layout.width();
+    }
+
+    private static int heightOf(Identifier layoutId) {
+        ScreenLayout layout = ScreenLayouts.get(layoutId);
+        return layout == null ? 166 : layout.height();
     }
 
     @Override
@@ -57,8 +68,6 @@ public abstract class MachineScreen<M extends MachineMenu> extends AbstractConta
     }
 
     private void applyLayout(ScreenLayout layout) {
-        imageWidth = layout.width();
-        imageHeight = layout.height();
         titleLabelX = layout.title()[0];
         titleLabelY = layout.title()[1];
         inventoryLabelX = layout.inventoryLabel()[0];
@@ -95,30 +104,37 @@ public abstract class MachineScreen<M extends MachineMenu> extends AbstractConta
     }
 
     /** Draws the layout's background texture and the extra slot frames it asks for. */
-    protected void drawBackground(GuiGraphics g) {
+    protected void drawBackground(GuiGraphicsExtractor g) {
         if (layout == null) return;
-        g.blit(layout.texture(), leftPos, topPos, 0, 0, imageWidth, imageHeight);
+        g.blit(RenderPipelines.GUI_TEXTURED, layout.texture(), leftPos, topPos, 0, 0, imageWidth, imageHeight, 256, 256);
         for (String name : layout.slotFrames()) {
             int[] pos = layout.slot(name);
-            if (pos != null) g.blit(layout.slotFrameTexture(), leftPos + pos[0] - 1, topPos + pos[1] - 1, 0, 0, 18, 18, 18, 18);
+            if (pos != null) g.blit(RenderPipelines.GUI_TEXTURED, layout.slotFrameTexture(), leftPos + pos[0] - 1, topPos + pos[1] - 1, 0, 0, 18, 18, 18, 18);
         }
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics g, int x, int y) {
+    protected void extractTooltip(GuiGraphicsExtractor g, int x, int y) {
         if (layout != null && hoveredSlot != null && !hoveredSlot.hasItem() && menu.getCarried().isEmpty()) {
             String name = menu.slotName(hoveredSlot);
             String hint = name == null ? null : layout.slotHints().get(name);
             if (hint != null) {
-                g.renderTooltip(font, Component.translatable(hint), x, y);
+                g.setTooltipForNextFrame(font, Component.translatable(hint), x, y);
                 return;
             }
         }
-        super.renderTooltip(g, x, y);
+        if (sidePanel != null) {
+            List<Component> lines = sidePanel.tooltip(x, y);
+            if (lines != null) {
+                g.setComponentTooltipForNextFrame(font, lines, x, y);
+                return;
+            }
+        }
+        super.extractTooltip(g, x, y);
     }
 
     /** Draws a widget's texture part filled to {@code fraction}; does nothing if the layout lacks it. */
-    protected void drawWidget(GuiGraphics g, String name, double fraction) {
+    protected void drawWidget(GuiGraphicsExtractor g, String name, double fraction) {
         ScreenLayout.Widget w = widget(name);
         if (w != null && layout != null) w.draw(g, layout.texture(), leftPos, topPos, fraction);
     }
@@ -141,38 +157,30 @@ public abstract class MachineScreen<M extends MachineMenu> extends AbstractConta
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        if (sidePanel != null) {
-            sidePanel.render(guiGraphics, font, mouseX, mouseY);
-            List<Component> lines = sidePanel.tooltip(mouseX, mouseY);
-            if (lines != null) {
-                guiGraphics.renderComponentTooltip(font, lines, mouseX, mouseY);
-                return;
-            }
-        }
-        renderTooltip(guiGraphics, mouseX, mouseY);
+    public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractContents(graphics, mouseX, mouseY, partialTick);
+        if (sidePanel != null) sidePanel.render(graphics, font, mouseX, mouseY);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (sidePanel != null && sidePanel.mouseClicked(mouseX, mouseY, button)) return true;
-        return super.mouseClicked(mouseX, mouseY, button);
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        if (sidePanel != null && sidePanel.mouseClicked(event.x(), event.y(), event.button())) return true;
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int mouseButton) {
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop) {
         if (sidePanel != null) {
             for (Rect2i area : sidePanel.getAreas()) {
                 if (area.contains((int) mouseX, (int) mouseY)) return false;
             }
         }
-        return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop, mouseButton);
+        return super.hasClickedOutside(mouseX, mouseY, guiLeft, guiTop);
     }
 
-    protected void energyTooltip(GuiGraphics g, int x, int y, int energy, int capacity, @Nullable Component extra) {
+    protected void energyTooltip(GuiGraphicsExtractor g, int x, int y, int energy, int capacity, @Nullable Component extra) {
         Component first = Component.translatable("tooltip.voltaicdynamics.gui.energy",
                 String.format("%,d", energy), String.format("%,d", capacity)).withStyle(ChatFormatting.AQUA);
-        g.renderComponentTooltip(font, extra == null ? List.of(first) : List.of(first, extra), x, y);
+        g.setComponentTooltipForNextFrame(font, extra == null ? List.of(first) : List.of(first, extra), x, y);
     }
 }

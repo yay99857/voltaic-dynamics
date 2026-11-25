@@ -6,7 +6,7 @@ import com.voltaicdynamics.core.client.layout.ScreenLayout;
 import com.voltaicdynamics.power.AccumulatorMenu;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -26,14 +26,15 @@ public class AccumulatorScreen extends MachineScreen<AccumulatorMenu> {
     }
 
     @Override
-    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
+    public void extractBackground(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(g, mouseX, mouseY, partialTick);
         drawBackground(g);
         drawWidget(g, gauge(), fraction(menu.getEnergy(), menu.getCapacity()));
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics g, int x, int y) {
-        super.renderTooltip(g, x, y);
+    protected void extractTooltip(GuiGraphicsExtractor g, int x, int y) {
+        super.extractTooltip(g, x, y);
         ScreenLayout.Widget gauge = widget(gauge());
         if (isHovering(gauge, x, y)) {
             ChatFormatting color = menu.getTier().color();
@@ -41,7 +42,7 @@ public class AccumulatorScreen extends MachineScreen<AccumulatorMenu> {
                     ? Component.translatable("tooltip.voltaicdynamics.gui.energy_infinite").withStyle(color)
                     : Component.translatable("tooltip.voltaicdynamics.gui.energy",
                             String.format("%,d", menu.getEnergy()), String.format("%,d", menu.getCapacity())).withStyle(color);
-            g.renderComponentTooltip(font, List.of(stored,
+            g.setComponentTooltipForNextFrame(font, List.of(stored,
                     Component.translatable("tooltip.voltaicdynamics.gui.io_rate",
                             String.format("%,d", menu.getMaxTransfer())).withStyle(ChatFormatting.GRAY)), x, y);
         }

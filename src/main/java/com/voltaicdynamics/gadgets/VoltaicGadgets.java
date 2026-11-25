@@ -1,5 +1,6 @@
 package com.voltaicdynamics.gadgets;
 
+import net.neoforged.neoforge.transfer.energy.ItemAccessEnergyHandler;
 import com.voltaicdynamics.VoltaicDynamics;
 import com.voltaicdynamics.core.ModDataComponents;
 import com.voltaicdynamics.core.VoltaicCore;
@@ -8,7 +9,6 @@ import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.energy.ComponentEnergyStorage;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -17,11 +17,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class VoltaicGadgets {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(VoltaicDynamics.MOD_ID);
 
-    public static final DeferredItem<PocketAccumulatorItem> POCKET_ACCUMULATOR = ITEMS.register("pocket_accumulator",
-            () -> new PocketAccumulatorItem(new Item.Properties()));
+    public static final DeferredItem<PocketAccumulatorItem> POCKET_ACCUMULATOR = ITEMS.registerItem("pocket_accumulator", PocketAccumulatorItem::new, p -> p);
 
-    public static final DeferredItem<VoltaicWrenchItem> VOLTAIC_WRENCH = ITEMS.register("voltaic_wrench",
-            () -> new VoltaicWrenchItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<VoltaicWrenchItem> VOLTAIC_WRENCH = ITEMS.registerItem("voltaic_wrench", VoltaicWrenchItem::new, p -> p.stacksTo(1));
 
     private VoltaicGadgets() {
     }
@@ -35,8 +33,8 @@ public final class VoltaicGadgets {
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerItem(Capabilities.EnergyStorage.ITEM,
-                (stack, context) -> new ComponentEnergyStorage(stack, ModDataComponents.ENERGY.get(),
+        event.registerItem(Capabilities.Energy.ITEM,
+                (stack, access) -> new ItemAccessEnergyHandler(access, ModDataComponents.ENERGY.get(),
                         PocketAccumulatorItem.capacity(), PocketAccumulatorItem.transfer()),
                 POCKET_ACCUMULATOR.get());
     }

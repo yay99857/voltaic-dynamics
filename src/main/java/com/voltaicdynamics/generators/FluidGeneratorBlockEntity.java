@@ -1,5 +1,16 @@
 package com.voltaicdynamics.generators;
 
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import com.voltaicdynamics.core.transfer.Transfers;
+import com.voltaicdynamics.core.transfer.VoltaicItemHandler;
+import com.voltaicdynamics.core.transfer.VoltaicFluidTank;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.voltaicdynamics.VoltaicConfig;
 import com.voltaicdynamics.core.blockentity.VoltaicBlockEntity;
 import com.voltaicdynamics.core.energy.VoltaicEnergyStorage;
@@ -24,14 +35,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.fluids.FluidActionResult;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidUtil;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -46,8 +51,8 @@ public class FluidGeneratorBlockEntity extends VoltaicBlockEntity implements Men
     public static final int MAX_OUTPUT = 400;
 
     private final VoltaicEnergyStorage energyStorage;
-    private final FluidTank tank;
-    private final ItemStackHandler itemHandler = new ItemStackHandler(2) {
+    private final VoltaicFluidTank tank;
+    private final VoltaicItemHandler itemHandler = new VoltaicItemHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
             saveChanges();
@@ -55,33 +60,19 @@ public class FluidGeneratorBlockEntity extends VoltaicBlockEntity implements Men
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return slot == SLOT_IN && FluidUtil.getFluidContained(stack).map(f -> FluidFuel.of(f) != null).orElse(false);
+            return slot == SLOT_IN && !stack.isEmpty() && FluidFuel.of(FluidUtil.getFirstStackContained(stack)) != null;
         }
     };
     /** Pipes: containers into the in slot, empties out of the out slot. */
-    private final IItemHandler automationHandler = new IItemHandler() {
-        public int getSlots() {
-            return 2;
+    private final ResourceHandler<ItemResource> automationHandler = new DelegatingResourceHandler<>(itemHandler) {
+        @Override
+        public int insert(int slot, ItemResource resource, int amount, TransactionContext transaction) {
+            return slot == SLOT_IN ? super.insert(slot, resource, amount, transaction) : 0;
         }
 
-        public ItemStack getStackInSlot(int slot) {
-            return itemHandler.getStackInSlot(slot);
-        }
-
-        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-            return slot == SLOT_IN ? itemHandler.insertItem(slot, stack, simulate) : stack;
-        }
-
-        public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return slot == SLOT_OUT ? itemHandler.extractItem(slot, amount, simulate) : ItemStack.EMPTY;
-        }
-
-        public int getSlotLimit(int slot) {
-            return itemHandler.getSlotLimit(slot);
-        }
-
-        public boolean isItemValid(int slot, ItemStack stack) {
-            return slot == SLOT_IN && itemHandler.isItemValid(slot, stack);
+        @Override
+        public int extract(int slot, ItemResource resource, int amount, TransactionContext transaction) {
+            return slot == SLOT_OUT ? super.extract(slot, resource, amount, transaction) : 0;
         }
     };
     private final SideConfig sideConfig = SideConfig.builder()
@@ -101,7 +92,7 @@ public class FluidGeneratorBlockEntity extends VoltaicBlockEntity implements Men
     public FluidGeneratorBlockEntity(BlockPos pos, BlockState state) {
         super(VoltaicGenerators.FLUID_GENERATOR_BE.get(), pos, state);
         this.energyStorage = new VoltaicEnergyStorage(VoltaicConfig.get(VoltaicConfig.FLUID_GEN_CAPACITY), 0, MAX_OUTPUT, this::saveChanges);
-        this.tank = new FluidTank(VoltaicConfig.get(VoltaicConfig.FLUID_GEN_TANK), stack -> FluidFuel.of(stack) != null) {
+        this.tank = new VoltaicFluidTank(VoltaicConfig.get(VoltaicConfig.FLUID_GEN_TANK), stack -> FluidFuel.of(stack) != null) {
             @Override
             protected void onContentsChanged() {
                 saveChanges();
@@ -133,7 +124,7 @@ public class FluidGeneratorBlockEntity extends VoltaicBlockEntity implements Men
         int rate = fuel != null ? fuel.rate() : Math.min(credit, lastRate);
         if (energyStorage.getSpace() < rate) return 0;
         while (credit < rate && fuel != null) {
-            if (tank.drain(1, IFluidHandler.FluidAction.EXECUTE).isEmpty()) break;
+            if (Transfers.drain(tank, 1, false).isEmpty()) break;
             credit += fuel.energyPerMb();
         }
         int made = Math.min(rate, credit);
@@ -145,32 +136,17 @@ public class FluidGeneratorBlockEntity extends VoltaicBlockEntity implements Men
 
     /** A fuel container in the in slot is emptied into the tank; the empty one goes to the out slot. */
     private void processContainers() {
-        ItemStack input = itemHandler.getStackInSlot(SLOT_IN);
-        if (input.isEmpty()) return;
-        ItemStack output = itemHandler.getStackInSlot(SLOT_OUT);
-        FluidActionResult result = FluidUtil.tryEmptyContainer(input, tank, Integer.MAX_VALUE, null, false);
-        if (!result.isSuccess()) return;
-        ItemStack after = result.getResult();
-        if (!after.isEmpty() && !output.isEmpty()
-                && (!ItemStack.isSameItemSameComponents(output, after) || output.getCount() + after.getCount() > output.getMaxStackSize())) {
-            return;
-        }
-        FluidActionResult real = FluidUtil.tryEmptyContainer(input, tank, Integer.MAX_VALUE, null, true);
-        if (!real.isSuccess()) return;
-        itemHandler.setStackInSlot(SLOT_IN, ItemStack.EMPTY);
-        ItemStack produced = real.getResult();
-        if (!produced.isEmpty()) {
-            if (output.isEmpty()) {
-                itemHandler.setStackInSlot(SLOT_OUT, produced.copy());
-            } else {
-                output.grow(produced.getCount());
-                itemHandler.setStackInSlot(SLOT_OUT, output);
-            }
-        }
+        Transfers.processContainer(itemHandler, SLOT_IN, SLOT_OUT, tank, false);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        drops();
     }
 
     public void drops() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             SimpleContainer inventory = new SimpleContainer(itemHandler.getSlots());
             for (int i = 0; i < itemHandler.getSlots(); i++) inventory.setItem(i, itemHandler.getStackInSlot(i));
             Containers.dropContents(level, worldPosition, inventory);
@@ -178,25 +154,25 @@ public class FluidGeneratorBlockEntity extends VoltaicBlockEntity implements Men
     }
 
     @Nullable
-    public IEnergyStorage getEnergyStorage(@Nullable Direction side) {
+    public EnergyHandler getEnergyStorage(@Nullable Direction side) {
         return sided.energy(side);
     }
 
     @Nullable
-    public IFluidHandler getFluidHandler(@Nullable Direction side) {
+    public ResourceHandler<FluidResource> getFluidHandler(@Nullable Direction side) {
         return sided.fluids(side);
     }
 
     @Nullable
-    public IItemHandler getItemHandler(@Nullable Direction side) {
+    public ResourceHandler<ItemResource> getItemHandler(@Nullable Direction side) {
         return sided.items(side);
     }
 
-    public IItemHandler getMenuItemHandler() {
+    public VoltaicItemHandler getMenuItemHandler() {
         return itemHandler;
     }
 
-    public FluidTank getTank() {
+    public VoltaicFluidTank getTank() {
         return tank;
     }
 
@@ -246,23 +222,23 @@ public class FluidGeneratorBlockEntity extends VoltaicBlockEntity implements Men
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Inventory", itemHandler.serializeNBT(registries));
-        tag.put("Energy", energyStorage.serializeNBT(registries));
-        tag.put("Tank", tank.writeToNBT(registries, new CompoundTag()));
-        tag.putInt("Credit", credit);
-        tag.put("SideConfig", sideConfig.save());
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        itemHandler.serialize(output.child("Inventory"));
+        energyStorage.serialize(output);
+        tank.save(output, "Tank");
+        output.putInt("Credit", credit);
+        sideConfig.save(output);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains("Inventory")) itemHandler.deserializeNBT(registries, tag.getCompound("Inventory"));
-        if (tag.contains("Energy")) energyStorage.deserializeNBT(registries, tag.getCompound("Energy"));
-        if (tag.contains("Tank")) tank.readFromNBT(registries, tag.getCompound("Tank"));
-        credit = tag.getInt("Credit");
-        if (tag.contains("SideConfig")) sideConfig.load(tag.getCompound("SideConfig"));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        input.child("Inventory").ifPresent(itemHandler::deserialize);
+        energyStorage.deserialize(input);
+        tank.load(input, "Tank");
+        credit = input.getIntOr("Credit", 0);
+        sideConfig.load(input);
         sided.invalidate();
     }
 }
